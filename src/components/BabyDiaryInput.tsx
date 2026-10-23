@@ -59,10 +59,17 @@ export const BabyDiaryInput: React.FC<BabyDiaryInputProps> = ({
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Request failed');
       setAiTip(result.tip);
-    } catch {
-      setAiTipError(currentLang === 'bn'
-        ? 'এখন পরামর্শ তৈরি করা যাচ্ছে না। API key ও সার্ভার সেটআপ পরীক্ষা করুন।'
-        : 'Could not generate a tip. Check the API key and server setup.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('API key is not configured')) {
+        setAiTipError(currentLang === 'bn'
+          ? 'Gemini চালু করতে প্রজেক্টের .env ফাইলে GEMINI_API_KEY যোগ করে dev server বন্ধ করে আবার চালু করুন।'
+          : 'To enable Gemini, add GEMINI_API_KEY to the project .env file, then restart the dev server.');
+      } else {
+        setAiTipError(currentLang === 'bn'
+          ? 'এখন পরামর্শ তৈরি করা যাচ্ছে না। ইন্টারনেট সংযোগ ও Gemini API key পরীক্ষা করুন।'
+          : 'Could not generate a tip. Check your connection and Gemini API key.');
+      }
     } finally {
       setIsLoadingAiTip(false);
     }
