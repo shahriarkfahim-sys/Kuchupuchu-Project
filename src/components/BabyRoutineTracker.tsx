@@ -15,6 +15,47 @@ import {
 import { ChildProfile, Language, RoutineLogEntry } from '../types';
 import { formatLocalizedNumber } from '../i18n/translations';
 
+const feedOptions = [
+  { id: 'breastmilk', labelBn: 'মায়ের বুকের দুধ', labelEn: 'Breast milk' },
+  { id: 'formula', labelBn: 'ফর্মুলা দুধ', labelEn: 'Formula milk' },
+  { id: 'rice', labelBn: 'ভাত', labelEn: 'Rice' },
+  { id: 'khichuri_veg_egg', labelBn: 'সবজি ও ডিমের খিচুড়ি', labelEn: 'Vegetable and egg khichuri' },
+  { id: 'khichuri_fish', labelBn: 'মাছের খিচুড়ি', labelEn: 'Fish khichuri' },
+  { id: 'rice_dal', labelBn: 'ভাত ও ডাল', labelEn: 'Rice and lentils' },
+  { id: 'dal', labelBn: 'ডাল', labelEn: 'Lentils' },
+  { id: 'fish', labelBn: 'মাছ', labelEn: 'Fish' },
+  { id: 'egg', labelBn: 'ডিম', labelEn: 'Egg' },
+  { id: 'chicken', labelBn: 'মুরগির মাংস', labelEn: 'Chicken' },
+  { id: 'vegetables', labelBn: 'সবজি', labelEn: 'Vegetables' },
+  { id: 'potato', labelBn: 'আলু ভর্তা', labelEn: 'Mashed potato' },
+  { id: 'pumpkin', labelBn: 'মিষ্টি কুমড়া', labelEn: 'Pumpkin' },
+  { id: 'spinach', labelBn: 'শাক', labelEn: 'Leafy greens' },
+  { id: 'suji', labelBn: 'সুজি', labelEn: 'Semolina' },
+  { id: 'oats', labelBn: 'ওটস', labelEn: 'Oats' },
+  { id: 'banana', labelBn: 'কলা', labelEn: 'Banana' },
+  { id: 'papaya', labelBn: 'পেঁপে', labelEn: 'Papaya' },
+  { id: 'mango', labelBn: 'আম', labelEn: 'Mango' },
+  { id: 'guava', labelBn: 'পেয়ারা', labelEn: 'Guava' },
+  { id: 'yogurt', labelBn: 'টক দই', labelEn: 'Plain yogurt' },
+  { id: 'bread', labelBn: 'রুটি বা পাউরুটি', labelEn: 'Roti or bread' },
+] as const;
+
+const timeOptions = Array.from({ length: 48 }, (_, index) => {
+  const hours = Math.floor(index / 2);
+  const minutes = index % 2 === 0 ? '00' : '30';
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
+});
+
+function formatRoutineTime(value: string, lang: Language) {
+  const [hoursText, minutes] = value.split(':');
+  const hours = Number(hoursText);
+  const periodBn = hours < 4 ? 'রাত' : hours < 6 ? 'ভোর' : hours < 11 ? 'সকাল' : hours < 15 ? 'দুপুর' : hours < 18 ? 'বিকাল' : hours < 20 ? 'সন্ধ্যা' : 'রাত';
+  const periodEn = hours < 12 ? 'AM' : 'PM';
+  const displayHours = hours % 12 || 12;
+  const time = `${formatLocalizedNumber(displayHours, lang)}:${formatLocalizedNumber(minutes, lang)}`;
+  return lang === 'bn' ? `${periodBn} ${time}` : `${time} ${periodEn}`;
+}
+
 interface BabyRoutineTrackerProps {
   currentLang: Language;
   activeChild: ChildProfile;
@@ -29,8 +70,9 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   onAddRoutineLog,
 }) => {
   const [selectedType, setSelectedType] = useState<'feed' | 'sleep' | 'potty'>('feed');
-  const [logTime, setLogTime] = useState('১২:৩০');
-  const [feedItem, setFeedItem] = useState('সবজি ও ডিমের খিচুড়ি');
+  const [logTime, setLogTime] = useState('12:30');
+  const [feedItem, setFeedItem] = useState<string>(feedOptions[3].id);
+  const [customFeedItem, setCustomFeedItem] = useState('');
   const [sleepDuration, setSleepDuration] = useState('১ ঘণ্টা');
   const [pottyStatus, setPottyStatus] = useState('স্বাভাবিক ও নরম');
   const [customNote, setCustomNote] = useState('');
@@ -47,8 +89,11 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
     let detailsEn = '';
 
     if (selectedType === 'feed') {
-      titleBn = `খাবার: ${feedItem}`;
-      titleEn = `Feed: ${feedItem}`;
+      const selectedFeed = feedOptions.find((item) => item.id === feedItem);
+      const foodBn = feedItem === 'other' ? customFeedItem.trim() : selectedFeed?.labelBn ?? '';
+      const foodEn = feedItem === 'other' ? customFeedItem.trim() : selectedFeed?.labelEn ?? '';
+      titleBn = `খাবার: ${foodBn}`;
+      titleEn = `Feed: ${foodEn}`;
       detailsBn = customNote || 'পর্যাপ্ত পরিমাণে খেয়েছে, খাওয়ার পর বেশ তৃপ্ত ছিল।';
       detailsEn = customNote || 'Good healthy intake, satisfied after feed.';
     } else if (selectedType === 'sleep') {
@@ -66,7 +111,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
     const newLog: RoutineLogEntry = {
       id: `r_${Date.now()}`,
       type: selectedType,
-      time: logTime,
+      time: formatRoutineTime(logTime, currentLang),
       titleBn,
       titleEn,
       detailsBn,
@@ -214,14 +259,16 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
               <label className="block font-semibold text-[#2D3142] mb-1">
                 {currentLang === 'bn' ? 'সময়:' : 'Time:'}
               </label>
-              <input
-                type="text"
+              <select
                 required
                 value={logTime}
                 onChange={(e) => setLogTime(e.target.value)}
-                placeholder="যেমন: দুপুর ১২:৩০ বা সকাল ০৯:০০"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
-              />
+              >
+                {timeOptions.map((time) => (
+                  <option key={time} value={time}>{formatRoutineTime(time, currentLang)}</option>
+                ))}
+              </select>
             </div>
 
             {/* Dynamic Options based on selected type */}
@@ -230,14 +277,29 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
                 <label className="block font-semibold text-[#2D3142] mb-1">
                   {currentLang === 'bn' ? 'কী খাবার খেয়েছে?' : 'Meal Item:'}
                 </label>
-                <input
-                  type="text"
+                <select
                   required
                   value={feedItem}
                   onChange={(e) => setFeedItem(e.target.value)}
-                  placeholder="যেমন: সবজির খিচুড়ি, কলা চটকানো, বুকের দুধ"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
-                />
+                >
+                  {feedOptions.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {currentLang === 'bn' ? item.labelBn : item.labelEn}
+                    </option>
+                  ))}
+                  <option value="other">{currentLang === 'bn' ? 'অন্যান্য' : 'Other'}</option>
+                </select>
+                {feedItem === 'other' && (
+                  <input
+                    type="text"
+                    required
+                    value={customFeedItem}
+                    onChange={(e) => setCustomFeedItem(e.target.value)}
+                    placeholder={currentLang === 'bn' ? 'খাবারের নাম লিখুন' : 'Enter food name'}
+                    className="mt-2 w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
+                  />
+                )}
               </div>
             )}
 
