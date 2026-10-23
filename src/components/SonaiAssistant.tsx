@@ -79,6 +79,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
+  const [quotaSleepUntil, setQuotaSleepUntil] = useState<number | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
 
@@ -120,6 +121,17 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isSending, isOpen]);
 
+  useEffect(() => {
+    if (quotaSleepUntil === null) return;
+    const remaining = quotaSleepUntil - Date.now();
+    if (remaining <= 0) {
+      setQuotaSleepUntil(null);
+      return;
+    }
+    const timer = window.setTimeout(() => setQuotaSleepUntil(null), remaining);
+    return () => window.clearTimeout(timer);
+  }, [quotaSleepUntil]);
+
   const reminderQuestion = isBn
     ? activeChild.ageMonths < 6
       ? 'আজ খাওয়ানো বা ফিডিং রুটিনটা ঠিকমতো চলছে তো?'
@@ -130,7 +142,8 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
 
   const sendMessage = async (text: string) => {
     const cleanText = text.trim();
-    if (!cleanText || isSending) return;
+    if (!cleanText || isSending || (quotaSleepUntil !== null && quotaSleepUntil > Date.now())) return;
+    if (quotaSleepUntil !== null) setQuotaSleepUntil(null);
     const nextMessages: ChatMessage[] = [...messages, { role: 'user', text: cleanText }];
     setMessages(nextMessages);
     setInput('');
@@ -154,14 +167,45 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
       const answer = typeof result === 'object' && result !== null && 'answer' in result && typeof result.answer === 'string'
         ? result.answer
         : null;
+      const errorCode = typeof result === 'object' && result !== null && 'error' in result && typeof result.error === 'string'
+        ? result.error
+        : null;
+      if (!response.ok && errorCode === 'assistant_quota_exceeded') {
+        const retryAfterSeconds = typeof result === 'object' && result !== null && 'retryAfterSeconds' in result &&
+          typeof result.retryAfterSeconds === 'number' && Number.isFinite(result.retryAfterSeconds) && result.retryAfterSeconds > 0
+          ? result.retryAfterSeconds
+          : null;
+        const wakeAt = retryAfterSeconds === null ? null : Date.now() + retryAfterSeconds * 1000;
+        setQuotaSleepUntil(wakeAt);
+        const wakeTime = wakeAt === null
+          ? null
+          : new Intl.DateTimeFormat(isBn ? 'bn-BD' : 'en-US', { hour: 'numeric', minute: '2-digit' }).format(wakeAt);
+        const sleepReply = isBn
+          ? wakeTime
+            ? `আমার Gemini quota আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। আনুমানিক ${wakeTime}-এ জেগে উঠব—তখন আবার প্রশ্ন কোরো!`
+            : 'আমার Gemini quota আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। কখন জাগব তা জানা যাচ্ছে না—quota reset হলে আবার প্রশ্ন কোরো!'
+          : wakeTime
+            ? `My Gemini quota is resting, so I’m going to sleep for a bit. I expect to wake up around ${wakeTime}—ask me again then!`
+            : 'My Gemini quota is resting, so I’m going to sleep for a bit. I don’t know when it will reset; please ask me again after the quota resets!';
+        setMessages((current) => [...current, { role: 'model', text: sleepReply }]);
+        return;
+      }
       if (!response.ok || answer === null) {
-        throw new Error(typeof result === 'object' && result !== null && 'error' in result && typeof result.error === 'string' ? result.error : 'assistant_unavailable');
+        throw new Error(errorCode || 'assistant_unavailable');
       }
       setMessages((current) => [...current, { role: 'model', text: answer }]);
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : '';
       if (message === 'assistant_not_configured') {
         setError(isBn ? 'সোনাইকে চালু করতে server-এ Gemini API key যোগ করতে হবে।' : 'Add a Gemini API key on the server to enable Sonai.');
+      } else if (message === 'assistant_quota_exceeded') {
+        setError(isBn
+          ? 'আজকের Gemini free-tier request limit শেষ। quota reset হওয়া পর্যন্ত অপেক্ষা করুন, অথবা Google AI Studio-তে billing ও quota দেখুন।'
+          : "Today's Gemini free-tier request limit has been reached. Wait for the quota to reset, or check billing and quota in Google AI Studio.");
+      } else if (message === 'assistant_busy') {
+        setError(isBn ? 'Gemini এখন খুব ব্যস্ত। কিছুক্ষণ পরে আবার চেষ্টা করুন।' : 'Gemini is busy right now. Please try again in a little while.');
+      } else if (message === 'rate_limited') {
+        setError(isBn ? 'অল্প সময়ে অনেকবার চেষ্টা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।' : 'There have been too many requests. Please wait a minute and try again.');
       } else {
         setError(isBn ? 'এখন সোনাইয়ের সাথে যোগাযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।' : 'Sonai could not connect just now. Please try again in a moment.');
       }
@@ -280,12 +324,15 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder={isBn ? 'সোনাইকে কিছু জিজ্ঞেস করো…' : 'Ask Sonai something…'}
+                  placeholder={quotaSleepUntil !== null
+                    ? isBn ? 'সোনাই এখন ঘুমাচ্ছে…' : 'Sonai is sleeping…'
+                    : isBn ? 'সোনাইকে কিছু জিজ্ঞেস করো…' : 'Ask Sonai something…'}
                   className="min-w-0 flex-1 rounded-xl border border-[#E9DED6] bg-white px-3 py-2.5 text-xs outline-none focus:border-[#CF927E]"
                   aria-label={isBn ? 'সোনাইকে বার্তা লিখুন' : 'Message Sonai'}
                   maxLength={1000}
+                  disabled={quotaSleepUntil !== null}
                 />
-                <button type="submit" disabled={!input.trim() || isSending} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D78D78] text-white transition hover:bg-[#BC735E] disabled:cursor-not-allowed disabled:opacity-45" aria-label={isBn ? 'বার্তা পাঠান' : 'Send message'}>
+                <button type="submit" disabled={!input.trim() || isSending || quotaSleepUntil !== null} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D78D78] text-white transition hover:bg-[#BC735E] disabled:cursor-not-allowed disabled:opacity-45" aria-label={isBn ? 'বার্তা পাঠান' : 'Send message'}>
                   <Send className="h-4 w-4" />
                 </button>
               </form>
