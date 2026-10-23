@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   Smile, 
   Heart,
-  PlusCircle
+  PlusCircle,
+  LoaderCircle
 } from 'lucide-react';
 import { ChildProfile, GrowthLogEntry, Language, MoodConfig } from '../types';
 import { moodOptions } from '../data/mockData';
@@ -37,6 +38,35 @@ export const BabyDiaryInput: React.FC<BabyDiaryInputProps> = ({
   const [noteText, setNoteText] = useState<string>('');
   const [selectedMood, setSelectedMood] = useState<'happy' | 'fussy' | 'sleepy' | 'active'>('happy');
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
+  const [aiTip, setAiTip] = useState('');
+  const [aiTipError, setAiTipError] = useState('');
+  const [isLoadingAiTip, setIsLoadingAiTip] = useState(false);
+
+  const handleGenerateAiTip = async () => {
+    setIsLoadingAiTip(true);
+    setAiTipError('');
+    setAiTip('');
+
+    try {
+      const response = await fetch('/api/ai/development-tip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ageMonths: activeChild.ageMonths,
+          language: currentLang,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Request failed');
+      setAiTip(result.tip);
+    } catch {
+      setAiTipError(currentLang === 'bn'
+        ? 'এখন পরামর্শ তৈরি করা যাচ্ছে না। API key ও সার্ভার সেটআপ পরীক্ষা করুন।'
+        : 'Could not generate a tip. Check the API key and server setup.');
+    } finally {
+      setIsLoadingAiTip(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,6 +227,28 @@ export const BabyDiaryInput: React.FC<BabyDiaryInputProps> = ({
               {t.saveLogBtn}
             </button>
           </form>
+
+          <div className="border-t border-[#F3E7DC] pt-4 space-y-3">
+            <button
+              type="button"
+              onClick={handleGenerateAiTip}
+              disabled={isLoadingAiTip}
+              className="w-full py-2.5 bg-[#FFF0E2] hover:bg-[#FFE5D0] disabled:opacity-60 text-[#C85D26] font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
+            >
+              {isLoadingAiTip ? <LoaderCircle className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              <span>{isLoadingAiTip
+                ? (currentLang === 'bn' ? 'পরামর্শ তৈরি হচ্ছে…' : 'Generating tip…')
+                : (currentLang === 'bn' ? 'Gemini থেকে যত্নের পরামর্শ নিন' : 'Get an AI parenting tip')}</span>
+            </button>
+            {aiTip && (
+              <div className="rounded-2xl border border-[#FFD9B3] bg-[#FFFAF5] p-4 text-xs leading-relaxed text-[#2D3142] whitespace-pre-wrap">
+                <p className="font-bold text-[#C85D26] mb-1">{currentLang === 'bn' ? 'আপনার জন্য পরামর্শ' : 'A helpful idea'}</p>
+                {aiTip}
+                <p className="mt-2 text-[10px] text-[#7C8294]">{currentLang === 'bn' ? 'এটি সাধারণ তথ্য, চিকিৎসকের পরামর্শ নয়।' : 'General information only—not medical advice.'}</p>
+              </div>
+            )}
+            {aiTipError && <p role="alert" className="text-xs text-red-600">{aiTipError}</p>}
+          </div>
         </div>
 
         {/* Recent Entries Feed */}
