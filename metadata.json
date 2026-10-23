@@ -1,0 +1,6 @@
+{
+  "name": "ShishuBikash - Early Childhood Development",
+  "description": "Localized Early Childhood Development (ECD) platform for Bangladeshi parents with daily play activities, CDC/WHO developmental milestone tracker, and verified care escalation network.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
