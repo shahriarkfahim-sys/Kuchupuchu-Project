@@ -34,6 +34,8 @@ import { SpiderChartRadar } from './components/SpiderChartRadar';
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { AuthGateModal } from './components/AuthGateModal';
 import { AuthGateCard } from './components/AuthGateCard';
+import { PonnoPage } from './components/PonnoPage';
+import { SonaiAssistant } from './components/SonaiAssistant';
 
 import { 
   initialProfiles, 
@@ -360,6 +362,8 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'ponno' && <PonnoPage currentLang={currentLang} />}
+
         {/* VIEW 2: 'অগ্রগতি ও গ্রাফ' (Contains HeaderBanner + SpiderChartRadar + WormGraphView) */}
         {activeTab === 'ogrogoti-graph' && (
           !isLoggedIn ? (
@@ -648,6 +652,16 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      <SonaiAssistant
+        currentLang={currentLang}
+        isLoggedIn={isLoggedIn}
+        activeChild={activeChild}
+        growthLogs={growthLogs}
+        milestones={milestones}
+        routineLogs={routineLogs}
+        activities={activities}
+      />
 
     </div>
   );

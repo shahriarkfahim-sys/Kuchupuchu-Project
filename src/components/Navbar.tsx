@@ -52,6 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'baby-diary', label: t.navBabyDiary },         // 'সন্তানের ডায়েরি'
     { id: 'forum', label: t.navForum },                 // 'ফোরাম'
     { id: 'care-connect', label: t.navCareConnect },     // 'সাহায্য'
+    { id: 'ponno', label: currentLang === 'bn' ? 'পণ্য' : 'Ponno' },
   ];
 
   return (
