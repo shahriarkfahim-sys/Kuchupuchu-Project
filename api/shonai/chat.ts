@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { handleSonaiChat } from '../../server/shonaiChat';
+import { handleSonaiChat } from '../../server/shonaiChat.js';
 
 type VercelRequest = IncomingMessage & {
   body?: unknown;

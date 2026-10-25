@@ -1,4 +1,4 @@
-import { DeepSeekError, generateDeepSeekReply } from './deepseek';
+import { DeepSeekError, generateDeepSeekReply } from './deepseek.js';
 
 interface HistoryItem {
   role: 'user' | 'model';
