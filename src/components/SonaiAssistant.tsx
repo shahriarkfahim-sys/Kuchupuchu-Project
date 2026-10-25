@@ -198,6 +198,18 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
       const message = reason instanceof Error ? reason.message : '';
       if (message === 'assistant_not_configured') {
         setError(isBn ? 'সোনাইকে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।' : 'Add a DeepSeek API key on the server to enable Sonai.');
+      } else if (message === 'assistant_invalid_api_key') {
+        setError(isBn
+          ? 'DeepSeek API key গ্রহণ করা হয়নি। server-এর DEEPSEEK_API_KEY পরীক্ষা করুন।'
+          : 'DeepSeek rejected the API key. Check the server DEEPSEEK_API_KEY setting.');
+      } else if (message === 'assistant_billing_required') {
+        setError(isBn
+          ? 'DeepSeek account-এ balance বা billing সেটআপ প্রয়োজন। DeepSeek dashboard দেখে আবার চেষ্টা করুন।'
+          : 'DeepSeek requires an account balance or billing setup. Check your DeepSeek dashboard and try again.');
+      } else if (message === 'assistant_access_denied') {
+        setError(isBn
+          ? 'DeepSeek API-তে প্রবেশ অনুমোদিত হয়নি। API key-এর access ও account status পরীক্ষা করুন।'
+          : 'DeepSeek denied API access. Check the API key permissions and account status.');
       } else if (message === 'assistant_quota_exceeded') {
         setError(isBn
           ? 'DeepSeek API request limit শেষ। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন, অথবা DeepSeek account-এর usage দেখুন।'

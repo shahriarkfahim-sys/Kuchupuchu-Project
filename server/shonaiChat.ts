@@ -230,6 +230,18 @@ ${siteKnowledge}
       response.status(429).json({ error: 'assistant_quota_exceeded', retryAfterSeconds });
       return;
     }
+    if (status === 401) {
+      response.status(503).json({ error: 'assistant_invalid_api_key' });
+      return;
+    }
+    if (status === 402) {
+      response.status(503).json({ error: 'assistant_billing_required' });
+      return;
+    }
+    if (status === 403) {
+      response.status(503).json({ error: 'assistant_access_denied' });
+      return;
+    }
     if (error instanceof DeepSeekError && error.message === 'deepseek_not_configured') {
       response.status(503).json({ error: 'assistant_not_configured' });
       return;
