@@ -4,10 +4,10 @@
 
 1. Push this repository/branch to GitHub and import it as a Vercel project.
 2. Keep the project root as the Vercel root directory. `vercel.json` sets the Vite build command and `dist` output.
-3. In **Project Settings → Environment Variables**, add `GEMINI_API_KEY` with a valid Gemini API key for Development, Preview, and Production as needed. Optionally set `GEMINI_MODEL` to `gemini-3.5-flash`.
+3. In **Project Settings → Environment Variables**, add `DEEPSEEK_API_KEY` with a valid DeepSeek API key for Development, Preview, and Production as needed. Optionally set `DEEPSEEK_MODEL`; it defaults to `deepseek-chat`.
 4. Redeploy after changing environment variables. Never commit `.env` or paste a key into source code; `.env.example` is only a placeholder.
 
-The Sonai endpoint is deployed as a Vercel Function at `/api/shonai/chat`. Locally, `npm run dev` runs the same chat handler through the Express development server.
+The Sonai endpoint is deployed as a Vercel Function at `/api/shonai/chat`. Locally, `npm run dev` runs the same chat handler through the Express development server. The development-tip endpoint uses the same DeepSeek configuration. API keys must only be stored as server environment variables and never in client-side code.
 
 ## Current integration limits
 

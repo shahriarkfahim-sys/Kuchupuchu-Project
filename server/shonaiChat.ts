@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { DeepSeekError, generateDeepSeekReply } from './deepseek';
 
 interface HistoryItem {
   role: 'user' | 'model';
@@ -31,17 +31,7 @@ interface ChatResponse {
 
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 const unknownMarker = '[[SHONAI_UNSURE]]';
-let geminiQuotaSleepUntil: number | null = null;
-
-const getGeminiRetryAfterSeconds = (error: unknown): number | null => {
-  if (typeof error !== 'object' || error === null || !('message' in error) || typeof error.message !== 'string') {
-    return null;
-  }
-  const match = /"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(error.message);
-  if (!match) return null;
-  const seconds = Number(match[1]);
-  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : null;
-};
+let deepSeekQuotaSleepUntil: number | null = null;
 
 export async function handleSonaiChat(request: ChatRequest, response: ChatResponse): Promise<void> {
   const now = Date.now();
@@ -170,19 +160,13 @@ export async function handleSonaiChat(request: ChatRequest, response: ChatRespon
     };
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY' || apiKey === 'YOUR_GEMINI_API_KEY') {
-    response.status(503).json({ error: 'assistant_not_configured' });
-    return;
-  }
-
-  if (geminiQuotaSleepUntil !== null) {
-    const retryAfterSeconds = Math.ceil((geminiQuotaSleepUntil - Date.now()) / 1000);
+  if (deepSeekQuotaSleepUntil !== null) {
+    const retryAfterSeconds = Math.ceil((deepSeekQuotaSleepUntil - Date.now()) / 1000);
     if (retryAfterSeconds > 0) {
       response.status(429).json({ error: 'assistant_quota_exceeded', retryAfterSeconds });
       return;
     }
-    geminiQuotaSleepUntil = null;
+    deepSeekQuotaSleepUntil = null;
   }
 
   const languageName = language === 'bn' ? 'Bangla' : 'English';
@@ -215,21 +199,18 @@ ${siteKnowledge}
 `;
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    const result = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
-      contents: [
-        ...history.map(({ role, text }) => ({ role, parts: [{ text }] })),
-        { role: 'user', parts: [{ text: message.trim() }] },
-      ],
-      config: {
-        systemInstruction,
-        temperature: 0.55,
-        maxOutputTokens: 1200,
-      },
+    const answer = await generateDeepSeekReply([
+      { role: 'system', content: systemInstruction },
+      ...history.map(({ role, text }) => ({
+        role: role === 'model' ? 'assistant' as const : 'user' as const,
+        content: text,
+      })),
+      { role: 'user', content: message.trim() },
+    ], {
+      temperature: 0.55,
+      maxTokens: 1200,
     });
 
-    const answer = result.text?.trim();
     if (!answer || answer.includes(unknownMarker)) {
       response.json({
         answer: language === 'bn'
@@ -241,14 +222,16 @@ ${siteKnowledge}
 
     response.json({ answer });
   } catch (error) {
-    console.error('Sonai Gemini request failed:', error);
-    const status = typeof error === 'object' && error !== null && 'status' in error && typeof error.status === 'number'
-      ? error.status
-      : null;
+    console.error('Sonai DeepSeek request failed:', error);
+    const status = error instanceof DeepSeekError ? error.status : null;
     if (status === 429) {
-      const retryAfterSeconds = getGeminiRetryAfterSeconds(error);
-      if (retryAfterSeconds !== null) geminiQuotaSleepUntil = Date.now() + retryAfterSeconds * 1000;
+      const retryAfterSeconds = error instanceof DeepSeekError ? error.retryAfterSeconds : null;
+      if (retryAfterSeconds !== null) deepSeekQuotaSleepUntil = Date.now() + retryAfterSeconds * 1000;
       response.status(429).json({ error: 'assistant_quota_exceeded', retryAfterSeconds });
+      return;
+    }
+    if (error instanceof DeepSeekError && error.message === 'deepseek_not_configured') {
+      response.status(503).json({ error: 'assistant_not_configured' });
       return;
     }
     if (status === 503) {

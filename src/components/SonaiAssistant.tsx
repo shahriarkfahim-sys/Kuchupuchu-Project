@@ -182,11 +182,11 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
           : new Intl.DateTimeFormat(isBn ? 'bn-BD' : 'en-US', { hour: 'numeric', minute: '2-digit' }).format(wakeAt);
         const sleepReply = isBn
           ? wakeTime
-            ? `আমার Gemini quota আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। আনুমানিক ${wakeTime}-এ জেগে উঠব—তখন আবার প্রশ্ন কোরো!`
-            : 'আমার Gemini quota আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। কখন জাগব তা জানা যাচ্ছে না—quota reset হলে আবার প্রশ্ন কোরো!'
+            ? `আমার AI request limit আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। আনুমানিক ${wakeTime}-এ জেগে উঠব—তখন আবার প্রশ্ন কোরো!`
+            : 'আমার AI request limit আপাতত শেষ, তাই আমি এখন একটু ঘুমাবো। কখন জাগব তা জানা যাচ্ছে না—limit reset হলে আবার প্রশ্ন কোরো!'
           : wakeTime
-            ? `My Gemini quota is resting, so I’m going to sleep for a bit. I expect to wake up around ${wakeTime}—ask me again then!`
-            : 'My Gemini quota is resting, so I’m going to sleep for a bit. I don’t know when it will reset; please ask me again after the quota resets!';
+            ? `My AI request limit is reached, so I’m going to sleep for a bit. I expect to wake up around ${wakeTime}—ask me again then!`
+            : 'My AI request limit is reached, so I’m going to sleep for a bit. I don’t know when it will reset; please ask me again later!';
         setMessages((current) => [...current, { role: 'model', text: sleepReply }]);
         return;
       }
@@ -197,13 +197,13 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : '';
       if (message === 'assistant_not_configured') {
-        setError(isBn ? 'সোনাইকে চালু করতে server-এ Gemini API key যোগ করতে হবে।' : 'Add a Gemini API key on the server to enable Sonai.');
+        setError(isBn ? 'সোনাইকে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।' : 'Add a DeepSeek API key on the server to enable Sonai.');
       } else if (message === 'assistant_quota_exceeded') {
         setError(isBn
-          ? 'আজকের Gemini free-tier request limit শেষ। quota reset হওয়া পর্যন্ত অপেক্ষা করুন, অথবা Google AI Studio-তে billing ও quota দেখুন।'
-          : "Today's Gemini free-tier request limit has been reached. Wait for the quota to reset, or check billing and quota in Google AI Studio.");
+          ? 'DeepSeek API request limit শেষ। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন, অথবা DeepSeek account-এর usage দেখুন।'
+          : 'The DeepSeek API request limit has been reached. Wait a little and try again, or check usage in your DeepSeek account.');
       } else if (message === 'assistant_busy') {
-        setError(isBn ? 'Gemini এখন খুব ব্যস্ত। কিছুক্ষণ পরে আবার চেষ্টা করুন।' : 'Gemini is busy right now. Please try again in a little while.');
+        setError(isBn ? 'DeepSeek এখন ব্যস্ত। কিছুক্ষণ পরে আবার চেষ্টা করুন।' : 'DeepSeek is busy right now. Please try again in a little while.');
       } else if (message === 'rate_limited') {
         setError(isBn ? 'অল্প সময়ে অনেকবার চেষ্টা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।' : 'There have been too many requests. Please wait a minute and try again.');
       } else {
@@ -314,11 +314,11 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
               <p className="mb-1.5 text-center text-[9px] leading-relaxed text-[#968C94]">
                 {isBn
                   ? isLoggedIn
-                    ? 'উত্তরে শিশুর বয়স, growth ও routine-এর প্রয়োজনীয় তথ্য Gemini AI-তে যাবে। জরুরি স্বাস্থ্য সমস্যায় চিকিৎসকের পরামর্শ নিন।'
-                    : 'উত্তর তৈরি করতে আপনার প্রশ্ন Gemini AI-তে যাবে। স্বাস্থ্য সমস্যায় চিকিৎসকের পরামর্শ নিন।'
+                    ? 'উত্তরে শিশুর বয়স, growth ও routine-এর প্রয়োজনীয় তথ্য DeepSeek AI-তে যাবে। জরুরি স্বাস্থ্য সমস্যায় চিকিৎসকের পরামর্শ নিন।'
+                    : 'উত্তর তৈরি করতে আপনার প্রশ্ন DeepSeek AI-তে যাবে। স্বাস্থ্য সমস্যায় চিকিৎসকের পরামর্শ নিন।'
                   : isLoggedIn
-                    ? 'Relevant age, growth and routine details are sent to Gemini AI with your question. Ask a clinician for urgent health concerns.'
-                    : 'Your question is sent to Gemini AI to generate an answer. Ask a clinician about urgent health concerns.'}
+                    ? 'Relevant age, growth and routine details are sent to DeepSeek AI with your question. Ask a clinician for urgent health concerns.'
+                    : 'Your question is sent to DeepSeek AI to generate an answer. Ask a clinician about urgent health concerns.'}
               </p>
               <form onSubmit={submit} className="flex items-center gap-2">
                 <input

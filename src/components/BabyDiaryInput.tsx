@@ -63,12 +63,12 @@ export const BabyDiaryInput: React.FC<BabyDiaryInputProps> = ({
       const message = error instanceof Error ? error.message : '';
       if (message.includes('API key is not configured')) {
         setAiTipError(currentLang === 'bn'
-          ? 'Gemini চালু করতে প্রজেক্টের .env ফাইলে GEMINI_API_KEY যোগ করে dev server বন্ধ করে আবার চালু করুন।'
-          : 'To enable Gemini, add GEMINI_API_KEY to the project .env file, then restart the dev server.');
+          ? 'AI পরামর্শ চালু করতে প্রজেক্টের .env ফাইলে DEEPSEEK_API_KEY যোগ করে dev server বন্ধ করে আবার চালু করুন।'
+          : 'To enable AI tips, add DEEPSEEK_API_KEY to the project .env file, then restart the dev server.');
       } else {
         setAiTipError(currentLang === 'bn'
-          ? 'এখন পরামর্শ তৈরি করা যাচ্ছে না। ইন্টারনেট সংযোগ ও Gemini API key পরীক্ষা করুন।'
-          : 'Could not generate a tip. Check your connection and Gemini API key.');
+          ? 'এখন পরামর্শ তৈরি করা যাচ্ছে না। ইন্টারনেট সংযোগ ও DeepSeek API key পরীক্ষা করুন।'
+          : 'Could not generate a tip. Check your connection and DeepSeek API key.');
       }
     } finally {
       setIsLoadingAiTip(false);
@@ -245,7 +245,7 @@ export const BabyDiaryInput: React.FC<BabyDiaryInputProps> = ({
               {isLoadingAiTip ? <LoaderCircle className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               <span>{isLoadingAiTip
                 ? (currentLang === 'bn' ? 'পরামর্শ তৈরি হচ্ছে…' : 'Generating tip…')
-                : (currentLang === 'bn' ? 'Gemini থেকে যত্নের পরামর্শ নিন' : 'Get an AI parenting tip')}</span>
+                : (currentLang === 'bn' ? 'AI থেকে যত্নের পরামর্শ নিন' : 'Get an AI parenting tip')}</span>
             </button>
             {aiTip && (
               <div className="rounded-2xl border border-[#FFD9B3] bg-[#FFFAF5] p-4 text-xs leading-relaxed text-[#2D3142] whitespace-pre-wrap">
