@@ -5,6 +5,7 @@ import {
   Activity,
   BookOpen,
   MessageCircle,
+  MapPin,
   ShoppingBag,
   Check,
   X,
@@ -332,7 +333,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="rounded-3xl border border-[#E8EEEB] bg-white p-5 shadow-[0_12px_32px_rgba(33,55,43,0.07)] sm:p-7">
           <div className="mb-5 flex items-start justify-between">
             <h3 className="text-lg font-extrabold text-[#25313D]">
-              {isBangla ? 'তাই, আপনাদের জন্য থাকছে ৫টি বাড়তি সুবিধা' : 'That’s why you get five extra benefits'}
+              {isBangla ? 'তাই, আপনাদের জন্য থাকছে ৬টি বাড়তি সুবিধা' : 'That’s why you get six extra benefits'}
             </h3>
           </div>
           <div className="journey-highlight-grid" aria-label={isBangla ? 'কুচুপুচুর বাড়তি সুবিধা' : 'Kuchupuchu extra benefits'}>
@@ -343,6 +344,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   { title: 'মেমোরি ডায়েরি', description: 'সন্তানের স্মৃতি সংরক্ষণ করে সবার সঙ্গে শেয়ার করুন', Icon: BookOpen },
                   { title: 'প্যারেন্টস ফোরাম', description: 'যেকোনো সমস্যায় অভিজ্ঞ অভিভাবকদের সঙ্গে আলোচনা করুন', Icon: MessageCircle },
                   { title: 'কেনাকাটা', description: 'গিফট কার্ডসহ মাত্র ৩ ক্লিকে ঝামেলাহীন কেনাকাটা', Icon: ShoppingBag },
+                  { title: 'জরুরি সাহায্য', description: 'টিকা কেন্দ্র, নিকটস্থ হাসপাতাল, পুষ্টিবিদ, শিশু বিশেষজ্ঞ, থেরাপি ও টেস্টিং সেন্টারের খোঁজ ও যোগাযোগের তথ্য এক জায়গায়', Icon: MapPin },
                 ]
               : [
                   { title: 'Play library', description: 'Age-based home-material play for six areas of child development', Icon: Gamepad2 },
@@ -350,6 +352,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   { title: 'Memory diary', description: 'Save and share your child’s memories', Icon: BookOpen },
                   { title: 'Parents forum', description: 'Talk with experienced parents', Icon: MessageCircle },
                   { title: 'Shopping', description: 'Easy shopping in 3 clicks, with gift cards', Icon: ShoppingBag },
+                  { title: 'Urgent help', description: 'Find contact details for vaccination centers, nearby hospitals, nutritionists, pediatricians, therapy, and testing centers', Icon: MapPin },
                 ]
             ).map(({ title, description, Icon }, index) => (
               <div key={title} className="journey-highlight-card" style={{ animationDelay: `${index * 180}ms` }}>
