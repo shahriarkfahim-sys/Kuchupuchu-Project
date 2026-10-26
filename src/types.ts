@@ -214,7 +214,7 @@ export interface UserSubscription {
   status: SubscriptionStatus;
   plan?: SubscriptionPlanType;
   trialStartDate: string; // ISO date string
-  trialEndDate: string; // ISO date string (60 days from start)
+  trialEndDate: string; // ISO date string (30 days from start)
   subscriptionStartDate?: string;
   subscriptionEndDate?: string;
   paidAmount?: number;

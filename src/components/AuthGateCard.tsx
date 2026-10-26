@@ -46,7 +46,7 @@ export const AuthGateCard: React.FC<AuthGateCardProps> = ({
       {/* Trial Highlight */}
       <div className="bg-[#FFF8F3] border border-[#FFD9B3] p-4 rounded-2xl max-w-md mx-auto text-xs text-[#8C6D53]">
         <span className="font-bold text-[#C85D26] block">
-          {currentLang === 'bn' ? '🎉 প্রথম ২ মাস সম্পূর্ণ ফ্রি ব্যবহারের সুযোগ!' : '🎉 First 2 Months Completely Free!'}
+          {currentLang === 'bn' ? '🎉 প্রথম ৩০ দিন সম্পূর্ণ ফ্রি ব্যবহারের সুযোগ!' : '🎉 First 30 Days Completely Free!'}
         </span>
         <span className="block mt-0.5 text-[#5C6479]">
           {currentLang === 'bn' 

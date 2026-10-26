@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
-  Baby,
-  Check,
   ChevronDown,
   Activity,
   BookOpen,
-  Heart,
   MessageCircle,
-  PenTool,
   ShoppingBag,
-  TrendingUp,
+  Check,
+  X,
+  Gamepad2,
 } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
 import { JourneyAnimation } from './JourneyAnimation';
 import { HowItWorksJourney } from './HowItWorksJourney';
+import { makeMascot } from './SonaiAssistant';
 import './HomePage.css';
 
 const hookEndingsByLanguage: Record<Language, string[]> = {
@@ -30,23 +29,17 @@ const sampleNamesByLanguage: Record<Language, string[]> = {
 
 interface HomePageProps {
   currentLang: Language;
-  onGoToDashboard: () => void;
   onOpenAuth: (mode: 'login' | 'register') => void;
   onGoToTracker: () => void;
   onGoToPlay: () => void;
-  onGoToDiary: () => void;
-  onGoToForum?: () => void;
   onStartWithChildName: (name: string) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   currentLang,
-  onGoToDashboard,
   onOpenAuth,
   onGoToTracker,
   onGoToPlay,
-  onGoToDiary,
-  onGoToForum,
   onStartWithChildName,
 }) => {
   const t = translations[currentLang];
@@ -55,6 +48,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [sampleName, setSampleName] = useState('');
   const [animatedHook, setAnimatedHook] = useState('');
+  const [tukiChatStarted, setTukiChatStarted] = useState(false);
+  const tukiStageRef = useRef<HTMLDivElement>(null);
   const hookEndings = hookEndingsByLanguage[currentLang];
   const sampleNames = sampleNamesByLanguage[currentLang];
 
@@ -96,6 +91,32 @@ export const HomePage: React.FC<HomePageProps> = ({
     timeoutId = window.setTimeout(step, 700);
     return () => window.clearTimeout(timeoutId);
   }, [currentLang, hookEndings]);
+
+  useEffect(() => {
+    const stage = tukiStageRef.current;
+    if (!stage || tukiChatStarted) return;
+
+    let visibleTimer: number | undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (visibleTimer === undefined) {
+          visibleTimer = window.setTimeout(() => {
+            setTukiChatStarted(true);
+            observer.disconnect();
+          }, 3000);
+        }
+      } else if (visibleTimer !== undefined) {
+        window.clearTimeout(visibleTimer);
+        visibleTimer = undefined;
+      }
+    }, { threshold: 0.4 });
+
+    observer.observe(stage);
+    return () => {
+      observer.disconnect();
+      if (visibleTimer !== undefined) window.clearTimeout(visibleTimer);
+    };
+  }, [tukiChatStarted]);
 
   useEffect(() => {
     if (childName || isNameFocused) {
@@ -180,6 +201,26 @@ export const HomePage: React.FC<HomePageProps> = ({
           question: 'শুরু করতে কী কী তথ্য লাগবে?',
           answer: 'শুরুতে সন্তানের নাম লিখুন। এরপর চাইলে প্রোফাইলে জন্মতারিখসহ আরও তথ্য যোগ করতে পারবেন।',
         },
+        {
+          question: 'ঘুম, খাবার ও পটির তথ্য রাখা যাবে?',
+          answer: 'হ্যাঁ। রুটিন ট্র্যাকার থেকে ঘুম, খাওয়ানো, ডায়াপার বা পটির মতো দৈনন্দিন যত্নের তথ্য লিখে রাখতে পারবেন।',
+        },
+        {
+          question: 'সন্তানের স্মৃতি বা দৈনন্দিন কথা কোথায় লিখব?',
+          answer: 'ডায়েরিতে ছোট নোট, নতুন শব্দ, ওজন, উচ্চতা ও মুড লিখে সন্তানের অগ্রগতি গুছিয়ে রাখতে পারবেন।',
+        },
+        {
+          question: 'টুকি কীভাবে সাহায্য করবে?',
+          answer: 'টুকি কুচুপুচু ব্যবহার, শিশুর বিকাশ এবং আপনার যোগ করা তথ্য বুঝতে সাহায্য করতে পারে। তবে এটি রোগ নির্ণয় বা চিকিৎসকের পরামর্শের বিকল্প নয়।',
+        },
+        {
+          question: 'অন্য অভিভাবকের সঙ্গেও কি যুক্ত হওয়া যাবে?',
+          answer: 'হ্যাঁ। প্যারেন্টস ফোরামে প্রশ্ন করতে ও অন্য অভিভাবকদের অভিজ্ঞতা থেকে শিখতে পারবেন।',
+        },
+        {
+          question: 'সন্তানের তথ্য পরে বদলানো যাবে?',
+          answer: 'হ্যাঁ। প্রোফাইল থেকে সন্তানের তথ্য পরে যোগ বা হালনাগাদ করতে পারবেন।',
+        },
       ]
     : [
         {
@@ -197,6 +238,26 @@ export const HomePage: React.FC<HomePageProps> = ({
         {
           question: 'What do I need to get started?',
           answer: 'Start by entering your child’s name. You can add details such as their birth date to the profile later.',
+        },
+        {
+          question: 'Can I track sleep, feeding, and diaper changes?',
+          answer: 'Yes. Use the routine tracker to record everyday care such as sleep, feeding, and diaper or potty updates.',
+        },
+        {
+          question: 'Where can I save little memories and notes?',
+          answer: 'Use the diary to record notes, new words, weight, height, and mood as your child grows.',
+        },
+        {
+          question: 'How can Tuki help me?',
+          answer: 'Tuki can help explain Kuchupuchu, child development topics, and information you add. It cannot diagnose or replace a healthcare professional.',
+        },
+        {
+          question: 'Can I connect with other parents?',
+          answer: 'Yes. You can ask questions in the parents forum and learn from other parents’ experiences.',
+        },
+        {
+          question: 'Can I update my child’s details later?',
+          answer: 'Yes. You can add or update your child’s details in their profile later.',
         },
       ];
 
@@ -264,33 +325,35 @@ export const HomePage: React.FC<HomePageProps> = ({
       <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-3">
           <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-[#25313D] sm:text-3xl">
-            {isBangla ? 'ছোট্ট সোনামণির জন্য এইটুকু অফার করলে কী হবে?' : 'What could this little bundle of care offer your child?'}
+            {isBangla ? 'আপনি এবং আপনার সন্তান আরও বেশি কিছু পাওয়ার যোগ্য' : 'You and your child deserve even more'}
           </h2>
         </div>
 
         <div className="rounded-3xl border border-[#E8EEEB] bg-white p-5 shadow-[0_12px_32px_rgba(33,55,43,0.07)] sm:p-7">
           <div className="mb-5 flex items-start justify-between">
             <h3 className="text-lg font-extrabold text-[#25313D]">
-              {isBangla ? 'আপনাদের জন্য থাকছে ৪টি বাড়তি সুবিধা' : 'Plus four extra benefits'}
+              {isBangla ? 'তাই, আপনাদের জন্য থাকছে ৫টি বাড়তি সুবিধা' : 'That’s why you get five extra benefits'}
             </h3>
           </div>
-          <div className="journey-feature-grid" aria-label={isBangla ? 'কুচুপুচুর সুবিধা' : 'Kuchupuchu features'}>
+          <div className="journey-highlight-grid" aria-label={isBangla ? 'কুচুপুচুর বাড়তি সুবিধা' : 'Kuchupuchu extra benefits'}>
             {(isBangla
               ? [
+                  { title: 'খেলার ভাণ্ডার', description: 'শিশুর বিকাশের ৬টি ক্ষেত্রে, বয়স অনুযায়ী ঘরের উপকরণ দিয়ে খেলা', Icon: Gamepad2 },
                   { title: 'সন্তানের রুটিন ও যত্ন', description: 'ঘুম, খাবার বা পটি - সব তথ্যই এখন ট্র্যাক করা যাবে', Icon: Activity },
                   { title: 'মেমোরি ডায়েরি', description: 'সন্তানের স্মৃতি সংরক্ষণ করে সবার সঙ্গে শেয়ার করুন', Icon: BookOpen },
                   { title: 'প্যারেন্টস ফোরাম', description: 'যেকোনো সমস্যায় অভিজ্ঞ অভিভাবকদের সঙ্গে আলোচনা করুন', Icon: MessageCircle },
-                  { title: 'কেনাকাটা', description: 'মাত্র ৩ ক্লিকে ঝামেলাহীন কেনাকাটা', Icon: ShoppingBag },
+                  { title: 'কেনাকাটা', description: 'গিফট কার্ডসহ মাত্র ৩ ক্লিকে ঝামেলাহীন কেনাকাটা', Icon: ShoppingBag },
                 ]
               : [
-                  { title: 'Child routine & care', description: 'Track everyday care details with ease', Icon: Activity },
-                  { title: 'Memory diary', description: 'Save your child’s memories and share them', Icon: BookOpen },
-                  { title: 'Parents forum', description: 'Talk through concerns with experienced parents', Icon: MessageCircle },
-                  { title: 'Shopping', description: 'A smooth shopping experience in 3 clicks', Icon: ShoppingBag },
+                  { title: 'Play library', description: 'Age-based home-material play for six areas of child development', Icon: Gamepad2 },
+                  { title: 'Child routine & care', description: 'Track sleep, food, potty, and other care details', Icon: Activity },
+                  { title: 'Memory diary', description: 'Save and share your child’s memories', Icon: BookOpen },
+                  { title: 'Parents forum', description: 'Talk with experienced parents', Icon: MessageCircle },
+                  { title: 'Shopping', description: 'Easy shopping in 3 clicks, with gift cards', Icon: ShoppingBag },
                 ]
             ).map(({ title, description, Icon }, index) => (
-              <div key={title} className="journey-feature-item" style={{ animationDelay: `${index * 450}ms` }}>
-                <span className="journey-feature-icon"><Icon className="h-6 w-6" /></span>
+              <div key={title} className="journey-highlight-card" style={{ animationDelay: `${index * 180}ms` }}>
+                <span className="journey-highlight-icon"><Icon className="h-6 w-6" /></span>
                 <strong>{title}</strong>
                 <span className="journey-feature-description">{description}</span>
               </div>
@@ -299,151 +362,151 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      <section className="space-y-7">
-        <div className="mx-auto max-w-2xl space-y-2 text-center">
-          <span className="inline-flex items-center gap-2 text-xs font-bold text-[#D66A37]">
-            <TrendingUp className="h-4 w-4" />
-            {isBangla ? 'বিকাশের পথে' : 'On the path of growth'}
-          </span>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#25313D] sm:text-3xl">
-            {isBangla ? 'উন্নতি লিখুন, রিপোর্ট দেখুন' : 'Log progress, see a report'}
-          </h2>
-          <p className="text-sm text-[#697582]">
-            {isBangla
-              ? 'দৈনন্দিন পর্যবেক্ষণ থেকে সন্তানের অগ্রগতির একটি পরিষ্কার ছবি পান।'
-              : 'Turn everyday observations into a clearer picture of your child’s progress.'}
-          </p>
-        </div>
-
-        <div className="grid overflow-hidden rounded-3xl border border-[#E8EEEB] bg-white shadow-[0_10px_30px_rgba(33,55,43,0.06)] lg:grid-cols-2">
-          <div className="space-y-4 bg-[#F8FAF9] p-5 sm:p-7">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-bold text-[#25313D]">
-                {isBangla ? 'আজকের পর্যবেক্ষণ' : 'Today’s observations'}
-              </h3>
-              <span className="text-[10px] font-medium text-[#89938E]">
-                {isBangla ? 'উদাহরণ' : 'Preview'}
-              </span>
+      <section className="tuki-intro grid items-center gap-8 overflow-hidden rounded-3xl border border-[#F1DFD2] bg-gradient-to-br from-[#FFF9F3] via-white to-[#F5FAF7] p-6 shadow-[0_12px_36px_rgba(73,58,47,0.06)] sm:p-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+        <div ref={tukiStageRef} className={`tuki-mascot-stage relative mx-auto flex w-full max-w-sm flex-col items-center gap-3${tukiChatStarted ? ' tuki-stage-active' : ''}`}>
+          <div className="tuki-mascot-card relative flex min-h-[480px] w-full items-center justify-center rounded-[2rem] bg-[#FFF1E6] p-5 sm:p-7">
+            <span className="tuki-orbit tuki-orbit-one" aria-hidden="true" />
+            <span className="tuki-orbit tuki-orbit-two" aria-hidden="true" />
+            <span className="tuki-mascot-glow" aria-hidden="true" />
+            <div className="tuki-chat-bubbles" aria-hidden={!tukiChatStarted}>
+              <span className="tuki-chat-bubble tuki-chat-one">{isBangla ? 'হাই, আমি পুকি... হিহি! না, আমি টুকি!' : 'Hi, I’m Puki... hehe! No, I’m Tuki!'}</span>
+              <span className="tuki-chat-bubble tuki-chat-two">{isBangla ? 'তুমি সাইন আপ করলেই পৃথিবীতে আসব!' : 'Sign up and I’ll be there when your baby arrives!'}</span>
+              <span className="tuki-chat-bubble tuki-chat-three">{isBangla ? 'আমি কি তোমাদের আম্মু বা আব্বু বলে ডাকব?' : 'Should I call you Ammu or Abbu?'}</span>
+              <span className="tuki-chat-bubble tuki-chat-four">{isBangla ? 'আমার সঙ্গে গল্প করবে?' : 'Will you tell me a story?'}</span>
+              <span className="tuki-chat-bubble tuki-chat-five">{isBangla ? 'তোমার সোনামণির মজার খবরগুলো আমি মনে রাখব!' : 'I’ll remember all the fun little updates!'}</span>
+              <span className="tuki-chat-bubble tuki-chat-six">{isBangla ? 'তাহলে, আমরা বন্ধু?' : 'So, are we friends?'}</span>
+              <span className="tuki-chat-bubble tuki-chat-seven">{isBangla ? 'আমার প্রিয় কাজ? তোমাদের সঙ্গে বড় হওয়া!' : 'My favorite thing? Growing up with you!'}</span>
             </div>
-            {[
-              isBangla ? 'নতুন কিছু ধরার চেষ্টা করেছে' : 'Reached for something new',
-              isBangla ? 'শব্দ শুনে সাড়া দিয়েছে' : 'Responded to a familiar sound',
-              isBangla ? 'খেলায় মনোযোগ দিয়েছে' : 'Stayed engaged during play',
-            ].map((item) => (
-              <div key={item} className="flex items-center justify-between rounded-xl border border-[#EDF1EF] bg-white px-3.5 py-3 text-xs text-[#53615A]">
-                <span>{item}</span>
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EEF7F0] text-[#4C8A68]">
-                  <Check className="h-3 w-3" />
-                </span>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={onGoToDiary}
-              className="inline-flex items-center gap-1.5 pt-1 text-xs font-bold text-[#D66A37] hover:text-[#B94F22]"
-            >
-              <PenTool className="h-3.5 w-3.5" />
-              {isBangla ? 'ডায়েরিতে লিখুন' : 'Add to diary'}
-            </button>
+            <div className="tuki-mascot" aria-label={isBangla ? 'টুকি, আপনার সহায়ক বন্ধু' : 'Tuki, your helpful friend'}>
+              {makeMascot('large')}
+            </div>
           </div>
-
-          <div className="flex flex-col justify-center p-5 sm:p-7">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-semibold text-[#8A9590]">
-                  {isBangla ? 'বিকাশের সারাংশ' : 'Development summary'}
-                </p>
-                <h3 className="mt-1 text-base font-bold text-[#25313D]">
-                  {isBangla ? '৬টি বিকাশের ক্ষেত্র' : 'Six areas of development'}
-                </h3>
-              </div>
-              <span className="rounded-full bg-[#FFF3EA] px-2.5 py-1 text-[10px] font-bold text-[#C85D26]">
-                {isBangla ? 'রিপোর্ট' : 'Report'}
-              </span>
-            </div>
-            <div className="mx-auto w-full max-w-[300px]">
-              <svg viewBox="0 0 300 210" role="img" aria-label={isBangla ? 'বিকাশের ছয়টি ক্ষেত্রের নমুনা চার্ট' : 'Sample chart across six areas of development'} className="w-full">
-                <polygon points="150,28 220,68 220,148 150,188 80,148 80,68" fill="none" stroke="#E7ECE9" strokeWidth="1.5" />
-                <polygon points="150,55 197,82 197,135 150,161 103,135 103,82" fill="none" stroke="#E7ECE9" strokeWidth="1.5" />
-                <polygon points="150,82 174,96 174,122 150,135 126,122 126,96" fill="none" stroke="#E7ECE9" strokeWidth="1.5" />
-                <line x1="150" y1="108" x2="150" y2="28" stroke="#E7ECE9" />
-                <line x1="150" y1="108" x2="220" y2="68" stroke="#E7ECE9" />
-                <line x1="150" y1="108" x2="220" y2="148" stroke="#E7ECE9" />
-                <line x1="150" y1="108" x2="150" y2="188" stroke="#E7ECE9" />
-                <line x1="150" y1="108" x2="80" y2="148" stroke="#E7ECE9" />
-                <line x1="150" y1="108" x2="80" y2="68" stroke="#E7ECE9" />
-                <polygon points="150,47 201,79 205,140 150,157 97,138 106,83" fill="#F6C6A9" fillOpacity=".42" stroke="#E9753F" strokeWidth="2.5" />
-                <circle cx="150" cy="47" r="3.5" fill="#E9753F" />
-                <circle cx="201" cy="79" r="3.5" fill="#E9753F" />
-                <circle cx="205" cy="140" r="3.5" fill="#E9753F" />
-                <circle cx="150" cy="157" r="3.5" fill="#E9753F" />
-                <circle cx="97" cy="138" r="3.5" fill="#E9753F" />
-                <circle cx="106" cy="83" r="3.5" fill="#E9753F" />
-                <text x="150" y="17" textAnchor="middle" className="fill-[#64716A] text-[9px]">{isBangla ? 'শেখা' : 'Learning'}</text>
-                <text x="235" y="68" textAnchor="start" className="fill-[#64716A] text-[9px]">{isBangla ? 'কথা' : 'Speech'}</text>
-                <text x="235" y="154" textAnchor="start" className="fill-[#64716A] text-[9px]">{isBangla ? 'চলন' : 'Movement'}</text>
-                <text x="150" y="205" textAnchor="middle" className="fill-[#64716A] text-[9px]">{isBangla ? 'মেলামেশা' : 'Social'}</text>
-                <text x="65" y="154" textAnchor="end" className="fill-[#64716A] text-[9px]">{isBangla ? 'আবেগ' : 'Emotional'}</text>
-                <text x="65" y="68" textAnchor="end" className="fill-[#64716A] text-[9px]">{isBangla ? 'স্বাস্থ্য' : 'Wellbeing'}</text>
-              </svg>
-            </div>
-            <button
-              type="button"
-              onClick={onGoToDashboard}
-              className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#E9753F] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#D86430]"
-            >
-              {isBangla ? 'অগ্রগতি দেখুন' : 'View progress'}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+        </div>
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <h2 className="text-2xl font-extrabold leading-snug tracking-tight text-[#25313D] sm:text-3xl">
+              {isBangla ? <>আপনার যাত্রায় পাশে থাকবে <span className="text-[#D66A37]">টুকি</span></> : <>Tuki will be with you on your journey</>}
+            </h2>
+            <p className="text-base font-bold leading-relaxed text-[#46534D] sm:text-lg">
+              {isBangla ? 'আপনার সন্তানের সঙ্গে বড় হবে আপনার কৃত্রিম বুদ্ধিমত্তার বন্ধু টুকি।' : 'Your helpful companion Tuki will grow alongside your child.'}
+            </p>
+            <p className="text-sm leading-7 text-[#697582] sm:text-base">
+              {isBangla
+                ? 'সন্তানের রিপোর্ট বিশ্লেষণ করতে চান? জানতে চান, গড়ে আপনার সন্তান কতক্ষণ ঘুমাচ্ছে? টিকার তারিখে রিমাইন্ডার দরকার? এমন হাজারো প্রশ্নের উত্তর দেবে আপনার সন্তানের নিজস্ব কৃত্রিম বুদ্ধিমত্তার বন্ধু টুকি।'
+                : 'Want help understanding your child’s report, finding out how long they sleep on average, or getting a vaccination reminder? Tuki, your child’s own AI friend, is ready to help with questions like these and many more.'}
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="grid items-center gap-6 rounded-3xl border border-[#E8EEEB] bg-white p-5 shadow-[0_6px_24px_rgba(33,55,43,0.04)] sm:p-8 lg:grid-cols-2 lg:gap-12">
-        <div className="space-y-3">
-          <span className="inline-flex items-center gap-2 text-xs font-bold text-[#D66A37]">
-            <Heart className="h-4 w-4" />
-            {isBangla ? 'প্রতিটি শিশু আলাদা' : 'Every child is different'}
-          </span>
-          <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-[#25313D]">
-            {isBangla ? 'যেখানে সময় লাগছে, সেখানেও থাকুন পাশে' : 'Be there, even when a little more time is needed'}
+      <section className="mx-auto w-full max-w-5xl space-y-7 rounded-3xl border border-[#F1DFD2] bg-gradient-to-br from-[#FFF9F3] via-white to-[#F5FAF7] p-6 shadow-[0_12px_36px_rgba(73,58,47,0.06)] sm:p-10">
+        <div className="mx-auto max-w-2xl space-y-3 text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#25313D] sm:text-3xl">
+            {isBangla ? 'আপনার সুবিধামতো প্ল্যান বেছে নিন' : 'Choose a plan that works for you'}
           </h2>
-          <p className="text-sm leading-relaxed text-[#697582]">
-            {isBangla
-              ? 'শিশুরা নিজস্ব গতিতে শেখে। তুলনা নয়—ছোট ছোট অগ্রগতি লক্ষ্য করুন, আর কোনো দুশ্চিন্তা হলে শিশু বিশেষজ্ঞের সাথে কথা বলুন।'
-              : 'Children learn at their own pace. Notice small steps rather than comparing, and speak with a pediatrician if you have concerns.'}
+          <p className="text-sm leading-relaxed text-[#697582] sm:text-base">
+            {isBangla ? 'মাসিক বা বার্ষিক প্ল্যান বেছে নিয়ে কুচুপুচুর সব সুবিধা ব্যবহার করুন।' : 'Choose a monthly or yearly plan to access Kuchupuchu features.'}
           </p>
-          <button
-            type="button"
-            onClick={onGoToForum || onGoToDashboard}
-            className="inline-flex items-center gap-2 pt-1 text-sm font-bold text-[#D66A37] hover:text-[#B94F22]"
-          >
-            {isBangla ? 'অভিভাবকদের সাথে কথা বলুন' : 'Connect with other parents'}
-            <ArrowRight className="h-4 w-4" />
-          </button>
         </div>
-        <div className="space-y-2.5 rounded-2xl bg-[#F7FAF8] p-4 sm:p-5">
+
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
           {[
-            isBangla ? 'সন্তানের নিজস্ব গতিকে সম্মান করুন' : 'Respect your child’s individual pace',
-            isBangla ? 'প্রতিদিনের ছোট অগ্রগতি লিখে রাখুন' : 'Notice and record everyday progress',
-            isBangla ? 'প্রয়োজনে বিশেষজ্ঞের পরামর্শ নিন' : 'Ask a professional when you need support',
-          ].map((item) => (
-            <div key={item} className="flex items-center gap-3 rounded-xl bg-white p-3 text-xs font-medium text-[#58655F]">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#EDF6F0] text-[#4C8A68]">
-                <Check className="h-4 w-4" />
-              </span>
-              {item}
+            { title: isBangla ? 'মাসিক' : 'Monthly', priceBn: '৮৯', priceEn: '89', suffix: isBangla ? 'প্রতি মাসে' : 'per month', note: isBangla ? 'মাসে মাসে নবায়নযোগ্য' : 'Renews monthly', recommended: false },
+            { title: isBangla ? 'বার্ষিক' : 'Yearly', priceBn: '৪৯৯', priceEn: '499', suffix: isBangla ? 'প্রতি বছরে' : 'per year', note: isBangla ? 'মাসিক প্ল্যানে ১২ মাসে ৳১,০৬৮' : '12 monthly payments would be ৳1,068', recommended: true },
+          ].map((plan) => (
+            <div key={plan.title} className={`relative rounded-2xl border p-6 shadow-[0_8px_24px_rgba(33,55,43,0.05)] sm:p-7 ${plan.recommended ? 'border-[#E9753F] bg-[#FFF9F3] ring-2 ring-[#FCE2D3]' : 'border-[#E8EEEB] bg-white'}`}>
+              {plan.recommended && <span className="absolute right-5 top-5 rounded-full bg-[#EAF4EC] px-3 py-1 text-xs font-bold text-[#47765D]">{isBangla ? '৫৩% সাশ্রয়' : 'Save 53%'}</span>}
+              <h3 className="flex items-center gap-2 text-base font-bold text-[#46534D]">
+                {plan.recommended && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E9753F] text-white"><Check className="h-3.5 w-3.5" /></span>}
+                {plan.title}
+                {plan.recommended && <span className="text-xs font-semibold text-[#C85D26]">{isBangla ? 'নির্বাচিত' : 'Selected'}</span>}
+              </h3>
+              <p className="mt-3 flex items-baseline gap-2 text-[#25313D]">
+                {plan.recommended && <span className="text-lg font-semibold text-[#99A29D] line-through">{isBangla ? '৳১,০৬৮' : '৳1,068'}</span>}
+                <span className="text-4xl font-black">৳{isBangla ? plan.priceBn : plan.priceEn}</span>
+                <span className="text-sm text-[#697582]">{plan.suffix}</span>
+              </p>
+              <p className="mt-2 text-sm text-[#697582]">{plan.recommended ? (isBangla ? 'মাসিক প্ল্যানে ১২ মাসে ৳১,০৬৮ - এখানে একবারে পেমেন্টে পুরো ১২ মাস' : '৳1,068 for 12 monthly payments - pay once here for the full year') : plan.note}</p>
+              <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#EAF4EC] px-3 py-1.5 text-xs font-bold text-[#47765D]">
+                <Check className="h-3.5 w-3.5" />
+                {isBangla ? 'শুরুতে ৩০ দিনের ফ্রি ট্রায়াল' : '30-day free trial to start'}
+              </p>
+              <button type="button" onClick={() => onOpenAuth('register')} className={`mt-6 w-full rounded-xl px-5 py-3 text-sm font-bold transition-colors ${plan.recommended ? 'bg-[#E9753F] text-white hover:bg-[#D86430]' : 'border border-[#E8EEEB] bg-white text-[#46534D] hover:bg-[#F7FAF8]'}`}>
+                {isBangla ? 'প্ল্যান নিন' : 'Choose plan'}
+              </button>
             </div>
           ))}
+        </div>
+
+        <div className="space-y-4 pt-3">
+          <div className="text-center">
+            <h3 className="text-xl font-extrabold text-[#25313D] sm:text-2xl">{isBangla ? 'ফ্রি ও সাবস্ক্রিপশনে কী কী পাবেন?' : 'What do you get for free and with a subscription?'}</h3>
+            <p className="mt-2 text-sm text-[#697582]">{isBangla ? 'আপনার পরিবারের জন্য কোন সুবিধাগুলো দরকার, সহজেই বেছে নিন।' : 'Choose the level of support that works for your family.'}</p>
+          </div>
+          <div className="overflow-x-auto rounded-2xl border border-[#E8EEEB] bg-white shadow-[0_8px_24px_rgba(33,55,43,0.05)]">
+            <table className="w-full min-w-[560px] border-collapse text-sm">
+              <thead>
+                <tr className="bg-[#F7FAF8] text-[#25313D]">
+                  <th scope="col" className="w-[52%] px-4 py-4 text-left font-bold sm:px-6">{isBangla ? 'সুবিধা' : 'Features'}</th>
+                  <th scope="col" className="px-4 py-4 text-center font-extrabold sm:px-6">
+                    <span className="block">{isBangla ? 'ফ্রি' : 'Free'}</span>
+                    <span className="mt-1 block text-xs font-medium text-[#697582]">{isBangla ? '৳০' : '৳0'}</span>
+                  </th>
+                  <th scope="col" className="bg-[#FFF4EB] px-4 py-4 text-center font-extrabold text-[#C85D26] sm:px-6">
+                    <span className="block">{isBangla ? 'সাবস্ক্রিপশন' : 'Subscription'}</span>
+                    <span className="mt-1 block text-xs font-semibold">{isBangla ? 'মাসে ৳৮৯ · বছরে ৳৪৯৯' : '৳89/mo · ৳499/yr'}</span>
+                    <span className="mt-1 block text-[11px] font-medium text-[#47765D]">{isBangla ? 'শুরুতে ৩০ দিন ফ্রি' : 'First 30 days free'}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDF1EF] text-[#53615A]">
+                {(isBangla
+                  ? [
+                      ['২টির বেশি সন্তান একই প্রোফাইলে যোগ করা', false],
+                      ['মাইলস্টোন চেক ও বিশ্লেষণ দেখা', true],
+                      ['বিভিন্ন বয়সের মধ্যে তুলনা করা', true],
+                      ['রিপোর্ট ডাউনলোড করার সুযোগ', false],
+                      ['মাইলস্টোন অনুযায়ী আনলিমিটেড খেলার অ্যাক্সেস', false],
+                      ['সম্পূর্ণ লার্নিং ভিডিও দেখা', false],
+                      ['দিনে আনলিমিটেড রুটিন যোগ করা', false],
+                      ['মেমোরি ফটোকার্ড কাস্টমাইজ ও শেয়ার করা', false],
+                      ['ফোরামে পূর্ণ অ্যাক্সেস', true],
+                      ['কেনাকাটার জন্য গিফট কার্ড', false],
+                      ['টুকিকে আনলিমিটেড ব্যবহার', false],
+                    ]
+                  : [
+                      ['Add more than 2 children to one profile', false],
+                      ['Check milestones and view analysis', true],
+                      ['Compare across different ages', true],
+                      ['Download reports', false],
+                      ['Unlimited milestone-based play access', false],
+                      ['Access all learning videos', false],
+                      ['Add unlimited daily routines', false],
+                      ['Customize and share memory photo cards', false],
+                      ['Full forum access', true],
+                      ['Gift cards for shopping', false],
+                      ['Unlimited use of Tuki', false],
+                    ]
+                ).map(([feature, freeIncluded]) => (
+                  <tr key={String(feature)}>
+                    <th scope="row" className="px-4 py-3.5 text-left font-semibold leading-relaxed sm:px-6">{feature}</th>
+                    <td className="px-4 py-3.5 text-center">
+                      {freeIncluded ? <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#47765D]" /> : <X aria-label={isBangla ? 'পাওয়া যাবে না' : 'Not included'} className="mx-auto h-5 w-5 text-[#B3BDB8]" />}
+                    </td>
+                    <td className="bg-[#FFFCF9] px-4 py-3.5 text-center">
+                      <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#E9753F]" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-3xl space-y-6">
         <div className="text-center">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#D66A37]">
-            {isBangla ? 'আপনার প্রশ্নের উত্তর' : 'A little more clarity'}
-          </span>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#25313D] sm:text-3xl">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#25313D] sm:text-3xl">
             {isBangla ? 'মনে প্রশ্ন আছে?' : 'Questions on your mind?'}
           </h2>
         </div>
@@ -462,39 +525,6 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-[#F2D7C8] bg-[#FFF7F2] px-5 py-10 text-center sm:px-10 sm:py-12">
-        <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#D66A37] shadow-sm">
-          <Baby className="h-5 w-5" />
-        </span>
-        <h2 className="mx-auto mt-4 max-w-xl text-2xl font-extrabold leading-tight tracking-tight text-[#25313D] sm:text-3xl">
-          {isBangla ? 'আজই আপনার সোনামণির যাত্রা শুরু করুন' : 'Start your little one’s journey today'}
-        </h2>
-        <p className="mt-2 text-sm text-[#748079]">
-          {isBangla ? 'নাম লিখে শুরু করুন—বাকিটা ধাপে ধাপে।' : 'Enter a name to begin, and take it one step at a time.'}
-        </p>
-        <form
-          className="mx-auto mt-5 flex w-full max-w-lg flex-col gap-2 rounded-2xl border border-[#E8EEEB] bg-white p-2 sm:flex-row sm:rounded-full sm:pl-5"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onStartWithChildName(childName.trim());
-          }}
-        >
-          <label htmlFor="footer-child-name" className="sr-only">
-            {isBangla ? 'সন্তানের নাম' : 'Child’s name'}
-          </label>
-          {renderChildNameInput('footer-child-name')}
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#E9753F] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#D86430] sm:rounded-full"
-          >
-            {isBangla ? 'শুরু করুন' : 'Get started'}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </form>
-        <p className="mt-7 text-[10px] text-[#9AA49F]">
-          © 2026 Kuchupuchu · {isBangla ? 'ভালোবাসায় বেড়ে ওঠা' : 'Growing with care'}
-        </p>
-      </section>
     </div>
   );
 };

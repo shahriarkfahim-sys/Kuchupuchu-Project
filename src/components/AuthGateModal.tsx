@@ -236,7 +236,7 @@ export const AuthGateModal: React.FC<AuthGateModalProps> = ({
             <div className="bg-[#FFF8F3] p-3.5 rounded-2xl border border-[#FFD9B3] flex items-center justify-between gap-3">
               <div>
                 <span className="text-xs font-bold text-[#2D3142] block">
-                  {currentLang === 'bn' ? 'নতুন ব্যবহারকারী? প্রথম ২ মাস সম্পূর্ণ ফ্রি!' : 'New user? First 2 months 100% Free!'}
+                  {currentLang === 'bn' ? 'নতুন ব্যবহারকারী? প্রথম ৩০ দিন সম্পূর্ণ ফ্রি!' : 'New user? First 30 days 100% Free!'}
                 </span>
                 <span className="text-[11px] text-[#7C8294] block mt-0.5">
                   {currentLang === 'bn' ? 'কোনো অগ্রিম পেমেন্ট ছাড়াই সাথে সাথে শুরু করুন' : 'Get started instantly without upfront payment'}

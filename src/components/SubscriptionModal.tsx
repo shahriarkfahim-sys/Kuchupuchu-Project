@@ -34,7 +34,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   // Step in bKash checkout: 'select_plan' | 'bkash_number' | 'bkash_pin' | 'processing' | 'success'
   const [checkoutStep, setCheckoutStep] = useState<'select_plan' | 'bkash_number' | 'bkash_pin' | 'processing' | 'success'>('select_plan');
   
-  // Selected plan: 'monthly' (149 BDT) or 'yearly' (499 BDT)
+  // Selected plan: 'monthly' (89 BDT) or 'yearly' (499 BDT)
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanType>('yearly');
   
   // Promo code
@@ -53,7 +53,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   if (!isOpen) return null;
 
   // Base pricing
-  const baseMonthlyPrice = 149;
+  const baseMonthlyPrice = 89;
   const baseYearlyPrice = 499;
   const basePrice = selectedPlan === 'monthly' ? baseMonthlyPrice : baseYearlyPrice;
 
@@ -174,7 +174,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 <span>{currentLang === 'bn' ? 'কুচুপুচু সাবস্ক্রিপশন প্ল্যান' : 'Kuchupuchu Subscription'}</span>
               </h3>
               <p className="text-xs text-[#7C8294]">
-                {currentLang === 'bn' ? 'প্রথম ২ মাস সম্পূর্ণ ফ্রি · এরপর সাশ্রয়ী মাসিক বা বার্ষিক প্যাকেজ' : 'First 2 months free · Affordable monthly or annual plans'}
+                {currentLang === 'bn' ? 'প্রথম ৩০ দিন সম্পূর্ণ ফ্রি · এরপর মাসিক বা বার্ষিক প্যাকেজ' : 'First 30 days free · Then choose a monthly or yearly plan'}
               </p>
             </div>
           </div>
@@ -203,8 +203,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     </span>
                     <span className="text-[#3A5643] block mt-0.5">
                       {currentLang === 'bn' 
-                        ? `প্ল্যান: ${subscription.plan === 'yearly' ? 'বার্ষিক (৳৪৯৯)' : 'মাসিক (৳১৪৯)'} · বিকাশ ট্রানজেকশন আইডি: ${subscription.bkashTrxId || 'N/A'}`
-                        : `Plan: ${subscription.plan === 'yearly' ? 'Yearly (৳499)' : 'Monthly (৳149)'} · bKash TrxID: ${subscription.bkashTrxId || 'N/A'}`}
+                        ? `প্ল্যান: ${subscription.plan === 'yearly' ? 'বার্ষিক (৳৪৯৯)' : 'মাসিক (৳৮৯)'} · বিকাশ ট্রানজেকশন আইডি: ${subscription.bkashTrxId || 'N/A'}`
+                        : `Plan: ${subscription.plan === 'yearly' ? 'Yearly (৳499)' : 'Monthly (৳89)'} · bKash TrxID: ${subscription.bkashTrxId || 'N/A'}`}
                     </span>
                   </div>
                 </div>
@@ -214,13 +214,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   <div className="text-xs">
                     <span className="font-bold text-[#C85D26] block text-sm">
                       {currentLang === 'bn' 
-                        ? `🎉 আপনার প্রথম ২ মাস ফ্রি ট্রায়াল চলছে! (বাকি ${formatLocalizedNumber(remainingTrialDays, currentLang)} দিন)`
-                        : `🎉 Your 2-Month Free Trial is Active! (${remainingTrialDays} days remaining)`}
+                        ? `🎉 আপনার ৩০ দিনের ফ্রি ট্রায়াল চলছে! (বাকি ${formatLocalizedNumber(remainingTrialDays, currentLang)} দিন)`
+                        : `🎉 Your 30-day free trial is active! (${remainingTrialDays} days remaining)`}
                     </span>
                     <span className="text-[#8C6D53] block mt-0.5">
                       {currentLang === 'bn' 
-                        ? '৩য় মাস থেকে নিরবচ্ছিন্ন সেবা চালু রাখতে বিকাশ (bKash) দিয়ে যেকোনো সময় সাবস্ক্রাইব করে রাখতে পারেন।'
-                        : 'To keep uninterrupted tracking from Month 3, you can subscribe anytime via bKash.'}
+                        ? 'ফ্রি ট্রায়ালের পরও সেবা চালু রাখতে বিকাশ (bKash) দিয়ে যেকোনো সময় সাবস্ক্রাইব করতে পারেন।'
+                        : 'Subscribe anytime via bKash to keep using the service after your free trial.'}
                     </span>
                   </div>
                 </div>
@@ -229,7 +229,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   <AlertCircle className="w-5 h-5 text-[#D32F2F] shrink-0 mt-0.5" />
                   <div className="text-xs">
                     <span className="font-bold text-[#D32F2F] block text-sm">
-                      {currentLang === 'bn' ? 'আপনার ২ মাসের ফ্রি ট্রায়াল সমাপ্ত হয়েছে' : 'Your 2-Month Free Trial has expired'}
+                      {currentLang === 'bn' ? 'আপনার ৩০ দিনের ফ্রি ট্রায়াল সমাপ্ত হয়েছে' : 'Your 30-day free trial has expired'}
                     </span>
                     <span className="text-[#853434] block mt-0.5">
                       {currentLang === 'bn'
@@ -248,7 +248,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   
-                  {/* Monthly Plan: 149 BDT */}
+                  {/* Monthly Plan: 89 BDT */}
                   <div
                     onClick={() => setSelectedPlan('monthly')}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
@@ -279,8 +279,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                     <p className="text-[11px] text-[#5C6479] mt-2 leading-relaxed">
                       {currentLang === 'bn' 
-                        ? '৩য় মাস থেকে প্রতি মাসে নবায়নযোগ্য। যেকোনো সময় বাতিল করা যাবে।' 
-                        : 'Billed monthly from month 3. Cancel anytime.'}
+                        ? 'ফ্রি ট্রায়ালের পর প্রতি মাসে নবায়নযোগ্য। যেকোনো সময় বাতিল করা যাবে।' 
+                        : 'Billed monthly after the free trial. Cancel anytime.'}
                     </p>
                   </div>
 
@@ -295,7 +295,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   >
                     {/* Best Value Badge */}
                     <div className="absolute top-0 right-0 bg-gradient-to-l from-[#FF8552] to-[#FF9F68] text-white text-[10px] font-black px-2.5 py-0.5 rounded-bl-xl shadow-xs">
-                      {currentLang === 'bn' ? '৭২% সাশ্রয়ী · সেরা ডিল' : 'SAVE 72% · POPULAR'}
+                      {currentLang === 'bn' ? '৫৩% সাশ্রয়ী · সেরা ডিল' : 'SAVE 53% · POPULAR'}
                     </div>
 
                     <div className="flex items-center justify-between mb-2">
@@ -317,7 +317,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                         {currentLang === 'bn' ? '/ পুরো বছর' : '/ year'}
                       </span>
                       <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">
-                        {currentLang === 'bn' ? 'মাসিক মাত্র ৳৪১' : '৳41/mo'}
+                        {currentLang === 'bn' ? 'মাসিক গড়ে ৳৪২' : 'About ৳42/mo'}
                       </span>
                     </div>
 

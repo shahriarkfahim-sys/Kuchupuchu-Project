@@ -5,6 +5,254 @@
   padding: 8px 0 4px;
 }
 
+.journey-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.journey-highlight-card {
+  display: flex;
+  min-width: 0;
+  min-height: 210px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f47c45, #df6330);
+  box-shadow: 0 8px 18px rgba(201, 92, 43, .16);
+  color: #fff;
+  opacity: 0;
+  animation: journey-highlight-in .65s cubic-bezier(.2,.75,.25,1) both;
+  transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+}
+
+.journey-highlight-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 26px rgba(201, 92, 43, .25);
+  filter: saturate(1.08);
+}
+
+.journey-highlight-card strong {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.journey-highlight-card .journey-feature-description {
+  color: rgba(255, 255, 255, .9);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.journey-highlight-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  transition: transform .25s ease, background .25s ease;
+}
+
+.journey-highlight-card:hover .journey-highlight-icon {
+  transform: rotate(-7deg) scale(1.08);
+  background: rgba(255, 255, 255, .25);
+}
+
+@keyframes journey-highlight-in {
+  from { opacity: 0; transform: translateY(18px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tuki-mascot-stage {
+  isolation: isolate;
+}
+
+.tuki-mascot-card {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.tuki-chat-bubbles {
+  position: absolute;
+  z-index: 3;
+  top: 6%;
+  left: 50%;
+  width: calc(100% - 40px);
+  max-width: 340px;
+  height: 110px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tuki-chat-bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: max-content;
+  max-width: 100%;
+  padding: 11px 16px;
+  border: 1px solid rgba(241, 223, 210, .95);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 8px 20px rgba(73, 58, 47, .1);
+  color: #46534d;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, 8px) scale(.96);
+}
+
+.tuki-chat-bubble::after {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid rgba(241, 223, 210, .95);
+  border-bottom: 1px solid rgba(241, 223, 210, .95);
+  background: #fff;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tuki-mascot-card .tuki-mascot svg {
+  width: 224px;
+  height: 224px;
+}
+
+.tuki-mascot-card .tuki-mascot-glow { width: 250px; height: 250px; }
+.tuki-mascot-card .tuki-orbit-one { width: 280px; height: 280px; }
+.tuki-mascot-card .tuki-orbit-two { width: 330px; height: 330px; }
+
+@media (max-width: 639px) {
+  .tuki-mascot-card .tuki-mascot svg {
+    width: 176px;
+    height: 176px;
+  }
+
+  .tuki-chat-bubbles { width: calc(100% - 28px); }
+  .tuki-chat-bubble { padding: 9px 12px; font-size: 12px; }
+}
+
+.tuki-mascot-glow {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .96) 0 48%, rgba(255, 255, 255, 0) 72%);
+  animation: tuki-glow 3.6s ease-in-out infinite;
+}
+
+.tuki-mascot {
+  position: relative;
+  top: 18px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 12px 12px rgba(83, 63, 75, .12));
+  animation: tuki-float 3s ease-in-out infinite;
+}
+
+.tuki-stage-active .tuki-mascot {
+  animation: tuki-dance 3.2s cubic-bezier(.33, 1, .68, 1) both;
+}
+
+.tuki-mascot svg {
+  width: 176px;
+  height: 176px;
+}
+
+.tuki-mascot .shonai-body {
+  transform-origin: 48px 77px;
+  animation: tuki-mascot-bob 3s ease-in-out infinite;
+}
+
+.tuki-mascot .shonai-face ellipse:nth-child(-n+2) {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tuki-mascot-blink 4.8s linear infinite;
+}
+
+.tuki-stage-active .tuki-chat-bubble {
+  animation: tuki-message 5s ease both;
+}
+
+.tuki-stage-active .tuki-chat-two { animation-delay: 5s; }
+.tuki-stage-active .tuki-chat-three { animation-delay: 10s; }
+.tuki-stage-active .tuki-chat-four { animation-delay: 15s; }
+.tuki-stage-active .tuki-chat-five { animation-delay: 20s; }
+.tuki-stage-active .tuki-chat-six { animation-delay: 25s; }
+.tuki-stage-active .tuki-chat-seven { animation-delay: 30s; }
+
+.tuki-orbit {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(233, 117, 63, .15);
+  border-radius: 9999px;
+}
+
+.tuki-orbit-one {
+  width: 220px;
+  height: 220px;
+  animation: tuki-orbit 16s linear infinite;
+}
+
+.tuki-orbit-two {
+  width: 270px;
+  height: 270px;
+  border-style: dashed;
+  animation: tuki-orbit 24s linear infinite reverse;
+}
+
+@keyframes tuki-float {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes tuki-dance {
+  0% { transform: translateY(2px) rotate(0) scale(1); }
+  16% { transform: translateY(-10px) rotate(-14deg) scale(1.04); }
+  34% { transform: translateY(1px) rotate(12deg) scale(1); }
+  54% { transform: translateY(-8px) rotate(-9deg) scale(1.04); }
+  76% { transform: translateY(0) rotate(360deg) scale(.98); }
+  100% { transform: translateY(2px) rotate(360deg) scale(1); }
+}
+
+@keyframes tuki-message {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(.96); }
+  10%, 84% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -5px) scale(.98); }
+}
+
+@keyframes tuki-mascot-bob {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
+@keyframes tuki-mascot-blink {
+  0%, 45%, 49%, 100% { transform: scaleY(1); }
+  47% { transform: scaleY(.12); }
+}
+
+@keyframes tuki-glow {
+  0%, 100% { opacity: .72; transform: scale(.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes tuki-orbit {
+  to { transform: rotate(360deg); }
+}
+
 .journey-feature-item {
   position: relative;
   z-index: 1;
@@ -87,9 +335,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .journey-feature-item,
-  .journey-feature-item::before {
+  .journey-feature-item::before,
+  .journey-highlight-card,
+  .tuki-mascot,
+  .tuki-mascot .shonai-body,
+  .tuki-mascot .shonai-face ellipse,
+  .tuki-chat-bubble,
+  .tuki-mascot-glow,
+  .tuki-orbit {
     animation: none;
     opacity: 1;
     transform: none;
   }
+
+  .tuki-chat-bubble { opacity: 1; transform: translateX(-50%); }
 }

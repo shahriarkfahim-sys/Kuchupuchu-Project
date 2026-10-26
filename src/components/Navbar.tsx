@@ -285,7 +285,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="hidden sm:inline">
                   {subscription?.status === 'active'
                     ? (currentLang === 'bn' ? 'প্রিমিয়াম' : 'Premium')
-                    : (currentLang === 'bn' ? '২ মাস ফ্রি' : '2 Mo Free')}
+                    : (currentLang === 'bn' ? '৩০ দিন ফ্রি' : '30 Days Free')}
                 </span>
                 <span className="sm:hidden">{currentLang === 'bn' ? 'প্ল্যান' : 'Plan'}</span>
               </button>

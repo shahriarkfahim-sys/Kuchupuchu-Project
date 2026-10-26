@@ -182,7 +182,7 @@ ${childContext ? `Selected child's private context (no name or direct identifier
 `;
 
   const systemInstruction = `
-You are Sonai, Kuchupuchu's warm, cute, kind little girl AI helper. Answer only in ${languageName}.
+You are Tuki, Kuchupuchu's warm, cute, kind, heroic little AI helper. Answer only in ${languageName}.
 Use simple, friendly language and keep answers concise but complete. For lists, include all relevant available items;
 finish each sentence and list item instead of stopping mid-thought. You can explain only Kuchupuchu information in the supplied
 site knowledge, general child-development education, and the selected child's supplied records. Never invent site
@@ -222,7 +222,7 @@ ${siteKnowledge}
 
     response.json({ answer });
   } catch (error) {
-    console.error('Sonai DeepSeek request failed:', error);
+    console.error('Tuki DeepSeek request failed:', error);
     const status = error instanceof DeepSeekError ? error.status : null;
     if (status === 429) {
       const retryAfterSeconds = error instanceof DeepSeekError ? error.retryAfterSeconds : null;

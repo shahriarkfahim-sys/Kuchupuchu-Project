@@ -31,10 +31,10 @@ interface ChildContext {
   completedActivities: number;
 };
 
-function makeMascot(size: 'small' | 'large' = 'small') {
+export function makeMascot(size: 'small' | 'large' = 'small') {
   const dimensions = size === 'large' ? 'h-24 w-24' : 'h-14 w-14';
   return (
-    <svg className={`${dimensions} overflow-visible`} viewBox="0 0 96 96" role="img" aria-label="Sonai, a friendly little girl">
+    <svg className={`${dimensions} overflow-visible`} viewBox="0 0 96 96" role="img" aria-label="Tuki, a friendly little helper">
       <ellipse cx="48" cy="87" rx="26" ry="6" fill="#5B4A68" opacity=".12" />
       <g className="shonai-body">
         <path d="M30 72c3-9 10-13 18-13s15 4 18 13l5 12H25z" fill="#F08B78" />
@@ -197,7 +197,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : '';
       if (message === 'assistant_not_configured') {
-        setError(isBn ? 'সোনাইকে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।' : 'Add a DeepSeek API key on the server to enable Sonai.');
+        setError(isBn ? 'টুকিকে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।' : 'Add a DeepSeek API key on the server to enable Tuki.');
       } else if (message === 'assistant_invalid_api_key') {
         setError(isBn
           ? 'DeepSeek API key গ্রহণ করা হয়নি। server-এর DEEPSEEK_API_KEY পরীক্ষা করুন।'
@@ -219,7 +219,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
       } else if (message === 'rate_limited') {
         setError(isBn ? 'অল্প সময়ে অনেকবার চেষ্টা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।' : 'There have been too many requests. Please wait a minute and try again.');
       } else {
-        setError(isBn ? 'এখন সোনাইয়ের সাথে যোগাযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।' : 'Sonai could not connect just now. Please try again in a moment.');
+        setError(isBn ? 'এখন টুকির সাথে যোগাযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।' : 'Tuki could not connect just now. Please try again in a moment.');
       }
     } finally {
       setIsSending(false);
@@ -262,12 +262,12 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
         )}
 
         {isOpen && (
-          <section role="dialog" aria-modal="false" aria-label={isBn ? 'সোনাই চ্যাট' : 'Chat with Sonai'} className="mb-1 flex h-[min(600px,calc(100dvh-120px))] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-[#EDE1D8] bg-[#FFFCF8] shadow-2xl">
+          <section role="dialog" aria-modal="false" aria-label={isBn ? 'টুকি চ্যাট' : 'Chat with Tuki'} className="mb-1 flex h-[min(600px,calc(100dvh-120px))] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-[#EDE1D8] bg-[#FFFCF8] shadow-2xl">
             <header className="flex items-center justify-between bg-[#F5E8DF] px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80">{makeMascot('small')}</div>
                 <div>
-                  <h2 className="text-sm font-extrabold text-[#383341]">{isBn ? 'সোনাই' : 'Sonai'} <span className="text-[#B77362]">♡</span></h2>
+                  <h2 className="text-sm font-extrabold text-[#383341]">{isBn ? 'টুকি' : 'Tuki'} <span className="text-[#B77362]">♡</span></h2>
                   <p className="text-[10px] text-[#7D737B]">{isBn ? 'তোমার ছোট্ট AI বন্ধু' : 'Your little AI friend'}</p>
                 </div>
               </div>
@@ -282,8 +282,8 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
                   {makeMascot('small')}
                   <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-white px-3.5 py-3 text-xs leading-relaxed text-[#514B56] shadow-sm">
                     {isBn
-                      ? `হ্যালো! আমি সোনাই। ${isLoggedIn ? 'তোমার ছোট্ট সোনামণির বিকাশ আর এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো।' : 'শিশুর বিকাশ বা এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো!'}`
-                      : `Hello! I'm Sonai. ${isLoggedIn ? 'Ask me about your little one’s development or this website.' : 'Ask me about child development or this website!'}`}
+                      ? `হ্যালো! আমি টুকি। ${isLoggedIn ? 'তোমার ছোট্ট সোনামণির বিকাশ আর এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো।' : 'শিশুর বিকাশ বা এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো!'}`
+                      : `Hello! I'm Tuki. ${isLoggedIn ? 'Ask me about your little one’s development or this website.' : 'Ask me about child development or this website!'}`}
                   </div>
                 </div>
               )}
@@ -315,7 +315,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
               {isSending && (
                 <div className="flex items-center gap-2 text-[11px] text-[#887D85]">
                   {makeMascot('small')}
-                  <span className="animate-pulse">{isBn ? 'সোনাই ভাবছে…' : 'Sonai is thinking…'}</span>
+                  <span className="animate-pulse">{isBn ? 'টুকি ভাবছে…' : 'Tuki is thinking…'}</span>
                 </div>
               )}
               {error && <p role="alert" className="rounded-xl bg-[#FFF0ED] px-3 py-2 text-[11px] leading-relaxed text-[#A34840]">{error}</p>}
@@ -337,10 +337,10 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   placeholder={quotaSleepUntil !== null
-                    ? isBn ? 'সোনাই এখন ঘুমাচ্ছে…' : 'Sonai is sleeping…'
-                    : isBn ? 'সোনাইকে কিছু জিজ্ঞেস করো…' : 'Ask Sonai something…'}
+                    ? isBn ? 'টুকি এখন ঘুমাচ্ছে…' : 'Tuki is sleeping…'
+                    : isBn ? 'টুকিকে কিছু জিজ্ঞেস করো…' : 'Ask Tuki something…'}
                   className="min-w-0 flex-1 rounded-xl border border-[#E9DED6] bg-white px-3 py-2.5 text-xs outline-none focus:border-[#CF927E]"
-                  aria-label={isBn ? 'সোনাইকে বার্তা লিখুন' : 'Message Sonai'}
+                  aria-label={isBn ? 'টুকিকে বার্তা লিখুন' : 'Message Tuki'}
                   maxLength={1000}
                   disabled={quotaSleepUntil !== null}
                 />
@@ -358,10 +358,10 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
             setReminder(false);
           }}
           className="group flex items-center gap-2 rounded-full border border-[#F0DCD2] bg-white p-1.5 pr-4 text-sm font-bold text-[#5A4651] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-          aria-label={isOpen ? (isBn ? 'সোনাই চ্যাট বন্ধ করুন' : 'Close Sonai chat') : (isBn ? 'সোনাইয়ের সাথে কথা বলুন' : 'Chat with Sonai')}
+          aria-label={isOpen ? (isBn ? 'টুকি চ্যাট বন্ধ করুন' : 'Close Tuki chat') : (isBn ? 'টুকির সাথে কথা বলুন' : 'Chat with Tuki')}
         >
           <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F9E7DE]">{makeMascot('small')}</span>
-          <span>{isBn ? 'সোনাই' : 'Sonai'}</span>
+          <span>{isBn ? 'টুকি' : 'Tuki'}</span>
           <span className="ml-0.5 flex h-2 w-2 rounded-full bg-[#70A87C]" />
           <span className="sr-only">AI assistant</span>
           <MessageCircle className="h-4 w-4 text-[#B77362]" />

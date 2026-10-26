@@ -92,19 +92,31 @@ export default function App() {
   const [authGateModalOpen, setAuthGateModalOpen] = useState(false);
   const [authGateTargetTab, setAuthGateTargetTab] = useState<string>('ogrogoti-graph');
 
-  // User Subscription State: First 2 months free trial, then 149/mo or 499/yr via bKash
+  // User Subscription State: First 30 days free, then 89/mo or 499/yr via bKash
   const [subscription, setSubscription] = useState<UserSubscription>(() => {
     try {
       const saved = localStorage.getItem('kuchupuchu_subscription');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved) as UserSubscription;
+        if (parsed.status === 'trial' && parsed.trialStartDate && parsed.trialEndDate) {
+          const trialStart = new Date(parsed.trialStartDate);
+          const trialEnd = new Date(parsed.trialEndDate);
+          const maxTrialEnd = new Date(trialStart);
+          maxTrialEnd.setDate(maxTrialEnd.getDate() + 30);
+          if (trialEnd > maxTrialEnd) {
+            parsed.trialEndDate = maxTrialEnd.toISOString();
+            localStorage.setItem('kuchupuchu_subscription', JSON.stringify(parsed));
+          }
+        }
+        return parsed;
+      }
     } catch (e) {
       console.error(e);
     }
-    // Default: 2 months free trial (15 days used, 45 days remaining)
+    // Default: 30 days free trial
     const start = new Date();
-    start.setDate(start.getDate() - 15);
     const end = new Date(start);
-    end.setDate(end.getDate() + 60);
+    end.setDate(end.getDate() + 30);
     return {
       status: 'trial',
       plan: 'monthly',
@@ -346,7 +358,6 @@ export default function App() {
         {activeTab === 'home' && (
           <HomePage
             currentLang={currentLang}
-            onGoToDashboard={() => handleSelectTab('ogrogoti-graph')}
             onOpenAuth={(mode) => {
               if (mode === 'register') {
                 setOnboardingModalOpen(true);
@@ -357,8 +368,6 @@ export default function App() {
             }}
             onGoToTracker={() => handleSelectTab('ogrogoti-graph')}
             onGoToPlay={() => handleSelectTab('daily-play')}
-            onGoToDiary={() => handleSelectTab('baby-diary')}
-            onGoToForum={() => handleSelectTab('forum')}
             onStartWithChildName={(name) => {
               setOnboardingChildName(name);
               setOnboardingModalOpen(true);
@@ -664,15 +673,17 @@ export default function App() {
         </div>
       </footer>
 
-      <SonaiAssistant
-        currentLang={currentLang}
-        isLoggedIn={isLoggedIn}
-        activeChild={activeChild}
-        growthLogs={growthLogs}
-        milestones={milestones}
-        routineLogs={routineLogs}
-        activities={activities}
-      />
+      {isLoggedIn && activeTab !== 'home' && (
+        <SonaiAssistant
+          currentLang={currentLang}
+          isLoggedIn={isLoggedIn}
+          activeChild={activeChild}
+          growthLogs={growthLogs}
+          milestones={milestones}
+          routineLogs={routineLogs}
+          activities={activities}
+        />
+      )}
 
     </div>
   );
