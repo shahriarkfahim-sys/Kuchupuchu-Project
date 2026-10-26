@@ -344,7 +344,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   { title: 'মেমোরি ডায়েরি', description: 'সন্তানের স্মৃতি সংরক্ষণ করে সবার সঙ্গে শেয়ার করুন', Icon: BookOpen },
                   { title: 'প্যারেন্টস ফোরাম', description: 'যেকোনো সমস্যায় অভিজ্ঞ অভিভাবকদের সঙ্গে আলোচনা করুন', Icon: MessageCircle },
                   { title: 'কেনাকাটা', description: 'গিফট কার্ডসহ মাত্র ৩ ক্লিকে ঝামেলাহীন কেনাকাটা', Icon: ShoppingBag },
-                  { title: 'জরুরি সাহায্য', description: 'টিকা কেন্দ্র, নিকটস্থ হাসপাতাল, পুষ্টিবিদ, শিশু বিশেষজ্ঞ, থেরাপি ও টেস্টিং সেন্টারের খোঁজ ও যোগাযোগের তথ্য এক জায়গায়', Icon: MapPin },
+                  { title: 'জরুরি সাহায্য', description: 'টিকা কেন্দ্র, নিকটস্থ হাসপাতাল, পুষ্টিবিদ, শিশু বিশেষজ্ঞ, থেরাপি ও টেস্টিং সেন্টারের তথ্য, বুকিংয়ে সহায়তা ও যোগাযোগ করিয়ে দেওয়া', Icon: MapPin },
                 ]
               : [
                   { title: 'Play library', description: 'Age-based home-material play for six areas of child development', Icon: Gamepad2 },
@@ -352,7 +352,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   { title: 'Memory diary', description: 'Save and share your child’s memories', Icon: BookOpen },
                   { title: 'Parents forum', description: 'Talk with experienced parents', Icon: MessageCircle },
                   { title: 'Shopping', description: 'Easy shopping in 3 clicks, with gift cards', Icon: ShoppingBag },
-                  { title: 'Urgent help', description: 'Find contact details for vaccination centers, nearby hospitals, nutritionists, pediatricians, therapy, and testing centers', Icon: MapPin },
+                  { title: 'Urgent help', description: 'Get information, booking help, and connections to vaccination centers, nearby hospitals, nutritionists, pediatricians, therapy, and testing centers', Icon: MapPin },
                 ]
             ).map(({ title, description, Icon }, index) => (
               <div key={title} className="journey-highlight-card" style={{ animationDelay: `${index * 180}ms` }}>
