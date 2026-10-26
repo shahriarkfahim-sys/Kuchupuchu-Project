@@ -128,12 +128,12 @@ export const MilestoneRoadmap24: React.FC<MilestoneRoadmap24Props> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs font-bold text-[#C85D26] uppercase tracking-wider">
             <TrendingUp className="w-4 h-4" />
-            <span>{currentLang === 'bn' ? '২৪ মাসের পূর্ণাঙ্গ অগ্রগতি মানচিত্র' : '0 to 24 Months Visual Roadmap'}</span>
+            <span>{currentLang === 'bn' ? 'গর্ভাবস্থা থেকে ২৪ মাস' : 'From pregnancy to 24 months'}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-[#2D3142] tracking-tight">
             {currentLang === 'bn' 
-              ? 'কোন বয়সে আপনার সন্তানের কী কী শেখার কথা?' 
-              : 'What should your baby unlock at each milestone age?'}
+              ? 'এক যাত্রায় সন্তানের বেড়ে ওঠার প্রতিটি ধাপ'
+              : 'Every step of your child’s growth, in one journey'}
           </h2>
           <p className="text-xs sm:text-sm text-[#5C6479] max-w-2xl leading-relaxed">
             {currentLang === 'bn'

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pause, Play, RotateCcw } from 'lucide-react';
 import { Language } from '../types';
 
 interface JourneyAnimationProps {
@@ -7,811 +7,516 @@ interface JourneyAnimationProps {
   className?: string;
 }
 
+type ParentFigureProps = {
+  x: number;
+  y: number;
+  role: 'mother' | 'father';
+  outfit?: 'kurti' | 'shirt' | 'panjabi';
+  hijab?: boolean;
+  pregnant?: boolean;
+  reach?: boolean;
+  reachInward?: boolean;
+  lean?: boolean;
+  color?: string;
+};
+
+const ParentFigure: React.FC<ParentFigureProps> = ({
+  x,
+  y,
+  role,
+  outfit = role === 'mother' ? 'kurti' : 'shirt',
+  hijab = false,
+  pregnant = false,
+  reach = false,
+  reachInward = false,
+  lean = false,
+  color,
+}) => {
+  const isMother = role === 'mother';
+  const outfitColor = color ?? (isMother ? '#E87955' : '#2C7867');
+
+  return (
+    <g transform={`translate(${x} ${y})${lean ? ' rotate(-7 20 54)' : ''}`}>
+      <ellipse cx="20" cy="122" rx="19" ry="3.5" fill="#735B4C" opacity=".13" />
+      <path d="M11 83 9 116M28 83l5 33" stroke="#704D3B" strokeWidth="5" strokeLinecap="round" />
+      <path d="M4 117h11m16 0h11" stroke="#F7F0E7" strokeWidth="5" strokeLinecap="round" />
+      {outfit === 'shirt' ? (
+        <path d="M9 36q11-8 22 0l7 42q-18 9-36 0z" fill={outfitColor} />
+      ) : pregnant ? (
+        <path d="M8 34q12-9 25 0l4 18q12 7 12 20-9 16-37 10L5 58z" fill={outfitColor} />
+      ) : (
+        <path d="M8 34q12-9 25 0l8 48q-21 8-42 0z" fill={outfitColor} />
+      )}
+      {outfit === 'panjabi' && (
+        <path d="M20 34v41m-3-34h6" stroke="#EBC46E" strokeWidth="2" />
+      )}
+      {isMother && outfit === 'kurti' && (
+        <>
+          <path d="M8 39q10 10 25 4M7 45q13 13 28 7" fill="none" stroke="#F7D79A" strokeWidth="1.5" opacity=".8" />
+          <path d="M8 38q-7 17 2 37l8-4-2-30m11-3q10 16 9 36l-8-1-4-29" fill={hijab ? '#287463' : '#F1C47A'} />
+        </>
+      )}
+      {hijab && (
+        <path d="M7 23q-2-21 14-22 17 1 17 22l-5 24-12-10L9 48 5 34z" fill="#28695E" stroke="#1F5E54" strokeWidth="1" />
+      )}
+      <path
+        d={reachInward
+          ? 'M10 42Q3 51 20 62M31 42Q38 51 21 62'
+          : reach
+            ? 'M10 42Q-1 47-9 38M31 42Q43 49 50 58'
+            : 'M10 42Q3 54 1 65M31 42Q39 53 42 65'}
+        fill="none"
+        stroke="#9B6048"
+        strokeWidth="5"
+        strokeLinecap="round"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          values="0 20 43; 2 20 43; 0 20 43"
+          dur="3.2s"
+          repeatCount="indefinite"
+        />
+      </path>
+      {pregnant && (
+        <path d="M31 57q10 0 14 9" fill="none" stroke="#9B6048" strokeWidth="4" strokeLinecap="round" />
+      )}
+      <circle cx="21" cy="19" r="14" fill="#A96349" />
+      <path d="M7 18Q7 3 21 4q14 0 14 14-6-8-14-8-8 0-14 8" fill="#201915" />
+      {hijab && <path d="M8 15Q9 2 21 2t13 13q-5-6-13-6t-13 6" fill="#28695E" />}
+      {!isMother && (
+        <path d="M11 24q3 7 10 7t10-7q-2 12-10 12t-10-12" fill="#35231C" />
+      )}
+      <circle cx="16" cy="19" r="1.2" fill="#281A15" />
+      <circle cx="26" cy="19" r="1.2" fill="#281A15" />
+      <path d="M17 25q4 3 8 0" fill="none" stroke="#6E3529" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="12" cy="24" r="2.4" fill="#DE8873" opacity=".7" />
+      <circle cx="30" cy="24" r="2.4" fill="#DE8873" opacity=".7" />
+    </g>
+  );
+};
+
+type BabyFigureProps = {
+  x: number;
+  y: number;
+  pose: 'swaddle' | 'tummy' | 'sit' | 'stand' | 'run';
+  outfit?: string;
+};
+
+const BabyFigure: React.FC<BabyFigureProps> = ({ x, y, pose, outfit = '#F1C34E' }) => {
+  if (pose === 'swaddle') {
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        <path d="M-28 28q28-23 56 0v28q-28 22-56 0z" fill="#F8F2E7" stroke="#E6D7C1" strokeWidth="2" />
+        <path d="M-25 40q25-12 50 0v16q-25 13-50 0z" fill="#3F8475" />
+        <circle cx="-5" cy="31" r="11" fill="#B87658" />
+        <path d="M-16 29q2-12 13-12 11 0 14 12-9-6-27 0" fill="#211A17" />
+        <path d="M-10 34q4 3 8 0" fill="none" stroke="#633D31" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="-16" cy="35" r="2.5" fill="#E39A7E" />
+        <circle cx="5" cy="35" r="2.5" fill="#E39A7E" />
+        <path d="M-20 45q20 9 40 0" fill="none" stroke="#E5C26F" strokeWidth="2" strokeDasharray="2 4" />
+      </g>
+    );
+  }
+
+  const isTummy = pose === 'tummy';
+  const isSitting = pose === 'sit';
+  const isStanding = pose === 'stand' || pose === 'run';
+
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {isTummy ? (
+        <>
+          <ellipse cx="0" cy="54" rx="35" ry="9" fill="#E6C891" />
+          <path d="M-22 39q20-15 39 0l19 10q-3 10-17 7L0 48l-17 9q-12 0-13-9z" fill={outfit} />
+          <path d="M-17 45-35 55m42-10 19 10" stroke="#B87658" strokeWidth="5" strokeLinecap="round">
+            <animateTransform attributeName="transform" type="rotate" values="0 -17 45;-8 -17 45;0 -17 45" dur="2.4s" repeatCount="indefinite" />
+          </path>
+          <path d="M-17 29q0-19 17-19t17 19q-1 18-17 18t-17-18" fill="#B87658">
+            <animateTransform attributeName="transform" type="rotate" values="0 0 44;-8 0 44;0 0 44" dur="2.4s" repeatCount="indefinite" />
+          </path>
+          <path d="M-17 25q0-17 17-17t17 17q-8-7-17-7t-17 7" fill="#211A17" />
+          <circle cx="-6" cy="29" r="1.5" fill="#281A15" />
+          <circle cx="6" cy="29" r="1.5" fill="#281A15" />
+          <path d="M-4 35q4 3 8 0" fill="none" stroke="#633D31" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="-11" cy="34" r="2.4" fill="#E39A7E" />
+          <circle cx="11" cy="34" r="2.4" fill="#E39A7E" />
+        </>
+      ) : (
+        <>
+          {isSitting ? (
+            <>
+              <path d="M-12 53q-23 8-27 20 3 7 20 3l18-12m9-11q23 8 27 20-3 7-20 3L-3 64" fill="none" stroke="#B87658" strokeWidth="8" strokeLinecap="round" />
+              <path d="M-17 44q17-9 34 0l6 27q-18 9-39 0z" fill={outfit} />
+              <path d="M-13 65q13 5 26 0" fill="none" stroke="#F8F2E7" strokeWidth="3" />
+            </>
+          ) : (
+            <>
+              {isStanding && (
+                <path d={pose === 'run' ? 'M-9 62-20 82m28-20 15 14' : 'M-9 61-13 86m22-25 6 25'} stroke="#B87658" strokeWidth="7" strokeLinecap="round">
+                  {pose === 'run' && (
+                    <animateTransform attributeName="transform" type="translate" values="0 0;2 -2;0 0" dur="1s" repeatCount="indefinite" />
+                  )}
+                </path>
+              )}
+              {!isStanding && <path d="M-14 55q-18 12-22 22m48-22q18 12 22 22" stroke="#B87658" strokeWidth="7" strokeLinecap="round" />}
+              <path d="M-17 43q17-9 34 0l5 24q-22 10-44 0z" fill={outfit} />
+              {isSitting && <path d="M-16 64q-10 13-1 18h17l4-12m10-6q10 13 1 18H-2" fill="#B87658" />}
+            </>
+          )}
+          <circle cx="0" cy="25" r="19" fill="#B87658">
+            {isTummy && <animateTransform attributeName="transform" type="rotate" values="0 0 44;-8 0 44;0 0 44" dur="2.4s" repeatCount="indefinite" />}
+          </circle>
+          <path d="M-19 23q1-20 19-20 18 0 19 20-8-9-19-9t-19 9" fill="#211A17" />
+          <circle cx="-7" cy="25" r="1.7" fill="#281A15" />
+          <circle cx="7" cy="25" r="1.7" fill="#281A15" />
+          <path d="M-5 33q5 4 10 0" fill="none" stroke="#633D31" strokeWidth="1.7" strokeLinecap="round" />
+          <circle cx="-12" cy="31" r="3" fill="#E39A7E" />
+          <circle cx="12" cy="31" r="3" fill="#E39A7E" />
+        </>
+      )}
+    </g>
+  );
+};
+
 export const JourneyAnimation: React.FC<JourneyAnimationProps> = ({
   currentLang = 'bn',
   className = '',
 }) => {
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [progress, setProgress] = useState<number>(0); // 0 to 100%
-  const [activeStage, setActiveStage] = useState<number>(1);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
+  const lastProgressUpdateRef = useRef(0);
+  const pendingProgressDeltaRef = useRef(0);
+  const isBangla = currentLang === 'bn';
+  const totalDuration = 18000;
+  const sceneCenters = [120, 360, 600, 840, 1080, 1320];
+  const milestones = isBangla
+    ? [
+        { age: 'গর্ভকাল', title: 'প্রথম হার্টবিট' },
+        { age: '০–১ মাস', title: 'প্রথম আদর' },
+        { age: '৩ মাস', title: 'মাথা তোলা, প্রথম হাসি' },
+        { age: '৬ মাস', title: 'বসা, নতুন স্বাদ' },
+        { age: '১২ মাস', title: 'প্রথম পা' },
+        { age: '১৮–২৪ মাস', title: 'কথা, দৌড়, আলিঙ্গন' },
+      ]
+    : [
+        { age: 'Pregnancy', title: 'First heartbeat' },
+        { age: '0–1 month', title: 'First cuddle' },
+        { age: '3 months', title: 'Head up, first smile' },
+        { age: '6 months', title: 'Sitting, new tastes' },
+        { age: '12 months', title: 'First steps' },
+        { age: '18–24 months', title: 'Words, running, hugs' },
+      ];
 
-  // Total journey loop duration: 8.5 seconds (within user's 7-10s requirement)
-  const TOTAL_DURATION_MS = 8500;
-
-  // 4 Core Stages requested by user (Clean descriptive titles without numbers):
-  // - হাসপাতালে জন্ম (Hospital birth)
-  // - ডায়াপার পরে বসতে শেখা (Baby in diaper learning to sit up with mother)
-  // - হাঁটতে শেখা (Baby learning to walk)
-  // - মা-বাবাকে মিষ্টি আলিঙ্গন (Child hugging parents)
-  const stages = [
-    {
-      id: 1,
-      range: [0, 25],
-      titleBn: 'হাসপাতালে জন্ম',
-      titleEn: 'Hospital Birth',
-      cx: 130,
-    },
-    {
-      id: 2,
-      range: [25, 50],
-      titleBn: 'ডায়াপার পরে বসতে শেখা',
-      titleEn: 'Sitting in Diaper',
-      cx: 375,
-    },
-    {
-      id: 3,
-      range: [50, 75],
-      titleBn: 'হাঁটতে শেখা',
-      titleEn: 'First Steps',
-      cx: 620,
-    },
-    {
-      id: 4,
-      range: [75, 100],
-      titleBn: 'মা-বাবাকে মিষ্টি আলিঙ্গন',
-      titleEn: 'Family Hug',
-      cx: 865,
-    },
-  ];
-
-  // Animation ticker loop
   useEffect(() => {
     if (!isPlaying) {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
       lastTimeRef.current = null;
+      lastProgressUpdateRef.current = 0;
+      pendingProgressDeltaRef.current = 0;
       return;
     }
 
-    const step = (time: number) => {
+    const tick = (time: number) => {
       if (lastTimeRef.current !== null) {
-        const delta = time - lastTimeRef.current;
-        setProgress((prev) => {
-          const next = prev + (delta / TOTAL_DURATION_MS) * 100;
-          return next >= 100 ? 0 : next;
-        });
+        const delta = Math.min(time - lastTimeRef.current, 100);
+        pendingProgressDeltaRef.current += delta;
+        if (time - lastProgressUpdateRef.current >= 33) {
+          lastProgressUpdateRef.current = time;
+          const progressDelta = pendingProgressDeltaRef.current;
+          pendingProgressDeltaRef.current = 0;
+          setProgress((value) => (value + (progressDelta / totalDuration) * 100) % 100);
+        }
       }
       lastTimeRef.current = time;
-      animationFrameRef.current = requestAnimationFrame(step);
+      animationFrameRef.current = requestAnimationFrame(tick);
     };
 
-    animationFrameRef.current = requestAnimationFrame(step);
-
+    animationFrameRef.current = requestAnimationFrame(tick);
     return () => {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, [isPlaying]);
 
-  // Sync active stage based on progress
   useEffect(() => {
-    if (progress < 25) {
-      setActiveStage(1);
-    } else if (progress < 50) {
-      setActiveStage(2);
-    } else if (progress < 75) {
-      setActiveStage(3);
+    if (isPlaying) {
+      svgRef.current?.unpauseAnimations();
     } else {
-      setActiveStage(4);
+      svgRef.current?.pauseAnimations();
     }
-  }, [progress]);
+  }, [isPlaying]);
 
-  const handleStageClick = (stageId: number) => {
-    const stage = stages.find((s) => s.id === stageId);
-    if (stage) {
-      setProgress(stage.range[0] + 2);
-      setActiveStage(stageId);
-    }
-  };
+  const activeStage = Math.min(5, Math.floor((progress / 100) * milestones.length));
+  const threadX = 42 + (progress / 100) * 1356;
 
-  const handleReset = () => {
-    setProgress(0);
-    setActiveStage(1);
+  const selectStage = (index: number) => {
+    setProgress((index / milestones.length) * 100 + 0.5);
     setIsPlaying(true);
   };
 
-  // Traveling sparkle marker position (from x = 80 to x = 920)
-  const markerX = 80 + (progress / 100) * 840;
-
-  // Proximity-based dynamic scale:
-  // As the moving beacon approaches stage cx, that stage's characters scale up (to ~1.15x),
-  // and smoothly return to normal size (1.0x) as the beacon travels away.
-  const getStageScale = (cx: number) => {
-    const dist = Math.abs(markerX - cx);
-    const range = 110;
-    if (dist >= range) return 1;
-    const factor = Math.cos((dist / range) * (Math.PI / 2));
-    return Number((1 + factor * 0.15).toFixed(3));
+  const handleStageKeyDown = (event: React.KeyboardEvent<SVGGElement>, index: number) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectStage(index);
+    }
   };
 
-  const s1Scale = getStageScale(130);
-  const s2Scale = getStageScale(375);
-  const s3Scale = getStageScale(620);
-  const s4Scale = getStageScale(865);
-
   return (
-    <div
-      className={`w-full bg-[#FFF9F3] rounded-3xl border border-[#F4E2D2] p-4 sm:p-5 shadow-xs relative overflow-hidden ${className}`}
-    >
-      {/* Background Subtle Warmth */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#FFF6EC] via-[#FFFAF5] to-[#FFF3E8] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-72 h-72 bg-radial from-[#FFE5CF]/40 to-transparent rounded-full -mr-16 -mt-16 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-72 h-72 bg-radial from-[#FFEBD8]/50 to-transparent rounded-full -ml-16 -mb-16 pointer-events-none" />
+    <div className={`relative w-full overflow-hidden rounded-3xl border border-[#F0E2CF] bg-[#FFF9F1] p-2.5 shadow-sm sm:p-4 ${className}`}>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_20%,rgba(255,235,201,.55),transparent_35%),radial-gradient(ellipse_at_80%_70%,rgba(231,239,220,.6),transparent_38%)]" />
 
-      {/* Floating Minimal Playback Controls in Top-Right Corner */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-white/85 backdrop-blur-xs px-2 py-1 rounded-xl border border-[#F0D5C1] shadow-2xs">
+      <div className="absolute right-3 top-3 z-20 flex items-center gap-1 rounded-full border border-[#EEE3D3] bg-white/90 p-1 shadow-sm sm:right-4 sm:top-4">
         <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="p-1 rounded-lg hover:bg-[#FFF0E2] text-[#4F566B] hover:text-[#E66020] transition-colors cursor-pointer"
-          title={isPlaying ? 'Pause' : 'Play'}
+          type="button"
+          onClick={() => setIsPlaying((playing) => !playing)}
+          className="rounded-full p-2 text-[#536158] transition-colors hover:bg-[#F7F2E9]"
+          aria-label={isPlaying ? (isBangla ? 'অ্যানিমেশন থামান' : 'Pause animation') : (isBangla ? 'অ্যানিমেশন চালান' : 'Play animation')}
+          title={isPlaying ? (isBangla ? 'থামান' : 'Pause') : (isBangla ? 'চালান' : 'Play')}
         >
-          {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
         </button>
         <button
-          onClick={handleReset}
-          className="p-1 rounded-lg hover:bg-[#FFF0E2] text-[#4F566B] hover:text-[#E66020] transition-colors cursor-pointer"
-          title="Replay from start"
+          type="button"
+          onClick={() => {
+            setProgress(0);
+            setIsPlaying(true);
+          }}
+          className="rounded-full p-2 text-[#536158] transition-colors hover:bg-[#F7F2E9]"
+          aria-label={isBangla ? 'আবার শুরু করুন' : 'Replay animation'}
+          title={isBangla ? 'আবার শুরু করুন' : 'Replay'}
         >
-          <RotateCcw className="w-3.5 h-3.5" />
+          <RotateCcw className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Main Story Canvas (Vector SVG ViewBox: 0 0 1000 270) */}
-      {/* 4 Strictly Grounded Milestones from Left to Right on Baseline y = 220: */}
-      {/* Stage 1 (x ~ 130): Hospital Birth (Mother, Father, Newborn in Cradle) */}
-      {/* Stage 2 (x ~ 375): Baby in Diaper Learning to Sit Up with Mother Beside Him */}
-      {/* Stage 3 (x ~ 620): Baby Learning to Walk (First Steps with Mother) */}
-      {/* Stage 4 (x ~ 865): Grown Child Hugging Mom & Dad Together */}
-      <div className="relative z-10 w-full my-1 flex items-center justify-center">
+      <div className="relative z-10 w-full overflow-x-auto">
         <svg
-          viewBox="0 0 1000 248"
-          className="w-full h-auto select-none max-h-[290px]"
-          fill="none"
+          ref={svgRef}
+          viewBox="0 0 1440 390"
+          className="block h-auto min-w-[760px] w-full select-none"
+          aria-label={isBangla ? 'গর্ভকাল থেকে ২৪ মাস পর্যন্ত সন্তানের বেড়ে ওঠার ছয়টি ধাপ' : 'Six steps of a child’s journey from pregnancy through 24 months'}
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FFF1E2" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#FFE8D2" stopOpacity="0.9" />
+            <linearGradient id="kantha-thread" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#B98A34" />
+              <stop offset="50%" stopColor="#E4B94D" />
+              <stop offset="100%" stopColor="#C89839" />
             </linearGradient>
-            <linearGradient id="cradleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FFFFFF" />
-              <stop offset="100%" stopColor="#E1F5FE" />
-            </linearGradient>
-            <linearGradient id="matGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFF8E1" />
-              <stop offset="100%" stopColor="#FFE082" />
+            <linearGradient id="evening-sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F8D9B9" />
+              <stop offset="100%" stopColor="#FFF1D7" />
             </linearGradient>
           </defs>
 
-          {/* Gentle Floor Ground Baseline (y = 220) */}
+          <path d="M0 288q180-10 360 0t360 0 360 0 360 0v47H0z" fill="#F5EDDC" opacity=".8" />
+          <path d="M0 288q180-10 360 0t360 0 360 0 360 0" fill="none" stroke="#D6C7A6" strokeWidth="1.5" />
+
+          {sceneCenters.map((center, index) => (
+            <g key={`alpona-${index}`} transform={`translate(${center} 282)`} opacity=".24">
+              <circle r="25" fill="none" stroke="#B9A97F" strokeWidth="1" />
+              <circle r="16" fill="none" stroke="#B9A97F" strokeWidth="1" strokeDasharray="2 5" />
+              {[0, 60, 120, 180, 240, 300].map((angle) => (
+                <ellipse key={angle} cx="0" cy="-20" rx="3" ry="7" fill="none" stroke="#B9A97F" strokeWidth="1" transform={`rotate(${angle})`} />
+              ))}
+            </g>
+          ))}
+
+          <g aria-hidden="true" opacity=".38" fill="#8BA598">
+            {[0, 1, 2, 3, 4, 5].map((building) => (
+              <g key={building} transform={`translate(${building * 39} 0)`}>
+                <path d={`M${28 + (building % 2) * 8} 211h22v70H${28 + (building % 2) * 8}z`} />
+                {[0, 1, 2, 3].map((window) => (
+                  <rect key={window} x={33 + (building % 2) * 8} y={220 + window * 13} width="4" height="5" rx="1" fill="#F9E6BD" />
+                ))}
+              </g>
+            ))}
+          </g>
+
+          <g transform="translate(1180 205)" opacity=".65">
+            <path d="M0 35q48-28 100 0v48H0z" fill="#DCE9DC" />
+            <path d="M4 48q42-12 91 0" stroke="#A3B9A8" strokeWidth="2" fill="none" />
+            <path d="M19 91q25-11 51 0l-7 8H27z" fill="#916D4A" />
+            <path d="M43 62V17l29 45z" fill="#F4D075" />
+            <path d="M43 62H72" stroke="#8F7651" strokeWidth="2" />
+          </g>
+
+          {sceneCenters.map((center, index) => {
+            const selected = activeStage === index;
+            return (
+              <g
+                key={`scene-${index}`}
+                role="button"
+                tabIndex={0}
+                aria-label={`${milestones[index].age}: ${milestones[index].title}`}
+                aria-pressed={selected}
+                onClick={() => selectStage(index)}
+                onKeyDown={(event) => handleStageKeyDown(event, index)}
+                className="cursor-pointer outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B98A34]"
+                opacity={selected ? 1 : 0.78}
+              >
+                <ellipse cx={center} cy="271" rx="89" ry="8" fill="#705C48" opacity=".08" />
+
+                {index === 0 && (
+                  <g>
+                    <path d={`M${center - 99} 113h198v151h-198z`} fill="url(#evening-sky)" opacity=".72" />
+                    <path d={`M${center - 99} 215h198v50h-198z`} fill="#E7D9C7" opacity=".72" />
+                    <path d={`M${center - 90} 209v-53h59v53m-56-4h54`} fill="none" stroke="#8B9C8D" strokeWidth="3" />
+                    <path d={`M${center - 81} 163h42m-42 13h42m-42 13h42`} stroke="#B29F7B" strokeWidth="1.4" />
+                    <circle cx={center + 70} cy="135" r="17" fill="#F5C46F" opacity=".85" />
+                    <path d={`M${center + 43} 227h115m-108 0v36m100-36v36`} stroke="#907E68" strokeWidth="2" />
+                    <path d={`M${center + 52} 227q49 9 97 0`} stroke="#F7F0E4" strokeWidth="5" />
+                    <path d={`M${center - 100} 238h200m-183 8h170`} stroke="#799486" strokeWidth="1.5" opacity=".6" />
+                    <ParentFigure x={center - 68} y={133} role="mother" pregnant color="#438B78" reach />
+                    <ParentFigure x={center + 11} y={143} role="father" outfit="shirt" color="#376C83" reach lean />
+                    <rect x={center + 51} y="181" width="25" height="30" rx="4" fill="#FFFDF8" stroke="#D8C49A" strokeWidth="1.5" transform={`rotate(-8 ${center + 63} 196)`} />
+                    <path d={`M${center + 57} 198q6-10 12 0-6 9-12 0z`} fill="#E87955" />
+                    <path d={`M${center - 23} 124v-9m-5 5h10`} stroke="#F1B84A" strokeWidth="2" strokeLinecap="round" />
+                  </g>
+                )}
+
+                {index === 1 && (
+                  <g>
+                    <rect x={center - 98} y="120" width="196" height="145" rx="18" fill="#F3F5EF" />
+                    <path d={`M${center - 82} 146h53v46h-53z`} fill="#D9E8E4" stroke="#B8CFC7" strokeWidth="2" />
+                    <path d={`M${center - 56} 146v46m-27-23h53`} stroke="#F8F3E8" strokeWidth="3" />
+                    <path d={`M${center + 60} 135h23v37h-23z`} fill="#E6EFE6" />
+                    <path d={`M${center + 66} 143h11m-11 7h11`} stroke="#A3B9A8" strokeWidth="2" />
+                    <path d={`M${center - 83} 236h166v10h-166z`} fill="#D5C6AB" />
+                    <path d={`M${center - 73} 246v20m146-20v20`} stroke="#A99375" strokeWidth="3" />
+                    <ParentFigure x={center - 52} y={146} role="mother" outfit="kurti" color="#C9785D" />
+                    <ParentFigure x={center + 37} y={136} role="father" outfit="shirt" color="#3B7B69" reach />
+                    <BabyFigure x={center + 2} y={203} pose="swaddle" />
+                    <path d={`M${center + 19} 211q12 7 18 17`} fill="none" stroke="#A96349" strokeWidth="4" strokeLinecap="round" />
+                    <path d={`M${center + 86} 154h-12v18h12`} fill="#F8F3E8" stroke="#D5E0D9" strokeWidth="1" />
+                    <path d={`M${center + 79} 159v8m-4-4h8`} stroke="#C36D54" strokeWidth="1.5" />
+                  </g>
+                )}
+
+                {index === 2 && (
+                  <g>
+                    <path d={`M${center - 97} 234q97-18 194 0v31h-194z`} fill="#E9DFC8" />
+                    <path d={`M${center - 92} 236q92-14 184 0`} stroke="#D4BA80" strokeWidth="2" strokeDasharray="3 5" />
+                    <path d={`M${center - 91} 260q12-14 24 0t24 0 24 0 24 0 24 0 24 0`} fill="none" stroke="#B99755" strokeWidth="1" opacity=".6" />
+                    <ParentFigure x={center - 78} y={146} role="mother" outfit="kurti" color="#D78364" reach />
+                    <BabyFigure x={center + 3} y={170} pose="tummy" outfit="#E9B84B" />
+                    <path d={`M${center - 7} 151q6-16 12 0`} fill="none" stroke="#F0B746" strokeWidth="2" />
+                    <path d={`M${center + 52} 170q8-11 16 0-8 12-16 0z`} fill="#E87955" />
+                    <path d={`M${center + 68} 184q8-10 15 0-7 10-15 0z`} fill="#4C8A70" />
+                    <path d={`M${center - 89} 188v-8m-4 4h8`} stroke="#7D9D86" strokeWidth="1.5" />
+                  </g>
+                )}
+
+                {index === 3 && (
+                  <g>
+                    <path d={`M${center - 99} 250q99-14 198 0v15h-198z`} fill="#F1E4C8" />
+                    <path d={`M${center - 99} 250q99-14 198 0`} stroke="#CFB879" strokeWidth="2" strokeDasharray="3 5" />
+                    <ParentFigure x={center - 86} y={146} role="mother" outfit="kurti" color="#47816E" />
+                    <ParentFigure x={center + 48} y={147} role="father" outfit="shirt" color="#3D7080" />
+                    <BabyFigure x={center + 4} y={176} pose="sit" outfit="#E0A94B" />
+                    <path d={`M${center + 59} 231q12-19 24 0l-3 11h-18z`} fill="#F6F0E5" stroke="#D8C8A9" strokeWidth="1.5" />
+                    <ellipse cx={center + 71} cy="234" rx="8" ry="5" fill="#D8A049" />
+                    <circle cx={center + 67} cy="233" r="1.5" fill="#F5D98C" />
+                    <circle cx={center + 73} cy="235" r="1.5" fill="#F5D98C" />
+                    <path d={`M${center + 60} 224q11-9 22 0`} stroke="#3F806D" strokeWidth="2" />
+                    <path d={`M${center - 75} 177q9 8 18 0`} fill="none" stroke="#EBC46E" strokeWidth="2" />
+                  </g>
+                )}
+
+                {index === 4 && (
+                  <g>
+                    <path d={`M${center - 98} 249q98-12 196 0v16h-196z`} fill="#E9DFC8" />
+                    <g transform={`translate(${center + 25} 0)`}>
+                      <path d="M0 144 29 105l29 37M29 105 0 141m29-36V73" fill="none" stroke="#6A8D78" strokeWidth="1.5" />
+                      <path d="M29 105 58 142l-29-9L0 141z" fill="#E7A94E" stroke="#C38643" strokeWidth="1.5" />
+                      <path d="M29 146q-9 11 0 21 8-10 0-21z" fill="#3D806C" />
+                    </g>
+                    <ParentFigure x={center - 60} y={146} role="mother" outfit="kurti" color="#DA8263" hijab reachInward />
+                    <ParentFigure x={center + 24} y={147} role="father" outfit="shirt" color="#337862" reachInward />
+                    <BabyFigure x={center + 1} y={169} pose="stand" outfit="#E3B54E" />
+                    <path d={`M${center - 53} 181h28`} stroke="#E8C56E" strokeWidth="1.4" />
+                    <circle cx={center - 51} cy="181" r="2" fill="#E8C56E" />
+                    <circle cx={center - 43} cy="181" r="2" fill="#E8C56E" />
+                  </g>
+                )}
+
+                {index === 5 && (
+                  <g>
+                    <path d={`M${center - 99} 250q99-13 198 0v15h-198z`} fill="#E9DFC8" />
+                    <ParentFigure x={center - 85} y={148} role="mother" outfit="kurti" color="#3C806D" hijab />
+                    <ParentFigure x={center + 50} y={148} role="father" outfit="shirt" color="#D77E59" reach />
+                    <BabyFigure x={center + 6} y={164} pose="run" outfit="#E3B54E" />
+                    <path d={`M${center - 12} 186q-8-8-13 0m-5 10q-8-8-13 0`} stroke="#C79045" strokeWidth="2" strokeLinecap="round" opacity=".75" />
+                    <path d={`M${center - 6} 140q0-9 9-9 8 0 8 8 0 7-9 7-8 0-8-6`} fill="#E87955">
+                      <animate attributeName="opacity" values=".7;1;.7" dur="2s" repeatCount="indefinite" />
+                    </path>
+                    <path d={`M${center + 44} 124q0-11 11-11 10 0 10 10 0 9-11 9-10 0-10-8`} fill="#E9B84B" />
+                    <path d={`M${center + 63} 139l8 8m-5-13 7-7`} stroke="#E9B84B" strokeWidth="1.5" />
+                    <path d={`M${center - 16} 218l12 6m-15 0 12 6`} stroke="#B58A42" strokeWidth="1.7" strokeLinecap="round" />
+                  </g>
+                )}
+              </g>
+            );
+          })}
+
           <path
-            d="M 0 220 Q 250 216, 500 219 T 1000 218 L 1000 248 L 0 248 Z"
-            fill="url(#groundGrad)"
+            d="M42 288C130 278 196 299 280 288S438 278 520 288 680 298 760 288 920 278 1000 288 1160 298 1240 288 1360 280 1398 288"
+            pathLength="100"
+            fill="none"
+            stroke="#D8C69D"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M42 288C130 278 196 299 280 288S438 278 520 288 680 298 760 288 920 278 1000 288 1160 298 1240 288 1360 280 1398 288"
+            pathLength="100"
+            fill="none"
+            stroke="url(#kantha-thread)"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeDasharray={`${progress} 100`}
           />
 
-          {/* Subtle connecting dotted journey path */}
-          <path
-            d="M 60 220 Q 250 216, 500 219 T 940 218"
-            stroke="#E8D1BE"
-            strokeWidth="2"
-            strokeDasharray="4 6"
-            opacity="0.65"
-          />
+          {sceneCenters.map((center, index) => (
+            <g key={`stitch-${index}`} transform={`translate(${center} 288)`}>
+              <path d="M-5-5 5 5M-5 5 5-5" stroke={activeStage >= index ? '#B8812F' : '#C9BA98'} strokeWidth="2" strokeLinecap="round" />
+              <circle r="5" fill={activeStage === index ? '#F4DBA0' : '#F7F0E2'} stroke={activeStage >= index ? '#B8812F' : '#C9BA98'} strokeWidth="1.5" />
+              <circle r="1.8" fill={activeStage >= index ? '#43806B' : '#B8A989'} />
+            </g>
+          ))}
 
-          {/* Traveling soft beacon light across the story */}
-          <g transform={`translate(${markerX}, 219)`}>
-            <circle r="8" fill="#FF8552" opacity="0.25">
-              <animate attributeName="r" values="7;14;7" dur="1.6s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.35;0.05;0.35" dur="1.6s" repeatCount="indefinite" />
+          <g transform={`translate(${threadX} 288)`}>
+            <circle r="10" fill="#E8BD5E" opacity=".2">
+              <animate attributeName="r" values="7;12;7" dur="2.2s" repeatCount="indefinite" />
             </circle>
-            <circle r="4" fill="#FF8552" stroke="#FFFFFF" strokeWidth="1.5" />
+            <circle r="4.5" fill="#C18D34" stroke="#FFF9ED" strokeWidth="2" />
           </g>
 
-          {/* ========================================================================= */}
-          {/* 1. হাসপাতালে জন্ম (Hospital Birth): Mother, Father & Newborn in Cradle     */}
-          {/* Center: x = 130, Ground baseline: y = 220                                */}
-          {/* Dynamic proximity scale centered at (130, 220)                           */}
-          {/* ========================================================================= */}
-          <g
-            id="scene-1-hospital-birth"
-            className={`transition-opacity duration-300 cursor-pointer ${
-              activeStage === 1 ? 'opacity-100' : 'opacity-80 hover:opacity-100'
-            }`}
-            onClick={() => handleStageClick(1)}
-          >
-            {/* Visual Characters Scaled Centered at (130, 220) */}
-            <g transform={`translate(130, 220) scale(${s1Scale}) translate(-130, -220)`}>
-              {/* Soft Clinic Backdrop / Room Wall Accent (Left x: 42) */}
-              <g transform="translate(42, 85)">
-                {/* Cozy hospital window with warm sunrise */}
-                <rect x="0" y="0" width="38" height="48" rx="6" fill="#F0F7FF" stroke="#D1E5FC" strokeWidth="1.2" />
-                <circle cx="28" cy="18" r="9" fill="#FFE082" opacity="0.6" />
-                <line x1="19" y1="0" x2="19" y2="48" stroke="#D1E5FC" strokeWidth="1.2" />
-                <line x1="0" y1="24" x2="38" y2="24" stroke="#D1E5FC" strokeWidth="1.2" />
-                {/* Small Red Cross Hospital Emblem on wall */}
-                <rect x="48" y="10" width="16" height="16" rx="4" fill="#FFFFFF" stroke="#FFCDD2" strokeWidth="1" />
-                <path d="M 56 13 L 56 23 M 51 18 L 61 18" stroke="#E53935" strokeWidth="2" strokeLinecap="round" />
-              </g>
-
-              {/* Mother Resting in Hospital Bed (x: 78, y: 128) */}
-              <g transform="translate(78, 128)">
-                {/* Bed frame & soft pillows */}
-                <path d="M 0 54 Q 28 38, 56 46 L 70 88 L -6 88 Z" fill="#E8F0FE" stroke="#C5D9F2" strokeWidth="1.2" />
-                <ellipse cx="20" cy="40" rx="14" ry="9" fill="#FFFFFF" stroke="#E2ECF8" strokeWidth="1" />
-                
-                {/* Mother's Body in soft peach hospital gown */}
-                <path d="M 16 46 C 12 58, 15 78, 24 86 C 36 86, 52 78, 48 56 Z" fill="#FF8A65" />
-                {/* Mother's Face & Hair */}
-                <circle cx="28" cy="28" r="11" fill="#F5CBA7" />
-                <circle cx="20" cy="22" r="5" fill="#2A170F" />
-                <path d="M 18 24 C 18 15, 37 15, 37 24 C 33 18, 23 18, 18 24 Z" fill="#2A170F" />
-                {/* Peaceful smiling eyes & bindi */}
-                <circle cx="31" cy="24" r="1.1" fill="#D32F2F" />
-                <path d="M 27 28 Q 30 30, 33 28" stroke="#2B1810" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M 28 33 Q 30 35, 33 33" stroke="#2B1810" strokeWidth="1" strokeLinecap="round" fill="none" />
-                
-                {/* Mother's loving arm reaching gently toward cradle with animated movement */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 38 52; 3.5 38 52; 0 38 52"
-                    dur="2.8s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 38 52 Q 54 58, 62 62" stroke="#F5CBA7" strokeWidth="3.2" strokeLinecap="round" />
-                  <circle cx="62" cy="62" r="2.2" fill="#F5CBA7" />
-                </g>
-              </g>
-
-              {/* Delighted Father Standing Beside Bed (x: 52, y: 108) */}
-              <g transform="translate(52, 108)">
-                {/* Floor Shadow */}
-                <ellipse cx="22" cy="110" rx="14" ry="3" fill="#E5CDBC" opacity="0.6" />
-                {/* Father Body in Teal Kurta */}
-                <path d="M 11 44 L 33 44 L 37 92 L 7 92 Z" fill="#2E7D73" rx="3" />
-                <line x1="16" y1="92" x2="16" y2="110" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
-                <line x1="28" y1="92" x2="28" y2="110" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
-                {/* Father Face */}
-                <circle cx="22" cy="28" r="11" fill="#F5CBA7" />
-                <path d="M 12 25 C 12 15, 32 14, 32 25 C 29 18, 17 18, 12 25 Z" fill="#24160E" />
-                <path d="M 22 27 Q 25 29, 28 27" stroke="#2B1810" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M 23 33 Q 26 35, 29 33" stroke="#2B1810" strokeWidth="1" strokeLinecap="round" fill="none" />
-                
-                {/* Hand gently placed on bed rail with subtle reassuring sway */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 30 50; 2.5 30 50; 0 30 50"
-                    dur="2.5s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 30 50 Q 42 62, 45 70" stroke="#F5CBA7" strokeWidth="3" strokeLinecap="round" />
-                </g>
-              </g>
-
-              {/* Newborn Baby in Hospital Bassinet / Cradle (x: 142, y: 142) */}
-              <g transform="translate(142, 142)">
-                <ellipse cx="24" cy="76" rx="22" ry="4" fill="#E5CDBC" opacity="0.6" />
-                {/* Stand Legs */}
-                <line x1="8" y1="46" x2="4" y2="75" stroke="#8C6239" strokeWidth="2.4" strokeLinecap="round" />
-                <line x1="40" y1="46" x2="44" y2="75" stroke="#8C6239" strokeWidth="2.4" strokeLinecap="round" />
-                <line x1="2" y1="75" x2="46" y2="75" stroke="#8C6239" strokeWidth="2" strokeLinecap="round" />
-                
-                {/* Clear Bassinet Tub */}
-                <rect x="0" y="14" width="48" height="34" rx="14" fill="url(#cradleGrad)" stroke="#B3E5FC" strokeWidth="1.4" />
-                {/* Baby Swaddle Blanket (Soft mint/cyan) */}
-                <path d="M 4 28 Q 24 35, 44 28 L 44 44 Q 24 49, 4 44 Z" fill="#80DEEA" />
-                
-                {/* Newborn Cute Sleeping Face */}
-                <circle cx="16" cy="24" r="8" fill="#F8D7B8" />
-                {/* Traditional protective black teep on side of forehead */}
-                <circle cx="12" cy="19" r="0.9" fill="#26170D" />
-                {/* Tiny closed sleepy eyelashes */}
-                <path d="M 14 24 Q 16 26, 18 24" stroke="#3E2723" strokeWidth="1.1" strokeLinecap="round" fill="none" />
-                {/* Tiny cute button nose & pink lips */}
-                <path d="M 15 28 Q 17 29, 19 28" stroke="#E53935" strokeWidth="0.9" strokeLinecap="round" fill="none" />
-                
-                {/* Tiny newborn swaddled arm/fist wiggling happily */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; 0,-2.5; 0,0"
-                    dur="1.8s"
-                    repeatCount="indefinite"
-                  />
-                  <circle cx="26" cy="30" r="2.8" fill="#F8D7B8" />
-                </g>
-
-                {/* Twinkling Mobile Overhead */}
-                <g transform="translate(14, -14)">
-                  <path d="M 10 0 L 10 10 M 0 6 L 20 6" stroke="#FFE082" strokeWidth="1" />
-                  <circle cx="0" cy="6" r="2" fill="#FFD54F" />
-                  <circle cx="20" cy="6" r="2" fill="#FF80AB" />
-                  <circle cx="10" cy="11" r="2" fill="#80D8FF" />
-                </g>
-              </g>
-
-              {/* Floating Love Heart */}
-              <g transform="translate(138, 118)">
-                <path d="M 9 3.5 C 9 1, 5.5 0, 4.5 1.2 C 3.5 0, 0 1, 0 3.5 C 0 7, 4.5 9.5, 4.5 9.5 C 4.5 9.5, 9 7, 9 3.5 Z" fill="#FF5252">
-                  <animate attributeName="opacity" values="0.75;1;0.75" dur="2s" repeatCount="indefinite" />
-                </path>
-              </g>
+          {sceneCenters.map((center, index) => (
+            <g key={`label-${index}`} textAnchor="middle" fontFamily="inherit">
+              <text x={center} y="331" fill="#4D765F" fontSize="16" fontWeight="700">
+                {milestones[index].age}
+              </text>
+              <text x={center} y="354" fill="#35453C" fontSize="14" fontWeight="600">
+                {milestones[index].title}
+              </text>
             </g>
+          ))}
+
+          <g transform="translate(32 374)" opacity=".7">
+            <path d="M0 0h28m-19 0 5-5m2 5 5-5" fill="none" stroke="#B98A34" strokeWidth="1.5" />
+            <path d="M32 0h28m-19 0 5-5m2 5 5-5" fill="none" stroke="#B98A34" strokeWidth="1.5" />
           </g>
-
-          {/* ========================================================================= */}
-          {/* 2. ডায়াপার পরে বসতে শেখা: Diaper Baby Learning to Sit with Mother Beside Him */}
-          {/* Center: x = 375, Ground baseline: y = 220                                */}
-          {/* Dynamic proximity scale centered at (375, 220)                           */}
-          {/* ========================================================================= */}
-          <g
-            id="scene-2-sitting-in-diaper"
-            className={`transition-opacity duration-300 cursor-pointer ${
-              activeStage === 2 ? 'opacity-100' : 'opacity-80 hover:opacity-100'
-            }`}
-            onClick={() => handleStageClick(2)}
-          >
-            {/* Visual Characters Scaled Centered at (375, 220) */}
-            <g transform={`translate(375, 220) scale(${(1.08 * s2Scale).toFixed(3)}) translate(-375, -220)`}>
-              {/* Soft Pastel Quilted Play Mat (Accommodates both mother and diaper baby) */}
-              <ellipse cx="375" cy="216" rx="82" ry="15" fill="url(#matGrad)" stroke="#FFE082" strokeWidth="1.5" />
-              {/* Mat decorative stitching dots */}
-              <circle cx="315" cy="216" r="1.5" fill="#FFA000" opacity="0.6" />
-              <circle cx="345" cy="221" r="1.5" fill="#FFA000" opacity="0.6" />
-              <circle cx="375" cy="223" r="1.5" fill="#FFA000" opacity="0.6" />
-              <circle cx="405" cy="221" r="1.5" fill="#FFA000" opacity="0.6" />
-              <circle cx="435" cy="216" r="1.5" fill="#FFA000" opacity="0.6" />
-
-              {/* MOTHER SITTING BESIDE BABY ON MAT (x: 322, y: 134) */}
-              <g transform="translate(322, 134)">
-                {/* Mother Floor Shadow */}
-                <ellipse cx="26" cy="82" rx="22" ry="4" fill="#E5CDBC" opacity="0.6" />
-                {/* Saree fold sitting gracefully on mat */}
-                <path d="M 6 58 C 0 70, 6 82, 26 84 C 44 84, 50 72, 44 58 Z" fill="#D84315" />
-                {/* Sari Torso in warm terracotta with gold border */}
-                <path d="M 12 36 C 8 46, 10 56, 14 62 C 24 64, 34 64, 40 62 C 44 56, 42 46, 38 36 Z" fill="#F4511E" />
-                <path d="M 12 40 Q 24 52, 38 62" stroke="#FFD54F" strokeWidth="1.5" fill="none" />
-                
-                {/* Mother Head & Bun */}
-                <circle cx="26" cy="20" r="11" fill="#F5CBA7" />
-                <circle cx="18" cy="14" r="5" fill="#26170D" />
-                <path d="M 17 18 C 17 9, 36 9, 36 18 C 30 13, 22 13, 17 18 Z" fill="#26170D" />
-                {/* Red bindi */}
-                <circle cx="28" cy="17" r="1.1" fill="#D32F2F" />
-                {/* Loving smiling eyes watching baby */}
-                <path d="M 23 21 Q 26 23, 29 21" stroke="#23140A" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M 24 26 Q 27 28, 30 26" stroke="#23140A" strokeWidth="1" strokeLinecap="round" fill="none" />
-
-                {/* Mother's encouraging clapping hands moving rhythmically */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 26 42; 5 26 42; -2 26 42; 0 26 42"
-                    dur="1.3s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 34 40 Q 46 44, 54 44" stroke="#F5CBA7" strokeWidth="3.4" strokeLinecap="round" />
-                  <circle cx="55" cy="44" r="2.2" fill="#F5CBA7" />
-                  <path d="M 28 44 Q 40 50, 50 50" stroke="#F5CBA7" strokeWidth="3.4" strokeLinecap="round" />
-                  <circle cx="51" cy="50" r="2.2" fill="#F5CBA7" />
-                </g>
-              </g>
-
-              {/* ADORABLE BABY SITTING UP IN DIAPER (x: 378, y: 142) */}
-              <g transform="translate(378, 142)">
-                {/* Floor Contact Shadow */}
-                <ellipse cx="23" cy="74" rx="22" ry="4.5" fill="#E5CDBC" opacity="0.65" />
-
-                {/* Chubby Baby Legs sitting on mat with animated kicking toes */}
-                {/* Left chubby leg & tiny foot */}
-                <path d="M 9 58 C 1 66, -6 72, 3 74 C 13 74, 16 66, 17 58 Z" fill="#F8D7B8" />
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; 0,-1.8; 0,0"
-                    dur="1.6s"
-                    repeatCount="indefinite"
-                  />
-                  <circle cx="-1" cy="72" r="1.8" fill="#F8D7B8" />
-                </g>
-
-                {/* Right chubby leg & tiny foot */}
-                <path d="M 37 58 C 45 66, 52 72, 43 74 C 33 74, 30 66, 29 58 Z" fill="#F8D7B8" />
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; 0,-1.8; 0,0"
-                    dur="1.6s"
-                    begin="0.8s"
-                    repeatCount="indefinite"
-                  />
-                  <circle cx="47" cy="72" r="1.8" fill="#F8D7B8" />
-                </g>
-
-                {/* The White Baby DIAPER with cute cyan tape tabs */}
-                <path
-                  d="M 6 42 C 2 54, 4 67, 10 70 C 18 73, 28 73, 36 70 C 42 67, 44 54, 40 42 Z"
-                  fill="#FFFFFF"
-                  stroke="#E0E0E0"
-                  strokeWidth="1.2"
-                />
-                {/* Diaper Cute Pastel Yellow/Cyan Tabs & Waistline */}
-                <path d="M 6 44 Q 23 48, 40 44" stroke="#FFF176" strokeWidth="2.8" strokeLinecap="round" fill="none" />
-                <rect x="7" y="45" width="5.5" height="3" rx="1" fill="#4FC3F7" />
-                <rect x="33.5" y="45" width="5.5" height="3" rx="1" fill="#4FC3F7" />
-                {/* Diaper Leg Gathering Elastic crease */}
-                <path d="M 11 63 Q 15 67, 21 68" stroke="#EEEEEE" strokeWidth="1.2" fill="none" />
-                <path d="M 35 63 Q 31 67, 25 68" stroke="#EEEEEE" strokeWidth="1.2" fill="none" />
-
-                {/* Chubby Tummy */}
-                <path d="M 12 28 C 9 35, 9 44, 12 46 C 18 48, 28 48, 34 46 C 37 44, 37 35, 34 28 Z" fill="#F8D7B8" />
-                {/* Cute little belly button */}
-                <circle cx="23" cy="38" r="0.9" fill="#E0A880" />
-
-                {/* Baby Head & Cute Facial Expression */}
-                <circle cx="23" cy="16" r="15" fill="#F8D7B8" />
-                {/* Sweet baby dark hair tuft */}
-                <path d="M 21 2 Q 23 -3, 27 2" stroke="#2B1810" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                <circle cx="17" cy="11" r="1" fill="#2B1810" /> {/* Cute teep */}
-
-                {/* Big, Sparkly Curious Eyes */}
-                <circle cx="17" cy="15" r="2.4" fill="#1A1008" />
-                <circle cx="29" cy="15" r="2.4" fill="#1A1008" />
-                <circle cx="18" cy="14" r="0.8" fill="#FFFFFF" />
-                <circle cx="30" cy="14" r="0.8" fill="#FFFFFF" />
-                {/* Rosy Cheeks */}
-                <ellipse cx="14" cy="19" rx="3" ry="1.8" fill="#FF8A80" opacity="0.65" />
-                <ellipse cx="32" cy="19" rx="3" ry="1.8" fill="#FF8A80" opacity="0.65" />
-                {/* Happy Open Smile showing first milestone joy */}
-                <path d="M 19 20 Q 23 25, 27 20" fill="#E53935" stroke="#C62828" strokeWidth="0.6" />
-
-                {/* Balancing chubby arms waving with animated joyful movement */}
-                {/* Left arm waving */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 11 31; -10 11 31; 4 11 31; 0 11 31"
-                    dur="1.8s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 11 31 Q 2 38, 0 45" stroke="#F8D7B8" strokeWidth="4.2" strokeLinecap="round" />
-                  <circle cx="0" cy="46" r="2.8" fill="#F8D7B8" />
-                </g>
-
-                {/* Right arm waving */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 35 31; 10 35 31; -4 35 31; 0 35 31"
-                    dur="1.8s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 35 31 Q 44 38, 46 45" stroke="#F8D7B8" strokeWidth="4.2" strokeLinecap="round" />
-                  <circle cx="46" cy="46" r="2.8" fill="#F8D7B8" />
-                </g>
-              </g>
-
-              {/* Cute Colorful Rattle Toy nearby */}
-              <g transform="translate(436, 204)">
-                <circle cx="6" cy="6" r="6" fill="#FF7043" />
-                <path d="M 0 6 Q 6 12, 12 6" fill="#FFD54F" />
-                <path d="M 12 6 L 19 12" stroke="#8D6E63" strokeWidth="2.5" strokeLinecap="round" />
-              </g>
-
-              {/* Milestone Star & Heart */}
-              <g transform="translate(426, 145)">
-                <polygon points="5,0 6.5,3.5 10,5 6.5,6.5 5,10 3.5,6.5 0,5 3.5,3.5" fill="#FFA000">
-                  <animate attributeName="opacity" values="0.4;1;0.4" dur="2.2s" repeatCount="indefinite" />
-                </polygon>
-              </g>
-              <g transform="translate(365, 132)">
-                <path d="M 8 3 C 8 1, 5 0, 4 1.2 C 3 0, 0 1, 0 3 C 0 6, 4 8, 4 8 C 4 8, 8 6, 8 3 Z" fill="#FF8552">
-                  <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
-                </path>
-              </g>
-            </g>
-          </g>
-
-          {/* ========================================================================= */}
-          {/* 3. হাঁটতে শিখছে (Baby Learning to Walk - First Steps with Mother)           */}
-          {/* Center: x = 620, Ground baseline: y = 220                                */}
-          {/* Dynamic proximity scale centered at (620, 220)                           */}
-          {/* ========================================================================= */}
-          <g
-            id="scene-3-learning-to-walk"
-            className={`transition-opacity duration-300 cursor-pointer ${
-              activeStage === 3 ? 'opacity-100' : 'opacity-80 hover:opacity-100'
-            }`}
-            onClick={() => handleStageClick(3)}
-          >
-            {/* Visual Characters Scaled Centered at (620, 220) - Equalized scale with left characters */}
-            <g transform={`translate(620, 220) scale(${(1.24 * s3Scale).toFixed(3)}) translate(-620, -220)`}>
-              {/* Encouraging Mother Kneeling on Ground (Left side of baby, x: 545, y: 132) */}
-              <g transform="translate(545, 132)">
-                {/* Floor shadow */}
-                <ellipse cx="26" cy="85" rx="22" ry="4.5" fill="#E5CDBC" opacity="0.6" />
-                {/* Kneeling saree/skirt (Teal/Green) */}
-                <path d="M 6 62 C 0 74, 6 86, 26 86 C 46 86, 52 74, 46 62 Z" fill="#2E6B4B" />
-                {/* Mother Torso in warm coral orange top */}
-                <path d="M 12 36 C 8 46, 10 56, 14 64 C 24 66, 36 66, 42 64 C 46 56, 44 46, 40 36 Z" fill="#FF7043" />
-                {/* Mother Head & Hair Bun */}
-                <circle cx="26" cy="20" r="11.5" fill="#F5CBA7" />
-                <circle cx="26" cy="8" r="5" fill="#26170D" />
-                <path d="M 16 18 C 16 9, 36 9, 36 18 C 30 13, 22 13, 16 18 Z" fill="#26170D" />
-                <path d="M 22 19 Q 25 21, 28 19" stroke="#23140A" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M 23 25 Q 26 27, 29 25" stroke="#23140A" strokeWidth="1" strokeLinecap="round" fill="none" />
-                
-                {/* Mother's encouraging outstretched hands gently moving forward */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; 3,0; 0,0"
-                    dur="1.5s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 36 42 Q 54 48, 64 50" stroke="#F5CBA7" strokeWidth="3.8" strokeLinecap="round" />
-                  <circle cx="65" cy="50" r="2.5" fill="#F5CBA7" />
-                </g>
-              </g>
-
-              {/* Toddler Taking First Steps (Placed securely on ground baseline, x=615, y=135) */}
-              <g transform="translate(615, 135)">
-                {/* Floor contact shadow under stepping feet */}
-                <ellipse cx="18" cy="82" rx="16" ry="4" fill="#E5CDBC" opacity="0.6" />
-
-                {/* Walking Feet / Tiny soft shoes with animated stepping movement */}
-                {/* Left foot stepping forward */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; 2,-3.5; 0,0"
-                    dur="1.2s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 11 60 L 7 81 L 2 81" stroke="#F8D7B8" strokeWidth="4.5" strokeLinecap="round" />
-                  <ellipse cx="4" cy="81" rx="4.5" ry="2.2" fill="#42A5F5" />
-                </g>
-
-                {/* Right foot stepping off (alternating phase) */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    values="0,0; -2,-3.5; 0,0"
-                    dur="1.2s"
-                    begin="0.6s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 23 60 L 27 79 L 32 79" stroke="#F8D7B8" strokeWidth="4.5" strokeLinecap="round" />
-                  <ellipse cx="30" cy="79" rx="4.5" ry="2.2" fill="#42A5F5" />
-                </g>
-
-                {/* Toddler Romper / Outfit (Bright joyful blue) */}
-                <path d="M 8 35 C 5 46, 6 56, 10 63 C 18 65, 26 65, 30 63 C 34 56, 35 46, 32 35 Z" fill="#1E88E5" />
-                {/* Cute striped suspender / bib detail */}
-                <line x1="13" y1="35" x2="13" y2="48" stroke="#FFE082" strokeWidth="1.8" />
-                <line x1="27" y1="35" x2="27" y2="48" stroke="#FFE082" strokeWidth="1.8" />
-
-                {/* Toddler Head & Proud Joyful Face */}
-                <circle cx="20" cy="20" r="13.5" fill="#F8D7B8" />
-                <path d="M 18 6 Q 20 1, 24 6" stroke="#2B1810" strokeWidth="2" strokeLinecap="round" fill="none" />
-                {/* Excited wide eyes */}
-                <circle cx="16" cy="18" r="2.2" fill="#1A1008" />
-                <circle cx="26" cy="18" r="2.2" fill="#1A1008" />
-                <circle cx="17" cy="17" r="0.7" fill="#FFFFFF" />
-                <circle cx="27" cy="17" r="0.7" fill="#FFFFFF" />
-                {/* Rosy excitement cheeks */}
-                <circle cx="13" cy="22" r="2.5" fill="#FF8A80" opacity="0.7" />
-                <circle cx="29" cy="22" r="2.5" fill="#FF8A80" opacity="0.7" />
-                {/* Thrilled happy smile */}
-                <path d="M 17 24 Q 21 29, 25 24" fill="#E53935" stroke="#C62828" strokeWidth="0.6" />
-
-                {/* Balancing outstretched toddler arms with animated movement */}
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 10 38; -4 10 38; 4 10 38; 0 10 38"
-                    dur="1.2s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 10 38 Q -2 44, -8 48" stroke="#F8D7B8" strokeWidth="3.8" strokeLinecap="round" />
-                </g>
-                <g>
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    values="0 29 38; 8 29 38; -4 29 38; 0 29 38"
-                    dur="1.2s"
-                    repeatCount="indefinite"
-                  />
-                  <path d="M 29 38 Q 40 34, 46 38" stroke="#F8D7B8" strokeWidth="3.8" strokeLinecap="round" />
-                </g>
-              </g>
-
-              {/* Little stepping direction indicator arrows/dots */}
-              <circle cx="666" cy="216" r="2" fill="#42A5F5" opacity="0.5" />
-              <circle cx="676" cy="216" r="2" fill="#42A5F5" opacity="0.7" />
-
-              {/* Floating Heart */}
-              <g transform="translate(635, 125)">
-                <path d="M 8 3 C 8 1, 5 0, 4 1.2 C 3 0, 0 1, 0 3 C 0 6, 4 8, 4 8 C 4 8, 8 6, 8 3 Z" fill="#E91E63">
-                  <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
-                </path>
-              </g>
-            </g>
-          </g>
-
-          {/* ========================================================================= */}
-          {/* 4. বড় হয়ে মা-বাবাকে পরম মমতায় আলিঙ্গন (Child Hugging Parents Warmly)        */}
-          {/* Center: x = 865, Ground baseline: y = 220                                */}
-          {/* Dynamic proximity scale centered at (865, 220)                           */}
-          {/* ========================================================================= */}
-          <g
-            id="scene-4-family-hug"
-            className={`transition-opacity duration-300 cursor-pointer ${
-              activeStage === 4 ? 'opacity-100' : 'opacity-80 hover:opacity-100'
-            }`}
-            onClick={() => handleStageClick(4)}
-          >
-            {/* Visual Characters Scaled Centered at (865, 220) - Equalized scale with left characters */}
-            <g transform={`translate(865, 220) scale(${(1.30 * s4Scale).toFixed(3)}) translate(-865, -220)`}>
-              {/* Ground Baseline Anchor Group at (x = 865, y = 126) */}
-              <g transform="translate(865, 126)">
-                {/* Golden Warmth Halo around the embracing family */}
-                <circle cx="0" cy="48" r="52" fill="#FFEACC" opacity="0.5" />
-
-                {/* Ground shadow under the three hugging family members */}
-                <ellipse cx="0" cy="90" rx="46" ry="6" fill="#E5CDBC" opacity="0.7" />
-
-                {/* Celebration Love Hearts rising above them */}
-                <g transform="translate(-24, -15)">
-                  <path d="M 9 3.5 C 9 1, 5.5 0, 4.5 1.2 C 3.5 0, 0 1, 0 3.5 C 0 7, 4.5 9.5, 4.5 9.5 C 4.5 9.5, 9 7, 9 3.5 Z" fill="#FF5252">
-                    <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
-                  </path>
-                </g>
-                <g transform="translate(16, -18)">
-                  <path d="M 12 5 C 12 1.5, 8 0, 6 1.8 C 4 0, 0 1.5, 0 5 C 0 9, 6 12, 6 12 C 6 12, 12 9, 12 5 Z" fill="#FF7043">
-                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.4s" repeatCount="indefinite" />
-                  </path>
-                </g>
-                <g transform="translate(-3, -30)">
-                  <path d="M 15 6.5 C 15 2.5, 10 0, 7.5 2.5 C 5 0, 0 2.5, 0 6.5 C 0 11.5, 7.5 15, 7.5 15 C 7.5 15, 15 11.5, 15 6.5 Z" fill="#E91E63">
-                    <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" repeatCount="indefinite" />
-                  </path>
-                </g>
-
-                {/* Twinkling Confetti Stars */}
-                <circle cx="-38" cy="18" r="2.2" fill="#FFD54F" />
-                <circle cx="36" cy="12" r="2" fill="#81D4FA" />
-                <circle cx="34" cy="52" r="2.2" fill="#A5D6A7" />
-                <circle cx="-36" cy="62" r="2" fill="#FFAB91" />
-
-                {/* FATHER (Left side of the hug embrace, kneeling down lovingly) */}
-                <g transform="translate(-38, 20)">
-                  {/* Torso leaning forward in teal panjabi */}
-                  <path d="M 6 36 C 2 50, 2 64, 8 70 C 18 71, 28 70, 30 62 C 28 50, 24 38, 18 36 Z" fill="#2E7D73" />
-                  {/* Legs kneeling */}
-                  <path d="M 8 68 C 4 74, 6 86, 22 88 C 30 88, 32 80, 28 70 Z" fill="#24645C" />
-                  {/* Head */}
-                  <circle cx="16" cy="20" r="11" fill="#F5CBA7" />
-                  <path d="M 7 16 C 7 7, 26 7, 26 16 C 23 10, 13 10, 7 16 Z" fill="#24160E" />
-                  {/* Closed smiling eyes in blissful hug */}
-                  <path d="M 12 20 Q 16 23, 20 20" stroke="#2B1810" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-                  <path d="M 13 26 Q 16 28, 19 26" stroke="#2B1810" strokeWidth="1.1" strokeLinecap="round" fill="none" />
-                  
-                  {/* Father's loving arm wrapped around child with gentle embrace animation */}
-                  <g>
-                    <animateTransform
-                      attributeName="transform"
-                      type="rotate"
-                      values="0 22 42; 2.5 22 42; 0 22 42"
-                      dur="2.4s"
-                      repeatCount="indefinite"
-                    />
-                    <path d="M 22 42 Q 36 48, 44 54" stroke="#F5CBA7" strokeWidth="4.5" strokeLinecap="round" />
-                  </g>
-                </g>
-
-                {/* MOTHER (Right side of the hug embrace, leaning down lovingly in Saree) */}
-                <g transform="translate(10, 20)">
-                  {/* Saree drape & Torso */}
-                  <path d="M 4 38 C 2 50, 4 64, 10 70 C 20 71, 30 70, 32 62 C 30 48, 24 38, 20 38 Z" fill="#E65100" />
-                  {/* Kneeling saree fold down to floor */}
-                  <path d="M 8 68 C 4 76, 8 86, 24 88 C 32 88, 34 78, 30 68 Z" fill="#BF360C" />
-                  <path d="M 7 46 Q 18 56, 26 72" stroke="#FFB74D" strokeWidth="2.2" fill="none" />
-                  {/* Head & Bun */}
-                  <circle cx="14" cy="18" r="11" fill="#F5CBA7" />
-                  <circle cx="21" cy="10" r="5" fill="#26170D" />
-                  <path d="M 5 15 C 5 7, 23 7, 23 15 C 19 9, 10 9, 5 15 Z" fill="#26170D" />
-                  {/* Closed happy eyes in hug */}
-                  <path d="M 9 19 Q 13 22, 17 19" stroke="#23140A" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-                  <path d="M 10 25 Q 13 27, 16 25" stroke="#23140A" strokeWidth="1.1" strokeLinecap="round" fill="none" />
-                  
-                  {/* Mother's loving arm wrapped around child with gentle embrace animation */}
-                  <g>
-                    <animateTransform
-                      attributeName="transform"
-                      type="rotate"
-                      values="0 6 42; -2.5 6 42; 0 6 42"
-                      dur="2.4s"
-                      repeatCount="indefinite"
-                    />
-                    <path d="M 6 42 Q -8 48, -14 54" stroke="#F5CBA7" strokeWidth="4.5" strokeLinecap="round" />
-                  </g>
-                </g>
-
-                {/* GROWING CHILD (Center, standing tall, warmly hugging mom and dad) */}
-                <g transform="translate(-15, 24)">
-                  {/* Child standing firmly on ground at shadow level y=88-90 with animated happy feet */}
-                  <line x1="8" y1="52" x2="8" y2="65" stroke="#F8D7B8" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="22" y1="52" x2="22" y2="65" stroke="#F8D7B8" strokeWidth="4" strokeLinecap="round" />
-                  <g>
-                    <animateTransform
-                      attributeName="transform"
-                      type="translate"
-                      values="0,0; 0,-1.2; 0,0"
-                      dur="1.8s"
-                      repeatCount="indefinite"
-                    />
-                    <ellipse cx="8" cy="65" rx="3.5" ry="1.8" fill="#D32F2F" />
-                    <ellipse cx="22" cy="65" rx="3.5" ry="1.8" fill="#D32F2F" />
-                  </g>
-
-                  {/* Yellow child dress/tunic */}
-                  <path d="M 5 24 C 3 34, 3 46, 6 54 C 14 56, 22 56, 24 54 C 27 46, 27 34, 25 24 Z" fill="#FFC107" />
-                  
-                  {/* Child Head */}
-                  <circle cx="15" cy="13" r="10" fill="#F8D7B8" />
-                  <path d="M 7 9 C 7 3, 22 3, 22 9 C 18 5, 11 5, 7 9 Z" fill="#2B1810" />
-                  {/* Peaceful, blissful eyes */}
-                  <path d="M 10 14 Q 13 16, 16 14" stroke="#2B1810" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                  <path d="M 11 18 Q 15 21, 19 18" stroke="#D84315" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                  {/* Joyful rosy cheeks */}
-                  <circle cx="8" cy="16" r="2" fill="#FF8A80" opacity="0.75" />
-                  <circle cx="22" cy="16" r="2" fill="#FF8A80" opacity="0.75" />
-
-                  {/* Arms tightly wrapping around mom and dad with affectionate squeeze animation! */}
-                  <g>
-                    <animateTransform
-                      attributeName="transform"
-                      type="rotate"
-                      values="0 6 26; 4 6 26; 0 6 26"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                    <path d="M 6 26 Q -8 22, -14 26" stroke="#F8D7B8" strokeWidth="3.8" strokeLinecap="round" />
-                  </g>
-                  <g>
-                    <animateTransform
-                      attributeName="transform"
-                      type="rotate"
-                      values="0 24 26; -4 24 26; 0 24 26"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                    <path d="M 24 26 Q 38 22, 44 26" stroke="#F8D7B8" strokeWidth="3.8" strokeLinecap="round" />
-                  </g>
-                </g>
-              </g>
-            </g>
-          </g>
+          <text x="1408" y="379" textAnchor="end" fill="#668271" fontSize="11" fontWeight="600" fontFamily="inherit">
+            {isBangla ? 'ভালোবাসায় বোনা প্রতিটি ধাপ' : 'Every step, stitched with love'}
+          </text>
         </svg>
       </div>
     </div>

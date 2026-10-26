@@ -84,6 +84,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+  const [onboardingChildName, setOnboardingChildName] = useState('');
   const [weatherModalOpen, setWeatherModalOpen] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
   const [hasAutoOpenedWeather, setHasAutoOpenedWeather] = useState(false);
@@ -309,7 +310,7 @@ export default function App() {
   const achievedMilestonesCount = milestones.filter((m) => m.isAchieved).length;
 
   return (
-    <div className="min-h-screen bg-[#FFFAF5] text-[#2D3142] flex flex-col selection:bg-[#FFB07C]/30 selection:text-[#2D3142]">
+    <div className="min-h-screen bg-[#FCFEFD] text-[#2D3142] flex flex-col selection:bg-[#FFB07C]/30 selection:text-[#2D3142]">
       
       {/* 1. Navigation Bar */}
       <Navbar
@@ -334,6 +335,7 @@ export default function App() {
         onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
         subscription={subscription}
         isLoggedIn={isLoggedIn}
+        isLandingPage={activeTab === 'home'}
         onLogout={handleLogout}
       />
 
@@ -357,8 +359,10 @@ export default function App() {
             onGoToPlay={() => handleSelectTab('daily-play')}
             onGoToDiary={() => handleSelectTab('baby-diary')}
             onGoToForum={() => handleSelectTab('forum')}
-            isLoggedIn={isLoggedIn}
-            communityPosts={communityPosts}
+            onStartWithChildName={(name) => {
+              setOnboardingChildName(name);
+              setOnboardingModalOpen(true);
+            }}
           />
         )}
 
@@ -563,8 +567,15 @@ export default function App() {
       <OnboardingFlowModal
         currentLang={currentLang}
         isOpen={onboardingModalOpen}
-        onClose={() => setOnboardingModalOpen(false)}
-        onComplete={handleOnboardingComplete}
+        initialChildName={onboardingChildName}
+        onClose={() => {
+          setOnboardingModalOpen(false);
+          setOnboardingChildName('');
+        }}
+        onComplete={(profile) => {
+          setOnboardingChildName('');
+          handleOnboardingComplete(profile);
+        }}
       />
 
       {/* Login Auth Modal */}

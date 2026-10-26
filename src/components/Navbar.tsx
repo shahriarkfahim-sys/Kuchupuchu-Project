@@ -18,6 +18,7 @@ interface NavbarProps {
   onOpenSubscriptionModal?: () => void;
   subscription?: UserSubscription;
   isLoggedIn?: boolean;
+  isLandingPage?: boolean;
   onLogout?: () => void;
 }
 
@@ -36,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSubscriptionModal,
   subscription,
   isLoggedIn = false,
+  isLandingPage = false,
   onLogout,
 }) => {
   const [childMenuOpen, setChildMenuOpen] = useState(false);
@@ -56,9 +58,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FFFAF5]/95 backdrop-blur-md border-b border-[#EED9C7]">
+    <header className={`sticky top-0 z-40 border-b backdrop-blur-md ${
+      isLandingPage
+        ? 'border-[#E8EEEB] bg-white/95'
+        : 'border-[#EED9C7] bg-[#FFFAF5]/95'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18 gap-3 md:gap-6">
+        <div className={`flex items-center justify-between gap-3 md:gap-6 ${isLandingPage ? 'h-16 sm:h-[72px]' : 'h-18'}`}>
           
           {/* Zone 1: Brand Wordmark "কুচুপুচু (Kuchupuchu)" */}
           <div className="flex items-center gap-3 shrink-0">
@@ -78,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Zone 2: Navigation Links (No 'dashboard' tab, simplified and clean) */}
-          <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#4B5563]">
+          {!isLandingPage && <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#4B5563]">
             {navLinks.map((link) => (
               <button
                 key={link.id}
@@ -98,13 +104,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </button>
             ))}
-          </nav>
+          </nav>}
 
           {/* Zone 3: Child Switcher, Partner Code, Auth (Login / Logout) & Language */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             
             {/* Child Profile Selector (ONLY visible when user is logged in) */}
-            {isLoggedIn && activeChild ? (
+            {!isLandingPage && isLoggedIn && activeChild ? (
               <div className="relative">
                 <button
                   onClick={() => setChildMenuOpen(!childMenuOpen)}
@@ -213,7 +219,28 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : null}
 
             {/* Login / Logout Toggle */}
-            {isLoggedIn ? (
+            {isLandingPage ? (
+              <div className="flex items-center gap-3 sm:gap-5">
+                <button
+                  onClick={() => onOpenAuthModal('login')}
+                  className="px-1 py-2 text-xs font-semibold text-[#35423B] transition-colors hover:text-[#D66A37] sm:text-sm"
+                >
+                  {currentLang === 'bn' ? 'লগইন' : 'Log in'}
+                </button>
+                <button
+                  onClick={() => {
+                    if (onOpenOnboarding) {
+                      onOpenOnboarding();
+                    } else {
+                      onOpenAuthModal('register');
+                    }
+                  }}
+                  className="rounded-full bg-[#E9753F] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#D86430] sm:px-5 sm:py-2.5 sm:text-sm"
+                >
+                  {currentLang === 'bn' ? 'সাইন আপ' : 'Sign up'}
+                </button>
+              </div>
+            ) : isLoggedIn ? (
               <button
                 onClick={onLogout}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-xl bg-white border border-[#EED9C7] hover:border-red-300 hover:text-red-600 text-[#5C6479] shadow-xs transition-colors"
@@ -248,7 +275,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {/* Subscription & bKash Plan Button */}
-            {onOpenSubscriptionModal && (
+            {!isLandingPage && onOpenSubscriptionModal && (
               <button
                 onClick={onOpenSubscriptionModal}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#F0D5C1] bg-[#FFF8F3] hover:bg-[#FFEEDB] text-xs font-bold text-[#C85D26] shadow-2xs transition-colors cursor-pointer"
@@ -265,7 +292,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {/* Language Toggle Switch (বাং | EN) */}
-            <div className="flex items-center p-1 bg-white border border-[#EED9C7] rounded-xl shadow-xs">
+            {!isLandingPage && <div className="flex items-center p-1 bg-white border border-[#EED9C7] rounded-xl shadow-xs">
               <button
                 type="button"
                 onClick={() => onLanguageChange('bn')}
@@ -290,14 +317,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 EN
               </button>
-            </div>
+            </div>}
 
           </div>
 
         </div>
 
         {/* Mobile Horizontal Sub-Navigation */}
-        <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto py-2 border-t border-[#F3E7DC] no-scrollbar">
+        {!isLandingPage && <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto py-2 border-t border-[#F3E7DC] no-scrollbar">
           {navLinks.map((link) => (
             <button
               key={link.id}
@@ -314,7 +341,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
           ))}
-        </div>
+        </div>}
 
       </div>
     </header>

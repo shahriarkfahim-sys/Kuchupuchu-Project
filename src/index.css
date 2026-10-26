@@ -7,7 +7,7 @@
   }
   body {
     font-family: var(--font-serif), var(--font-sans);
-    background-color: #FFFAF5;
+    background-color: #FCFEFD;
     color: #2D3142;
     min-height: 100vh;
   }
@@ -22,7 +22,7 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #FFFAF5;
+  background: #FCFEFD;
 }
 ::-webkit-scrollbar-thumb {
   background: #E5D5C5;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   X, 
   Baby, 
@@ -19,6 +19,7 @@ import { formatLocalizedNumber } from '../i18n/translations';
 interface OnboardingFlowModalProps {
   currentLang: Language;
   isOpen: boolean;
+  initialChildName?: string;
   onClose: () => void;
   onComplete: (profile: ChildProfile) => void;
 }
@@ -26,6 +27,7 @@ interface OnboardingFlowModalProps {
 export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
   currentLang,
   isOpen,
+  initialChildName = '',
   onClose,
   onComplete,
 }) => {
@@ -39,7 +41,7 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
   const [babyStatus, setBabyStatus] = useState<'here' | 'on_the_way'>('here');
 
   // Step 2: Baby Details
-  const [babyName, setBabyName] = useState('');
+  const [babyName, setBabyName] = useState(initialChildName);
   const [birthDate, setBirthDate] = useState('2026-01-10');
   const [gestationWeeks, setGestationWeeks] = useState('40');
   const [gender, setGender] = useState<'boy' | 'girl'>('boy');
@@ -57,6 +59,12 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
   const [msNameResponse, setMsNameResponse] = useState<'yes' | 'not_yet'>('yes');
   const [msObjectPerm, setMsObjectPerm] = useState<'yes' | 'not_yet'>('yes');
   const [msPincerGrasp, setMsPincerGrasp] = useState<'yes' | 'trying' | 'not_yet'>('trying');
+
+  useEffect(() => {
+    if (isOpen && initialChildName.trim()) {
+      setBabyName(initialChildName.trim());
+    }
+  }, [initialChildName, isOpen]);
 
   if (!isOpen) return null;
 
