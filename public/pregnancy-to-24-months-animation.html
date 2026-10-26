@@ -11,6 +11,8 @@
 html,body{margin:0;background:transparent}
 body{font-family:"Hind Siliguri",system-ui,sans-serif;color:var(--ink);padding:8px}
 .card{width:100%;max-width:1200px;margin:0 auto;border-radius:28px;background:linear-gradient(180deg,#fffaf4,#fdeedd);border:1px solid #f1dcc5;position:relative;overflow:hidden;color:var(--ink)}
+.card{transition:background 1.8s ease,border-color 1.8s ease,color 1.8s ease}
+body.night .card{background:linear-gradient(180deg,#18243c 0%,#26344e 58%,#303a50 100%);border-color:#65718b;color:#f6eaca}
 .scroll{overflow-x:auto;padding:8px 0 0}
 .track{min-width:1180px;position:relative}
 svg{display:block;width:100%;height:auto}
@@ -24,6 +26,25 @@ svg{display:block;width:100%;height:auto}
 .badge{white-space:nowrap;font-size:13px;font-weight:600;color:var(--green);background:#e7f2ea;border-radius:999px;padding:3px 12px}
 .ctl{position:absolute;top:14px;right:14px;display:flex;background:#fff;border-radius:999px;padding:3px;box-shadow:0 2px 12px rgba(120,70,30,.12);z-index:2}
 .btn{width:36px;height:36px;border:0;background:none;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:#3a4260}
+.sound-btn{position:absolute;top:14px;left:14px;width:44px;height:44px;border:1px solid #f4d6bd;border-radius:50%;background:#fff;display:grid;place-items:center;cursor:pointer;z-index:2;box-shadow:0 2px 12px rgba(120,70,30,.12);color:#e66e3a;transition:transform .18s,background .18s}
+.sound-btn:hover{transform:scale(1.06);background:#fff8f0}
+.sound-btn:active{transform:scale(.94)}
+.sound-btn svg{width:30px;height:30px;overflow:visible}
+.sound-btn .tear{opacity:1}
+body.night .ctl,body.night .sound-btn{background:#f8f5ed;border-color:#ddd8c9;box-shadow:0 2px 18px rgba(210,222,255,.18)}
+.night #svg{filter:brightness(.72) saturate(.78);transition:filter 1.8s ease}
+.sun{transition:opacity 1.8s ease}
+.moon{opacity:0;transition:opacity 1.8s ease;filter:drop-shadow(0 0 8px #fff4c6) drop-shadow(0 0 20px rgba(224,235,255,.7))}
+.night .sun{opacity:0!important}
+.night .moon{opacity:1}
+.night-sky{opacity:0;transition:opacity 1.8s ease;pointer-events:none}
+.night .night-sky{opacity:.95}
+.night #svg > rect:nth-of-type(1){fill:#46506a;opacity:.9}
+.night #svg > path:nth-of-type(1){stroke:#79829a}
+.night #svg > path:nth-of-type(2){stroke:#d2ad60}
+.night .mark{fill:#333f58;stroke:#8690a8}
+.night .mark.hit{fill:#d6b65e;stroke:#d6b65e}
+@media(max-width:600px){.sound-btn{top:9px;left:9px;width:38px;height:38px}.sound-btn svg{width:27px;height:27px}.ctl{top:9px;right:9px}}
 @media (prefers-reduced-motion:no-preference){.bob{animation:bob 2.6s ease-in-out infinite alternate}.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1s ease-in-out infinite}.flt,.tw,.sun,.nod,.sway,.steam,.leaf,.rock{transform-box:fill-box}.flt{transform-origin:center;animation:flt 2.2s ease-in-out infinite alternate}.tw{transform-origin:center;animation:tw 1.6s ease-in-out infinite alternate}.sun{transform-origin:center;animation:sun 3s ease-in-out infinite alternate}.nod{transform-origin:50% 100%;animation:nod 2.4s ease-in-out infinite alternate}.sway{transform-origin:50% 0;animation:sway 3s ease-in-out infinite alternate}.steam{animation:steam 2s ease-in-out infinite}.leaf{transform-origin:50% 100%;animation:sway 2.8s ease-in-out infinite alternate}.rock{transform-origin:50% 100%;animation:rock 2.2s ease-in-out infinite alternate}}
 @keyframes bob{to{transform:translateY(-4px)}}
 @keyframes pulse{50%{transform:scale(1.3)}}@keyframes flt{to{transform:translateY(-8px) scale(1.12)}}@keyframes tw{from{transform:scale(.6);opacity:.6}to{transform:scale(1.2) rotate(30deg);opacity:1}}@keyframes sun{to{transform:scale(1.1)}}@keyframes nod{to{transform:rotate(3deg)}}@keyframes sway{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}@keyframes steam{0%{opacity:0;transform:translateY(4px)}50%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}@keyframes rock{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
@@ -31,6 +52,7 @@ svg{display:block;width:100%;height:auto}
 </head>
 <body>
 <div class="card">
+  <button class="sound-btn" id="sound" aria-label="শিশুর মজার হাসির শব্দ চালান" title="শিশুর মজার হাসি শুনুন"><svg viewBox="0 0 44 44" fill="none" aria-hidden="true"><circle cx="22" cy="23" r="17" fill="#FFDDAF" stroke="#E66E3A" stroke-width="1.8"/><path d="M12 14 Q14 3 23 8 Q31 5 33 15 Q26 11 21 13 Q17 10 12 14Z" fill="#51352E"/><path d="M14 21 Q16 18 18 21 M26 21 Q28 18 30 21" stroke="#49312A" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="12.5" cy="25" rx="2.4" ry="1.5" fill="#F08A7A" opacity=".75"/><ellipse cx="31.5" cy="25" rx="2.4" ry="1.5" fill="#F08A7A" opacity=".75"/><path class="mouth" d="M17 25 Q22 35 27 25 Q22 29 17 25Z" fill="#A84738"/><path class="tear" d="M12.5 22 Q9.5 27 12.5 29 Q15.5 27 12.5 22ZM31.5 22 Q28.5 27 31.5 29 Q34.5 27 31.5 22Z" fill="#65B9E8"/></svg></button>
   <div class="ctl">
     <button class="btn" id="pp" aria-label="থামান"></button>
     <button class="btn" id="rp" aria-label="আবার শুরু করুন"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
@@ -72,7 +94,7 @@ const clap=['24,-118 38,-102 34,-90','-24,-118 -2,-100 32,-92'], cheer=['24,-118
 const sparkle=(x,y)=>`<g transform="translate(${x},${y})"><path class="tw" style="animation-delay:-${Math.abs(x)%5*.3}s" d="M0,-10 L3,-3 L10,0 L3,3 L0,10 L-3,3 L-10,0 L-3,-3Z" fill="${GOLD}"/></g>`;
 const scenes=[
  // 0 pregnancy: Dhaka flat balcony
- ()=>`<circle class="sun" cx="75" cy="-225" r="32" fill="#F7C873" opacity=".8"/>
+ ()=>`<circle class="sun" cx="75" cy="-225" r="32" fill="#F7C873" opacity=".8"/><g class="moon"><circle cx="75" cy="-225" r="31" fill="#FFF4C9"/><circle cx="65" cy="-235" r="5" fill="#E9DFBD" opacity=".55"/><circle cx="86" cy="-218" r="4" fill="#E9DFBD" opacity=".45"/><circle cx="70" cy="-211" r="3" fill="#E9DFBD" opacity=".45"/></g>
   <g stroke="#D9B89A" stroke-width="4" stroke-linecap="round"><path d="M-140,-72 H140"/>${[-126,-98,-70,-42,-14,14,42,70,98,126].map(i=>`<path d="M${i},-72 V0"/>`).join('')}</g>
   <path d="M112,0 l6,-34 h28 l6,34Z" fill="#C9694A"/><g class="leaf"><ellipse cx="132" cy="-48" rx="10" ry="22" fill="#8DBB8A"/><ellipse cx="118" cy="-44" rx="8" ry="16" fill="#A7CDA3" transform="rotate(-30 118 -44)"/></g>
   <g transform="translate(-110,-205) rotate(-8)"><rect x="-28" y="-34" width="56" height="70" rx="9" fill="#fff" stroke="#ebd5be"/><circle cy="-10" r="14" fill="#F7C9B8"/>${heart(0,-10,.8,'#E5546C',1)}<path d="M-20,22 h8 l4,-10 l6,20 l4,-10 h14" stroke="${CORAL}" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
@@ -115,12 +137,34 @@ svg.innerHTML=`<defs><clipPath id="clip"><rect id="clipr" x="0" y="0" width="0" 
 <rect x="20" y="418" width="2000" height="72" rx="16" fill="#F8E4CC" opacity=".8"/>
 <path d="${d}" stroke="#E6CDAA" stroke-width="4" stroke-dasharray="12 9" fill="none" stroke-linecap="round"/>
 <path d="${d}" stroke="#E0A030" stroke-width="4.5" stroke-dasharray="12 9" fill="none" stroke-linecap="round" clip-path="url(#clip)"/>
+<g class="night-sky" fill="#FFF1BD"><path d="M530 74 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path d="M820 142 l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/><path d="M1160 82 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path d="M1490 151 l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/><path d="M1775 83 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><circle cx="385" cy="120" r="2"/><circle cx="1010" cy="112" r="2"/><circle cx="1640" cy="120" r="2"/><circle cx="1930" cy="170" r="2"/></g>
 ${scenes.map((f,i)=>`<g transform="translate(${cx(i)},418)"><g class="scene" id="s${i}">${f()}</g></g><circle class="mark" id="m${i}" cx="${cx(i)}" cy="${yAt(cx(i)).toFixed(1)}" r="9"/>`).join('')}
 <circle id="dot" r="8" fill="${GREEN}" stroke="#fff" stroke-width="3"/>`;
 const $=id=>document.getElementById(id);
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 let p=reduce?1:0,playing=!reduce,last=0,DUR=15000;
 const ICON={pause:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>',play:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4 L20 12 L7 20Z"/></svg>'};
+const babyLaughs=[
+  {src:'/sounds/mixkit/happy-child-laughing.wav',name:'Happy child laughing'},
+  {src:'/sounds/mixkit/child-laughing-happily.wav',name:'Child laughing happily'},
+  {src:'/sounds/mixkit/kid-giggle-laugh.wav',name:'Kid giggle laugh'},
+  {src:'/sounds/mixkit/kids-playing-and-laughing.wav',name:'Kids playing and laughing'},
+  {src:'/sounds/mixkit/cartoon-voice-laugh.wav',name:'Cartoon voice laugh'},
+  {src:'/sounds/mixkit/funny-giggling.wav',name:'Funny giggling'}
+].map(clip=>{const audio=new Audio(clip.src);audio.preload='none';audio.volume=.78;return {...clip,audio}});
+let lastLaughIndex=-1,currentLaughAudio=null;
+function playBabySound(){
+  if(!babyLaughs.length)return;
+  let index=Math.floor(Math.random()*babyLaughs.length);
+  if(babyLaughs.length>1 && index===lastLaughIndex)index=(index+1+Math.floor(Math.random()*(babyLaughs.length-1)))%babyLaughs.length;
+  lastLaughIndex=index;
+  if(currentLaughAudio){currentLaughAudio.pause();currentLaughAudio.currentTime=0}
+  const clip=babyLaughs[index];
+  currentLaughAudio=clip.audio;
+  clip.audio.currentTime=0;
+  clip.audio.play().catch(()=>{});
+  $('sound').setAttribute('aria-label','শিশুর মজার হাসির শব্দ চলছে');
+}
 function render(){
   const x=X0+p*(X1-X0);$('clipr').setAttribute('width',x);
   $('dot').setAttribute('cx',x);$('dot').setAttribute('cy',yAt(x));$('dot').style.display=p>=1?'none':'';
@@ -129,7 +173,11 @@ function render(){
 }
 function tick(t){const dt=last?t-last:0;last=t;if(playing){p=Math.min(1,p+dt/DUR);if(p>=1)playing=false;render()}requestAnimationFrame(tick)}
 $('pp').onclick=()=>{if(p>=1){p=0;playing=true}else playing=!playing;render()};
+$('sound').onclick=playBabySound;
 $('rp').onclick=()=>{p=0;playing=true;render()};
+function syncLocalDayNight(){const hour=new Date().getHours();document.body.classList.toggle('night',hour>=18||hour<6)}
+syncLocalDayNight();
+window.setInterval(syncLocalDayNight,60_000);
 render();requestAnimationFrame(tick);
 </script>
 </body>
