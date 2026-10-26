@@ -543,7 +543,7 @@ export const initialActivities: Activity[] = [
     titleEn: 'Rattle & Soft Scarf Peek-a-boo',
     domain: 'cognitive',
     durationMinutes: 10,
-    image: '/src/assets/images/hero_mother_baby_play_1792728734335.jpg',
+    image: '/assets/images/hero_mother_baby_play.jpg',
     objectiveBn: 'চোখের আড়াল হলেও জিনিস হারিয়ে যায় না—বাচ্চার স্মৃতি ও বুদ্ধির বিকাশ।',
     objectiveEn: 'Help baby learn that things still exist even when hidden.',
     stepsBn: [
@@ -574,7 +574,7 @@ export const initialActivities: Activity[] = [
     titleEn: 'Tummy Time & Soft Ball Roll',
     domain: 'physical',
     durationMinutes: 8,
-    image: '/src/assets/images/sensory_tummy_play_1792728735168.jpg',
+    image: '/assets/images/sensory_tummy_play.jpg',
     objectiveBn: 'ঘাড়, বুক ও পিঠের পেশি শক্ত করা এবং হামাগুড়ি দেওয়ার প্রস্তুতি।',
     objectiveEn: 'Strengthen core, neck, and chest muscles for crawling.',
     stepsBn: [
@@ -681,7 +681,7 @@ export const verifiedClinics: ClinicProvider[] = [
       'Occupational & Physiotherapy',
       'Parent Guidance & Support',
     ],
-    image: '/src/assets/images/pediatric_care_center_1792728736225.jpg',
+    image: '/assets/images/pediatric_care_center.jpg',
   },
   {
     id: 'clinic_2',
@@ -710,7 +710,7 @@ export const verifiedClinics: ClinicProvider[] = [
       'Sensory Integration & Play Therapy',
       'Parental ECD Training',
     ],
-    image: '/src/assets/images/pediatric_care_center_1792728736225.jpg',
+    image: '/assets/images/pediatric_care_center.jpg',
   },
   {
     id: 'clinic_3',

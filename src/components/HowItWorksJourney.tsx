@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BarChart3, Check, CircleHelp, UserRound, WandSparkles } from 'lucide-react';
 import { Language } from '../types';
 import './HowItWorksJourney.css';
@@ -40,8 +40,22 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answerSelected, setAnswerSelected] = useState(false);
   const [resultMonth, setResultMonth] = useState(0);
+  const journeyRef = useRef<HTMLElement>(null);
+  const [isJourneyVisible, setIsJourneyVisible] = useState(false);
 
   useEffect(() => {
+    const section = journeyRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsJourneyVisible(entry.isIntersecting);
+    }, { rootMargin: '120px 0px' });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isJourneyVisible) return;
     let clickTimer = 0;
     let successTimer = 0;
     let resetTimer = 0;
@@ -60,9 +74,10 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
       window.clearTimeout(successTimer);
       window.clearTimeout(resetTimer);
     };
-  }, []);
+  }, [isJourneyVisible]);
 
   useEffect(() => {
+    if (!isJourneyVisible) return;
     let answerTimer: number;
     let nextTimer: number;
     let resetTimer: number;
@@ -83,12 +98,13 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
       window.clearTimeout(nextTimer);
       window.clearTimeout(resetTimer);
     };
-  }, []);
+  }, [isJourneyVisible]);
 
   useEffect(() => {
+    if (!isJourneyVisible) return;
     const timer = window.setInterval(() => setResultMonth((month) => (month + 1) % 3), 4000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [isJourneyVisible]);
 
   const steps = isBangla
     ? [
@@ -113,7 +129,7 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
     : questionIndex === 0 ? 'Does your child try to sit while holding onto something?' : 'Does your child look toward you when called by name?';
 
   return (
-    <section className="space-y-8 sm:space-y-10" aria-label={isBangla ? 'তিন ধাপে শুরু' : 'Get started in three steps'}>
+    <section ref={journeyRef} className="space-y-8 sm:space-y-10" aria-label={isBangla ? 'তিন ধাপে শুরু' : 'Get started in three steps'}>
       <ol className="journey-step-list mx-auto max-w-5xl space-y-7 sm:space-y-9">
         {steps.map(({ number, title, description, icon: Icon }, index) => (
           <li key={number} className={`journey-step journey-step-${index + 1}`}>

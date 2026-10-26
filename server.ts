@@ -59,7 +59,17 @@ app.post('/api/ai/development-tip', async (req, res) => {
 
 if (isProduction) {
   const distPath = resolve(process.cwd(), 'dist');
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    setHeaders(response, filePath) {
+      if (filePath.endsWith('.html')) {
+        response.setHeader('Cache-Control', 'no-cache');
+      } else if (/\/assets\/.*-[a-zA-Z0-9_-]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp)$/i.test(filePath)) {
+        response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        response.setHeader('Cache-Control', 'public, max-age=86400');
+      }
+    },
+  }));
   app.get('*', (_req, res) => res.sendFile(resolve(distPath, 'index.html')));
 } else {
   const vite = await createServer({

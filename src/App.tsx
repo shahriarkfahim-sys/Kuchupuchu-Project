@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { 
   Baby, 
   Heart, 
@@ -18,24 +18,25 @@ import {
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
-import { HeaderBanner } from './components/HeaderBanner';
-import { WormGraphView } from './components/WormGraphView';
-import { DailyActivityModule } from './components/DailyActivityModule';
-import { BabyRoutineTracker } from './components/BabyRoutineTracker';
-import { BabyDiaryInput } from './components/BabyDiaryInput';
-import { CareConnectSection } from './components/CareConnectSection';
-import { ChildProfileModal } from './components/ChildProfileModal';
-import { AuthModal } from './components/AuthModal';
-import { OnboardingFlowModal } from './components/OnboardingFlowModal';
-import { WeatherModal } from './components/WeatherModal';
-import { PartnerCodeModal } from './components/PartnerCodeModal';
-import { CommunitySection } from './components/CommunitySection';
-import { SpiderChartRadar } from './components/SpiderChartRadar';
-import { SubscriptionModal } from './components/SubscriptionModal';
-import { AuthGateModal } from './components/AuthGateModal';
 import { AuthGateCard } from './components/AuthGateCard';
-import { PonnoPage } from './components/PonnoPage';
-import { SonaiAssistant } from './components/SonaiAssistant';
+
+const HeaderBanner = lazy(() => import('./components/HeaderBanner').then((module) => ({ default: module.HeaderBanner })));
+const WormGraphView = lazy(() => import('./components/WormGraphView').then((module) => ({ default: module.WormGraphView })));
+const DailyActivityModule = lazy(() => import('./components/DailyActivityModule').then((module) => ({ default: module.DailyActivityModule })));
+const BabyRoutineTracker = lazy(() => import('./components/BabyRoutineTracker').then((module) => ({ default: module.BabyRoutineTracker })));
+const BabyDiaryInput = lazy(() => import('./components/BabyDiaryInput').then((module) => ({ default: module.BabyDiaryInput })));
+const CareConnectSection = lazy(() => import('./components/CareConnectSection').then((module) => ({ default: module.CareConnectSection })));
+const ChildProfileModal = lazy(() => import('./components/ChildProfileModal').then((module) => ({ default: module.ChildProfileModal })));
+const AuthModal = lazy(() => import('./components/AuthModal').then((module) => ({ default: module.AuthModal })));
+const OnboardingFlowModal = lazy(() => import('./components/OnboardingFlowModal').then((module) => ({ default: module.OnboardingFlowModal })));
+const WeatherModal = lazy(() => import('./components/WeatherModal').then((module) => ({ default: module.WeatherModal })));
+const PartnerCodeModal = lazy(() => import('./components/PartnerCodeModal').then((module) => ({ default: module.PartnerCodeModal })));
+const CommunitySection = lazy(() => import('./components/CommunitySection').then((module) => ({ default: module.CommunitySection })));
+const SpiderChartRadar = lazy(() => import('./components/SpiderChartRadar').then((module) => ({ default: module.SpiderChartRadar })));
+const SubscriptionModal = lazy(() => import('./components/SubscriptionModal').then((module) => ({ default: module.SubscriptionModal })));
+const AuthGateModal = lazy(() => import('./components/AuthGateModal').then((module) => ({ default: module.AuthGateModal })));
+const PonnoPage = lazy(() => import('./components/PonnoPage').then((module) => ({ default: module.PonnoPage })));
+const SonaiAssistant = lazy(() => import('./components/SonaiAssistant').then((module) => ({ default: module.SonaiAssistant })));
 
 import { 
   initialProfiles, 
@@ -353,6 +354,7 @@ export default function App() {
 
       {/* Main Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-12">
+        <Suspense fallback={<div className="min-h-[35vh]" aria-label={currentLang === 'bn' ? 'লোড হচ্ছে' : 'Loading'} />}>
         
         {/* VIEW 1: HOME PAGE (LANDING) */}
         {activeTab === 'home' && (
@@ -552,30 +554,33 @@ export default function App() {
           </div>
         )}
 
+        </Suspense>
+
       </main>
 
       {/* Weather Advisory Modal */}
-      <WeatherModal
+      <Suspense fallback={null}>
+      {weatherModalOpen && <WeatherModal
         currentLang={currentLang}
-        isOpen={weatherModalOpen}
+        isOpen
         onClose={() => setWeatherModalOpen(false)}
         activeChild={activeChild}
         weatherData={weatherAdvisoryData}
-      />
+      />}
 
       {/* Partner Code Share & Link Modal */}
-      <PartnerCodeModal
+      {partnerModalOpen && <PartnerCodeModal
         currentLang={currentLang}
-        isOpen={partnerModalOpen}
+        isOpen
         onClose={() => setPartnerModalOpen(false)}
         activeChild={activeChild}
         onLinkPartnerCode={handleLinkPartnerCode}
-      />
+      />}
 
       {/* Comprehensive 8-Step Onboarding & Milestone Assessment Modal */}
-      <OnboardingFlowModal
+      {onboardingModalOpen && <OnboardingFlowModal
         currentLang={currentLang}
-        isOpen={onboardingModalOpen}
+        isOpen
         initialChildName={onboardingChildName}
         onClose={() => {
           setOnboardingModalOpen(false);
@@ -585,45 +590,46 @@ export default function App() {
           setOnboardingChildName('');
           handleOnboardingComplete(profile);
         }}
-      />
+      />}
 
       {/* Login Auth Modal */}
-      <AuthModal
+      {authModalOpen && <AuthModal
         currentLang={currentLang}
-        isOpen={authModalOpen}
+        isOpen
         onClose={() => setAuthModalOpen(false)}
         mode={authMode}
         onSuccess={handleAuthSuccess}
-      />
+      />}
 
       {/* Child Profile & Birthdate Customization Modal */}
-      <ChildProfileModal
+      {isProfileModalOpen && <ChildProfileModal
         currentLang={currentLang}
-        isOpen={isProfileModalOpen}
+        isOpen
         onClose={() => setIsProfileModalOpen(false)}
         activeChild={activeChild}
         onUpdateChild={handleUpdateChild}
-      />
+      />}
 
       {/* Subscription & bKash Payment Modal */}
-      <SubscriptionModal
+      {subscriptionModalOpen && <SubscriptionModal
         currentLang={currentLang}
-        isOpen={subscriptionModalOpen}
+        isOpen
         onClose={() => setSubscriptionModalOpen(false)}
         subscription={subscription}
         onSaveSubscription={handleSaveSubscription}
-      />
+      />}
 
       {/* Auth Gate Modal (For protected tabs: ogrogoti-graph, daily-play, daily-routine, baby-diary) */}
-      <AuthGateModal
+      {authGateModalOpen && <AuthGateModal
         currentLang={currentLang}
-        isOpen={authGateModalOpen}
+        isOpen
         onClose={() => setAuthGateModalOpen(false)}
         targetTab={authGateTargetTab}
         onSuccessLogin={handleAuthSuccess}
         onLinkPartnerCode={handleLinkPartnerCode}
         onOpenOnboarding={() => setOnboardingModalOpen(true)}
-      />
+      />}
+      </Suspense>
 
       {/* Warm Footer */}
       <footer className="mt-16 bg-white border-t border-[#EED9C7] py-10">
@@ -673,7 +679,7 @@ export default function App() {
         </div>
       </footer>
 
-      {isLoggedIn && activeTab !== 'home' && (
+      {isLoggedIn && activeTab !== 'home' && <Suspense fallback={null}>
         <SonaiAssistant
           currentLang={currentLang}
           isLoggedIn={isLoggedIn}
@@ -683,7 +689,7 @@ export default function App() {
           routineLogs={routineLogs}
           activities={activities}
         />
-      )}
+      </Suspense>}
 
     </div>
   );

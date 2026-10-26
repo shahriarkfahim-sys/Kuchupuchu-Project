@@ -75,6 +75,11 @@
   isolation: isolate;
 }
 
+.tuki-intro {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 620px;
+}
+
 .tuki-mascot-card {
   isolation: isolate;
   overflow: hidden;
