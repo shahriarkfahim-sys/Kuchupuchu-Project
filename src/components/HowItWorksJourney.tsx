@@ -108,9 +108,9 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
 
   const steps = isBangla
     ? [
-        { number: '১', title: 'প্রোফাইল খুলুন', description: 'সন্তানের নাম ও জন্মতারিখ দিয়ে ছোট্ট একটি প্রোফাইল তৈরি করুন।', icon: UserRound },
-        { number: '২', title: 'বয়স অনুযায়ী প্রশ্নের উত্তর দিন', description: 'সন্তানের বয়সের উপযোগী সহজ প্রশ্নে তার দক্ষতাগুলো চিহ্নিত করুন।', icon: CircleHelp },
-        { number: '৩', title: 'ফলাফল ও বিশ্লেষণ দেখুন', description: 'ছয়টি বিকাশের ক্ষেত্রে অগ্রগতি বুঝুন, সঙ্গে পান পরের ধাপের সহায়ক পরামর্শ।', icon: BarChart3 },
+        { number: '১', title: 'প্রোফাইল খুলুন', time: '- ১ মিনিটে', description: 'সন্তানের নাম ও জন্মতারিখ দিয়ে ছোট্ট একটি প্রোফাইল তৈরি করুন', icon: UserRound },
+        { number: '২', title: 'বয়স অনুযায়ী প্রশ্নের উত্তর দিন', time: '- ২ মিনিটে', description: 'সন্তানের বয়সের উপযোগী সহজ প্রশ্নে তার দক্ষতাগুলো চিহ্নিত করুন', icon: CircleHelp },
+        { number: '৩', title: 'ফলাফল ও বিশ্লেষণ দেখুন', time: '- ৩ মিনিটে', description: 'ছয়টি বিকাশের ক্ষেত্রে অগ্রগতি বুঝুন, সঙ্গে পান পরের ধাপের সহায়ক পরামর্শ', icon: BarChart3 },
       ]
     : [
         { number: '1', title: 'Create a profile', description: 'Add your child’s name and birth date to get started.', icon: UserRound },
@@ -131,7 +131,7 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
   return (
     <section ref={journeyRef} className="space-y-8 sm:space-y-10" aria-label={isBangla ? 'তিন ধাপে শুরু' : 'Get started in three steps'}>
       <ol className="journey-step-list mx-auto max-w-5xl space-y-7 sm:space-y-9">
-        {steps.map(({ number, title, description, icon: Icon }, index) => (
+        {steps.map(({ number, title, time, description, icon: Icon }, index) => (
           <li key={number} className={`journey-step journey-step-${index + 1}`}>
             <div className="journey-step-copy">
               <span className="journey-step-marker"><span>{number}</span></span>
@@ -139,7 +139,10 @@ export const HowItWorksJourney: React.FC<HowItWorksJourneyProps> = ({ currentLan
                 <span className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF2EA] text-[#D66A37]">
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
-                <h3 className="text-lg font-bold leading-snug text-[#25313D] sm:text-xl">{title}</h3>
+                <h3 className="text-lg font-bold leading-snug sm:text-xl">
+                  <span className="text-[#D66A37]">{title}</span>
+                  {time && <span className="ml-2 text-[#25313D]">{time}</span>}
+                </h3>
                 <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#77817D]">{description}</p>
               </div>
             </div>

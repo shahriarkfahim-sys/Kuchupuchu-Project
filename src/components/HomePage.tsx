@@ -277,7 +277,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-[#697582] sm:text-base">
             {isBangla
-              ? 'সন্তান পালনে আপনার অনভিজ্ঞতা, ব্যস্ততা কিংবা ভুলে যাওয়ার শঙ্কা - এখন দূর হবে ২ মিনিটে।'
+              ? 'সন্তান পালনে আপনার অনভিজ্ঞতা, ব্যস্ততা কিংবা ভুলে যাওয়ার শঙ্কা - এখন দূর হবে ৩ মিনিটেই'
               : 'Inexperience, a busy schedule, or fear of forgetting in parenting—now put behind you in 2 minutes.'}
           </p>
 
