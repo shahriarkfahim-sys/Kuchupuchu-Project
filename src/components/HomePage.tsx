@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Activity,
   ArrowRight,
   Baby,
-  Calendar,
   Check,
   ChevronDown,
-  Gamepad2,
+  Activity,
+  BookOpen,
   Heart,
+  MessageCircle,
   PenTool,
+  ShoppingBag,
   TrendingUp,
 } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
 import { JourneyAnimation } from './JourneyAnimation';
-import { MilestoneRoadmap24 } from './MilestoneRoadmap24';
+import { HowItWorksJourney } from './HowItWorksJourney';
+import './HomePage.css';
 
 const hookEndingsByLanguage: Record<Language, string[]> = {
   bn: ['বেড়ে ওঠা হচ্ছে তো?', 'যত্ন নেওয়া হচ্ছে তো?', 'রুটিন মেনে চলা হচ্ছে তো?'],
@@ -160,27 +162,6 @@ export const HomePage: React.FC<HomePageProps> = ({
     </div>
   );
 
-  const features = [
-    {
-      icon: Calendar,
-      title: t.homeFeature1Title,
-      description: t.homeFeature1Desc,
-      action: onGoToTracker,
-    },
-    {
-      icon: Activity,
-      title: t.homeFeature2Title,
-      description: t.homeFeature2Desc,
-      action: onGoToTracker,
-    },
-    {
-      icon: Gamepad2,
-      title: t.homeFeature3Title,
-      description: t.homeFeature3Desc,
-      action: onGoToPlay,
-    },
-  ];
-
   const faqs = isBangla
     ? [
         {
@@ -221,16 +202,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="space-y-16 pb-12 sm:space-y-20">
-      <section className="space-y-8 sm:space-y-10">
+      <section className="space-y-6 sm:space-y-8">
         <JourneyAnimation currentLang={currentLang} className="w-full" />
 
         <div className="mx-auto max-w-3xl space-y-4 text-center">
-          <span className="inline-flex items-center rounded-full border border-[#E8F0EB] bg-[#F3F8F4] px-3.5 py-1.5 text-xs font-semibold text-[#47745A]">
-            {isBangla
-              ? 'সন্তানের মস্তিষ্কের ৯০% বিকাশ ঘটে প্রথম ৫ বছরে'
-              : '90% of brain development happens in the first 5 years'}
-          </span>
-
           <h1 className="mx-auto max-w-none text-[clamp(20px,6vw,46px)] font-extrabold leading-tight tracking-tight text-[#25313D]">
             <span className="block whitespace-nowrap text-[#D66A37]">{isBangla ? 'আপনার ছোট্ট সোনামণির ঠিকঠাক' : 'Your little one is doing well'}</span>
             <span className="block min-h-[1.2em] whitespace-nowrap text-[#25313D]">
@@ -284,118 +259,43 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      <MilestoneRoadmap24
-        currentLang={currentLang}
-        onExploreFullMilestones={onGoToTracker}
-      />
-
-      <section className="space-y-7">
-        <div className="mx-auto max-w-2xl space-y-2 text-center">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#D66A37]">
-            {isBangla ? 'সহজ ও যত্নের সাথে' : 'Simple, supportive steps'}
-          </span>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#25313D] sm:text-3xl">
-            {isBangla ? 'তিন ধাপে শুরু' : 'Get started in three steps'}
-          </h2>
-          <p className="text-sm leading-relaxed text-[#697582]">
-            {isBangla
-              ? 'সন্তানের প্রতিদিনের ছোট ছোট অগ্রগতি ধরে রাখুন সহজেই।'
-              : 'Keep track of your child’s little everyday wins, with ease.'}
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {features.map(({ icon: Icon, title, description, action }, index) => (
-            <button
-              key={title}
-              type="button"
-              onClick={action}
-              className="group rounded-2xl border border-[#E9EEEB] bg-white p-5 text-left shadow-[0_4px_18px_rgba(33,55,43,0.035)] transition-all hover:-translate-y-0.5 hover:border-[#F0C7AF] hover:shadow-md"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFF2EA] text-[#D66A37]">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="text-xs font-bold text-[#A3ADA8]">
-                  {isBangla ? ['০১', '০২', '০৩'][index] : `0${index + 1}`}
-                </span>
-              </div>
-              <h3 className="mb-2 text-base font-bold text-[#25313D]">{title}</h3>
-              <p className="text-xs leading-relaxed text-[#77817D]">{description}</p>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#D66A37]">
-                {isBangla ? 'আরও জানুন' : 'Learn more'}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
+      <HowItWorksJourney currentLang={currentLang} />
 
       <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-3">
-          <span className="inline-flex items-center gap-2 text-xs font-bold text-[#D66A37]">
-            <Heart className="h-4 w-4" />
-            {isBangla ? 'প্রতিটি ধাপে পাশে' : 'Here for every step'}
-          </span>
           <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-[#25313D] sm:text-3xl">
-            {isBangla ? 'গর্ভাবস্থা থেকে, সপ্তাহে সপ্তাহে' : 'Week by week, from pregnancy onward'}
+            {isBangla ? 'ছোট্ট সোনামণির জন্য এইটুকু অফার করলে কী হবে?' : 'What could this little bundle of care offer your child?'}
           </h2>
-          <p className="max-w-lg text-sm leading-relaxed text-[#697582]">
-            {isBangla
-              ? 'সন্তানের বেড়ে ওঠার যাত্রায় দরকারি তথ্য ও যত্নের কথা গুছিয়ে রাখুন। আপনার কোনো উদ্বেগ থাকলে চিকিৎসকের সাথে কথা বলুন।'
-              : 'Keep helpful information and care notes close throughout your child’s journey. Talk with a healthcare professional whenever you have concerns.'}
-          </p>
-          <button
-            type="button"
-            onClick={onGoToTracker}
-            className="inline-flex items-center gap-2 pt-2 text-sm font-bold text-[#D66A37] hover:text-[#B94F22]"
-          >
-            {isBangla ? 'অগ্রগতির যাত্রা দেখুন' : 'Explore the journey'}
-            <ArrowRight className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="rounded-3xl border border-[#E8EEEB] bg-white p-5 shadow-[0_12px_32px_rgba(33,55,43,0.07)] sm:p-7">
           <div className="mb-5 flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-[#8A9590]">
-                {isBangla ? 'সপ্তাহভিত্তিক গাইড' : 'Week-by-week guide'}
-              </p>
-              <h3 className="mt-1 text-lg font-extrabold text-[#25313D]">
-                {isBangla ? 'আপনার যাত্রা, একসাথে' : 'Your journey, together'}
-              </h3>
-            </div>
-            <span className="rounded-full bg-[#EDF6F0] px-3 py-1 text-[11px] font-bold text-[#47745A]">
-              {isBangla ? 'সহজ গাইড' : 'Gentle guide'}
-            </span>
+            <h3 className="text-lg font-extrabold text-[#25313D]">
+              {isBangla ? 'আপনাদের জন্য থাকছে ৪টি বাড়তি সুবিধা' : 'Plus four extra benefits'}
+            </h3>
           </div>
-          <div className="mb-5 flex items-center gap-2">
-            {[1, 2, 3, 4].map((step, index) => (
-              <React.Fragment key={step}>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${index < 3 ? 'bg-[#E9753F] text-white' : 'bg-[#F2F5F3] text-[#9AA49F]'}`}>
-                  {index < 3 ? <Check className="h-4 w-4" /> : step}
-                </span>
-                {index < 3 && <span className="h-1 flex-1 rounded-full bg-[#F6D7C7]" />}
-              </React.Fragment>
-            ))}
-          </div>
-          <div className="space-y-2.5 rounded-2xl bg-[#F7FAF8] p-4">
-            {[
-              isBangla ? 'প্রতিটি সপ্তাহের তথ্য সহজ ভাষায় দেখুন' : 'Explore clear, week-by-week information',
-              isBangla ? 'আপনার প্রশ্ন ও নোট এক জায়গায় রাখুন' : 'Keep your questions and notes together',
-              isBangla ? 'প্রয়োজনে স্বাস্থ্যকর্মীর সাথে আলোচনা করুন' : 'Discuss concerns with a healthcare professional',
-            ].map((item) => (
-              <div key={item} className="flex items-start gap-2.5 text-xs leading-relaxed text-[#55635C]">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#4C8A68]" />
-                <span>{item}</span>
+          <div className="journey-feature-grid" aria-label={isBangla ? 'কুচুপুচুর সুবিধা' : 'Kuchupuchu features'}>
+            {(isBangla
+              ? [
+                  { title: 'সন্তানের রুটিন ও যত্ন', description: 'ঘুম, খাবার বা পটি - সব তথ্যই এখন ট্র্যাক করা যাবে', Icon: Activity },
+                  { title: 'মেমোরি ডায়েরি', description: 'সন্তানের স্মৃতি সংরক্ষণ করে সবার সঙ্গে শেয়ার করুন', Icon: BookOpen },
+                  { title: 'প্যারেন্টস ফোরাম', description: 'যেকোনো সমস্যায় অভিজ্ঞ অভিভাবকদের সঙ্গে আলোচনা করুন', Icon: MessageCircle },
+                  { title: 'কেনাকাটা', description: 'মাত্র ৩ ক্লিকে ঝামেলাহীন কেনাকাটা', Icon: ShoppingBag },
+                ]
+              : [
+                  { title: 'Child routine & care', description: 'Track everyday care details with ease', Icon: Activity },
+                  { title: 'Memory diary', description: 'Save your child’s memories and share them', Icon: BookOpen },
+                  { title: 'Parents forum', description: 'Talk through concerns with experienced parents', Icon: MessageCircle },
+                  { title: 'Shopping', description: 'A smooth shopping experience in 3 clicks', Icon: ShoppingBag },
+                ]
+            ).map(({ title, description, Icon }, index) => (
+              <div key={title} className="journey-feature-item" style={{ animationDelay: `${index * 450}ms` }}>
+                <span className="journey-feature-icon"><Icon className="h-6 w-6" /></span>
+                <strong>{title}</strong>
+                <span className="journey-feature-description">{description}</span>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-[10px] leading-relaxed text-[#97A19C]">
-            {isBangla
-              ? 'এই তথ্য সাধারণ সহায়তার জন্য; ব্যক্তিগত পরামর্শের জন্য চিকিৎসকের সাথে কথা বলুন।'
-              : 'For general support only; consult a healthcare professional for personal advice.'}
-          </p>
         </div>
       </section>
 

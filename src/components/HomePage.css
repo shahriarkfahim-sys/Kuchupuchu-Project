@@ -1,0 +1,95 @@
+.journey-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 22px;
+  padding: 8px 0 4px;
+}
+
+.journey-feature-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px;
+  color: #55635c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  opacity: 0;
+  animation: journey-feature-in .5s ease-out both;
+}
+
+.journey-feature-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #f3c4aa;
+  border-radius: 50%;
+  background: #fff2ea;
+  color: #d66a37;
+  box-shadow: 0 3px 8px rgba(201, 92, 43, .09);
+}
+
+.journey-feature-item strong {
+  color: #35423b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.journey-feature-description {
+  color: #78837d;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+@keyframes journey-feature-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (min-width: 768px) {
+  .journey-feature-grid {
+    position: relative;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 0;
+  }
+
+  .journey-feature-item:not(:first-child)::before {
+    position: absolute;
+    z-index: -1;
+    top: 21px;
+    left: calc(-50% + 22px);
+    right: calc(50% + 22px);
+    width: auto;
+    height: 2px;
+    content: '';
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: #f3cfbc;
+    animation: journey-feature-line .4s ease-out both;
+  }
+
+  .journey-feature-item:nth-child(2)::before { animation-delay: 450ms; }
+  .journey-feature-item:nth-child(3)::before { animation-delay: 900ms; }
+  .journey-feature-item:nth-child(4)::before { animation-delay: 1350ms; }
+
+  @keyframes journey-feature-line {
+    to { transform: scaleX(1); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-feature-item,
+  .journey-feature-item::before {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>গর্ভকাল থেকে ২৪ মাস</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap">
+<style>
+:root{--page:transparent;--ink:#3a2a22;--soft:#7a6559;--gold:#e0a030;--green:#4f7f68;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;background:transparent}
+body{font-family:"Hind Siliguri",system-ui,sans-serif;color:var(--ink);padding:8px}
+.card{width:100%;max-width:1200px;margin:0 auto;border-radius:28px;background:linear-gradient(180deg,#fffaf4,#fdeedd);border:1px solid #f1dcc5;position:relative;overflow:hidden;color:var(--ink)}
+.scroll{overflow-x:auto;padding:8px 0 0}
+.track{min-width:1180px;position:relative}
+svg{display:block;width:100%;height:auto}
+.scene{opacity:0;transform:translateY(14px);transition:opacity .7s,transform .7s}
+.scene.on{opacity:1;transform:none}
+.mark{fill:#fff;stroke:#e6c9a4;stroke-width:3;transition:.4s}
+.mark.hit{fill:var(--gold);stroke:var(--gold)}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:12px}
+.tip{margin:0 24px 22px;padding:14px 18px;background:#fff;border:1px solid #f1dcc5;border-radius:16px;font-size:16px;line-height:1.6;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.tip small{display:block;color:var(--soft);font-size:13px;margin-top:4px}
+.badge{white-space:nowrap;font-size:13px;font-weight:600;color:var(--green);background:#e7f2ea;border-radius:999px;padding:3px 12px}
+.ctl{position:absolute;top:14px;right:14px;display:flex;background:#fff;border-radius:999px;padding:3px;box-shadow:0 2px 12px rgba(120,70,30,.12);z-index:2}
+.btn{width:36px;height:36px;border:0;background:none;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:#3a4260}
+@media (prefers-reduced-motion:no-preference){.bob{animation:bob 2.6s ease-in-out infinite alternate}.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1s ease-in-out infinite}.flt,.tw,.sun,.nod,.sway,.steam,.leaf,.rock{transform-box:fill-box}.flt{transform-origin:center;animation:flt 2.2s ease-in-out infinite alternate}.tw{transform-origin:center;animation:tw 1.6s ease-in-out infinite alternate}.sun{transform-origin:center;animation:sun 3s ease-in-out infinite alternate}.nod{transform-origin:50% 100%;animation:nod 2.4s ease-in-out infinite alternate}.sway{transform-origin:50% 0;animation:sway 3s ease-in-out infinite alternate}.steam{animation:steam 2s ease-in-out infinite}.leaf{transform-origin:50% 100%;animation:sway 2.8s ease-in-out infinite alternate}.rock{transform-origin:50% 100%;animation:rock 2.2s ease-in-out infinite alternate}}
+@keyframes bob{to{transform:translateY(-4px)}}
+@keyframes pulse{50%{transform:scale(1.3)}}@keyframes flt{to{transform:translateY(-8px) scale(1.12)}}@keyframes tw{from{transform:scale(.6);opacity:.6}to{transform:scale(1.2) rotate(30deg);opacity:1}}@keyframes sun{to{transform:scale(1.1)}}@keyframes nod{to{transform:rotate(3deg)}}@keyframes sway{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}@keyframes steam{0%{opacity:0;transform:translateY(4px)}50%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}@keyframes rock{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="ctl">
+    <button class="btn" id="pp" aria-label="থামান"></button>
+    <button class="btn" id="rp" aria-label="আবার শুরু করুন"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+  </div>
+  <div class="scroll"><div class="track">
+    <svg id="svg" viewBox="0 0 2040 500" role="img" aria-label="গর্ভকাল থেকে ২৪ মাস পর্যন্ত মা-বাবা ও শিশুর যাত্রা"></svg>
+  </div></div>
+</div>
+<script>
+const SK='#F0B890',HR='#35201A',CORAL='#F08A6C',GOLD='#F5C451',GREEN='#93C2AB';
+const arm=(p,c=SK)=>`<polyline points="${p}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`;
+const heart=(x,y,s,c,pl)=>`<g transform="translate(${x},${y}) scale(${s})"><path class="${pl?'pulse':'flt'}" style="animation-delay:-${(Math.abs(x)%9)*.3}s" d="M0,6 C-14,-6 -6,-18 0,-9 C6,-18 14,-6 0,6Z" fill="${c}"/></g>`;
+function head(x,y,r,kind,open){
+  const e=open?`<circle cx="${-r*.36}" cy="2" r="${r*.1}" fill="${HR}"/><circle cx="${r*.36}" cy="2" r="${r*.1}" fill="${HR}"/>`
+   :`<path d="M${-r*.5},3 q${r*.14},${-r*.2} ${r*.28},0 M${r*.22},3 q${r*.14},${-r*.2} ${r*.28},0" stroke="${HR}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  let hair='',extra='';
+  if(kind==='baby')hair=`<path d="M-3,${-r} q5,-12 12,-3" stroke="${HR}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  else hair=`<path d="M${-r-1},2 A${r+1},${r+1} 0 0 1 ${r+1},2 Q0,${-r*.45} ${-r-1},2Z" fill="${HR}"/>`;
+  if(kind==='mom')extra=`<circle cy="${-r-7}" r="${r*.4}" fill="${HR}"/>`;
+  if(kind==='dad')extra=`<g stroke="${HR}" stroke-width="2" fill="none"><circle cx="${-r*.36}" cy="3" r="${r*.3}"/><circle cx="${r*.36}" cy="3" r="${r*.3}"/><path d="M${-r*.06},3 h${r*.12}"/></g>`;
+  return `<g transform="translate(${x},${y})">${kind==='mom'?extra:''}<circle r="${r}" fill="${SK}"/>${hair}${e}
+  <circle cx="${-r*.6}" cy="${r*.3}" r="${r*.17}" fill="#F08A7A" opacity=".5"/><circle cx="${r*.6}" cy="${r*.3}" r="${r*.17}" fill="#F08A7A" opacity=".5"/>
+  <path d="M${-r*.2},${r*.4} q${r*.2},${r*.22} ${r*.4},0" stroke="#B5513F" stroke-width="2.2" fill="none" stroke-linecap="round"/>${kind==='dad'?extra:''}</g>`;
+}
+function mom(x,s,o={}){
+  const body=o.preg?`<path d="M-26,-128 Q-34,-95 -32,-52 L32,-52 Q34,-95 26,-128 Q0,-136 -26,-128Z" fill="${CORAL}"/><ellipse cx="18" cy="-86" rx="29" ry="31" fill="#F7A087"/><path d="M8,-100 q8,-4 14,4" stroke="#fff" stroke-opacity=".5" stroke-width="3" fill="none" stroke-linecap="round"/>`
+   :`<path d="M-24,-128 Q-30,-92 -28,-52 L28,-52 Q30,-92 24,-128 Q0,-136 -24,-128Z" fill="${CORAL}"/>`;
+  return `<g transform="translate(${x},0) scale(${o.flip?-s:s},${s})"><path d="M-11,-55 V-9 M11,-55 V-9" stroke="#A9D1D9" stroke-width="15" stroke-linecap="round"/><ellipse cx="-11" cy="-2" rx="11" ry="5" fill="#B5513F"/><ellipse cx="11" cy="-2" rx="11" ry="5" fill="#B5513F"/>
+  ${body}<path d="M-22,-126 Q0,-102 24,-82" stroke="${GOLD}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M-20,-124 Q-32,-100 -29,-70" stroke="${GOLD}" stroke-width="7" fill="none" stroke-linecap="round"/>
+  ${(o.arms||[]).map(a=>arm(a)).join('')}<g class="nod">${head(0,-152,27,'mom')}</g></g>`;
+}
+function dad(x,s,o={}){
+  return `<g transform="translate(${x},0) scale(${o.flip?-s:s},${s})"><path d="M-12,-62 V-10 M12,-62 V-10" stroke="#4A6FA5" stroke-width="17" stroke-linecap="round"/><ellipse cx="-12" cy="-3" rx="13" ry="6" fill="#fff" stroke="#e2d4c4"/><ellipse cx="12" cy="-3" rx="13" ry="6" fill="#fff" stroke="#e2d4c4"/>
+  <path d="M-26,-128 Q-30,-92 -26,-60 L26,-60 Q30,-92 26,-128 Q0,-136 -26,-128Z" fill="${GREEN}"/><path d="M-9,-130 L0,-118 L9,-130" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="-24" cy="-120" r="10" fill="${GREEN}"/><circle cx="24" cy="-120" r="10" fill="${GREEN}"/>
+  ${(o.arms||[]).map(a=>arm(a)).join('')}<g class="nod">${head(0,-152,27,'dad')}</g></g>`;
+}
+const clap=['24,-118 38,-102 34,-90','-24,-118 -2,-100 32,-92'], cheer=['24,-118 42,-140 46,-162','-24,-118 -42,-140 -46,-162'];
+const sparkle=(x,y)=>`<g transform="translate(${x},${y})"><path class="tw" style="animation-delay:-${Math.abs(x)%5*.3}s" d="M0,-10 L3,-3 L10,0 L3,3 L0,10 L-3,3 L-10,0 L-3,-3Z" fill="${GOLD}"/></g>`;
+const scenes=[
+ // 0 pregnancy: Dhaka flat balcony
+ ()=>`<circle class="sun" cx="75" cy="-225" r="32" fill="#F7C873" opacity=".8"/>
+  <g stroke="#D9B89A" stroke-width="4" stroke-linecap="round"><path d="M-140,-72 H140"/>${[-126,-98,-70,-42,-14,14,42,70,98,126].map(i=>`<path d="M${i},-72 V0"/>`).join('')}</g>
+  <path d="M112,0 l6,-34 h28 l6,34Z" fill="#C9694A"/><g class="leaf"><ellipse cx="132" cy="-48" rx="10" ry="22" fill="#8DBB8A"/><ellipse cx="118" cy="-44" rx="8" ry="16" fill="#A7CDA3" transform="rotate(-30 118 -44)"/></g>
+  <g transform="translate(-110,-205) rotate(-8)"><rect x="-28" y="-34" width="56" height="70" rx="9" fill="#fff" stroke="#ebd5be"/><circle cy="-10" r="14" fill="#F7C9B8"/>${heart(0,-10,.8,'#E5546C',1)}<path d="M-20,22 h8 l4,-10 l6,20 l4,-10 h14" stroke="${CORAL}" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+  ${mom(-45,.95,{preg:1,arms:['24,-118 36,-100 22,-86','-24,-118 -30,-95 -8,-72']})}${dad(52,.95,{flip:1,arms:['24,-118 46,-104 60,-92','-24,-118 -30,-95 -26,-72']})}
+  ${heart(2,-190,1.3,'#E5546C')}${heart(26,-215,.9,'#F08A6C')}`,
+ // 1 birth
+ ()=>`<g transform="translate(100,-200)"><rect x="-22" y="-22" width="44" height="44" rx="11" fill="#fff" stroke="#ebd5be"/><path d="M0,-12 V12 M-12,0 H12" stroke="#E5546C" stroke-width="6" stroke-linecap="round"/></g>
+  ${mom(-40,.95,{arms:['24,-118 32,-96 4,-86','-24,-118 -22,-92 8,-80']})}
+  <g transform="translate(-30,-90) rotate(-18)"><ellipse rx="27" ry="15" fill="#7BBFB0"/><path d="M-18,0 H18" stroke="#fff" stroke-width="2" stroke-dasharray="5 4"/></g>${head(-44,-103,15,'baby',false)}
+  ${dad(58,.95,{flip:1,arms:['24,-118 44,-108 62,-94','-24,-118 -30,-95 -26,-72']})}
+  ${heart(-10,-205,1.2,'#E5546C')}${heart(20,-180,.8,'#F08A6C')}`,
+ // 2 tummy time on kantha
+ ()=>`<rect x="-125" y="-10" width="250" height="14" rx="7" fill="#F5C77E"/><path d="M-112,-3 H112" stroke="#fff" stroke-width="2" stroke-dasharray="8 6"/>
+  ${mom(-100,.9,{arms:clap})}${dad(110,.9,{flip:1,arms:cheer})}
+  <g class="bob"><ellipse cx="-8" cy="-26" rx="36" ry="15" fill="#F7D060"/><ellipse cx="-42" cy="-22" rx="12" ry="9" fill="${SK}"/><path d="M18,-30 L22,-14" stroke="${SK}" stroke-width="8" stroke-linecap="round"/>${head(30,-50,24,'baby',true)}</g>
+  ${sparkle(70,-95)}${heart(-30,-170,1,'#E5546C')}<path d="M-8,-200 q6,-12 14,0" stroke="${GOLD}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+ // 3 sitting, first food (khichuri)
+ ()=>`<rect x="-125" y="-8" width="250" height="12" rx="6" fill="#F5C77E"/>
+  ${mom(-105,.9,{arms:clap})}${dad(105,.9,{flip:1,arms:['24,-118 44,-100 58,-90','-24,-118 -30,-95 -26,-72']})}
+  <g transform="translate(52,-82)"><path d="M-17,0 a17,17 0 0 0 34,0Z" fill="#fff" stroke="${GOLD}" stroke-width="3"/><path d="M-13,-1 q13,-9 26,0Z" fill="#F4CB52"/><path class="steam" d="M-6,-10 q-4,-8 0,-14 M4,-10 q-4,-8 0,-14" stroke="#c9b8a6" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+  <g class="bob"><ellipse cx="-20" cy="-8" rx="15" ry="9" fill="${SK}"/><ellipse cx="20" cy="-8" rx="15" ry="9" fill="${SK}"/><ellipse cy="-34" rx="24" ry="28" fill="#8CCFB9"/><path d="M-20,-50 L-34,-42 L-30,-28 M20,-50 L34,-42 L30,-28" stroke="${SK}" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${head(0,-82,25,'baby',true)}</g>
+  ${heart(-20,-185,1,'#E5546C')}${sparkle(-70,-175)}`,
+ // 4 first steps
+ ()=>`<g transform="translate(0,-262)"><g class="sway"><path d="M0,-38 L24,0 L0,38 L-24,0Z" fill="#F5A55E"/><path d="M0,-38 V38 M-24,0 H24" stroke="#fff" stroke-opacity=".6" stroke-width="2"/><path d="M0,38 q-10,16 4,28 q12,12 -2,26" stroke="${GREEN}" stroke-width="2.5" fill="none"/><circle cx="3" cy="52" r="4" fill="#E5546C"/><circle cx="2" cy="80" r="4" fill="${GOLD}"/></g></g>
+  ${mom(-100,.95,{arms:['24,-118 44,-98 62,-84','-24,-118 -30,-95 -26,-72']})}${dad(100,.95,{flip:1,arms:['24,-118 44,-98 62,-84','-24,-118 -30,-95 -26,-72']})}
+  <g class="bob"><path d="M-10,-46 V-8 M10,-46 V-8" stroke="${SK}" stroke-width="9" stroke-linecap="round"/><ellipse cx="-10" cy="-3" rx="10" ry="5" fill="#6C9BE0"/><ellipse cx="10" cy="-3" rx="10" ry="5" fill="#6C9BE0"/>
+  <rect x="-21" y="-90" width="42" height="48" rx="16" fill="#6C9BE0"/><path d="M-12,-90 V-76 M12,-90 V-76" stroke="${GOLD}" stroke-width="4"/><path d="M-19,-80 L-52,-84 M19,-80 L52,-84" stroke="${SK}" stroke-width="8" stroke-linecap="round"/>${head(0,-114,26,'baby',true)}</g>
+  ${heart(0,-205,1.2,'#E5546C')}`,
+ // 5 words, running, hug
+ ()=>`<g transform="translate(-155,0)"><g class="rock"><path d="M-20,-2 L20,-2 L12,-12 L-12,-12Z" fill="#fff" stroke="#e2d4c4"/><path d="M0,-12 V-38 L16,-12Z" fill="${GOLD}"/></g></g>
+  ${mom(-110,.95,{arms:['24,-118 56,-104 78,-96','-24,-118 4,-104 46,-96']})}${dad(120,.95,{flip:1,arms:['24,-118 56,-104 78,-96','-24,-118 4,-104 46,-96']})}
+  <g class="bob"><path d="M-6,-46 L-18,-8 M8,-46 L22,-14" stroke="${SK}" stroke-width="9" stroke-linecap="round"/><ellipse cx="-20" cy="-4" rx="10" ry="5" fill="#E5546C"/><ellipse cx="25" cy="-9" rx="10" ry="5" fill="#E5546C"/>
+  <path d="M-22,-90 Q-26,-50 -28,-44 L28,-44 Q26,-50 22,-90Z" fill="#F59A7E"/><path d="M-19,-82 L-40,-108 M19,-82 L40,-108" stroke="${SK}" stroke-width="8" stroke-linecap="round"/>${head(0,-114,26,'baby',true)}</g>
+  ${heart(0,-210,1.8,'#E5546C')}${heart(-45,-185,1.1,'#F08A6C')}${heart(48,-190,1.2,'#F5A58E')}${sparkle(90,-215)}`
+];
+const X0=30,X1=2010,cx=i=>170+340*i,yAt=x=>452+Math.sin(x/90)*7;
+let d='';for(let x=X0;x<=X1;x+=20)d+=(x==X0?'M':'L')+x+','+yAt(x).toFixed(1);
+const svg=document.getElementById('svg');
+svg.innerHTML=`<defs><clipPath id="clip"><rect id="clipr" x="0" y="0" width="0" height="500"/></clipPath></defs>
+<rect x="20" y="418" width="2000" height="72" rx="16" fill="#F8E4CC" opacity=".8"/>
+<path d="${d}" stroke="#E6CDAA" stroke-width="4" stroke-dasharray="12 9" fill="none" stroke-linecap="round"/>
+<path d="${d}" stroke="#E0A030" stroke-width="4.5" stroke-dasharray="12 9" fill="none" stroke-linecap="round" clip-path="url(#clip)"/>
+${scenes.map((f,i)=>`<g transform="translate(${cx(i)},418)"><g class="scene" id="s${i}">${f()}</g></g><circle class="mark" id="m${i}" cx="${cx(i)}" cy="${yAt(cx(i)).toFixed(1)}" r="9"/>`).join('')}
+<circle id="dot" r="8" fill="${GREEN}" stroke="#fff" stroke-width="3"/>`;
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let p=reduce?1:0,playing=!reduce,last=0,DUR=15000;
+const ICON={pause:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>',play:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4 L20 12 L7 20Z"/></svg>'};
+function render(){
+  const x=X0+p*(X1-X0);$('clipr').setAttribute('width',x);
+  $('dot').setAttribute('cx',x);$('dot').setAttribute('cy',yAt(x));$('dot').style.display=p>=1?'none':'';
+  for(let i=0;i<scenes.length;i++){$('s'+i).classList.toggle('on',x>=cx(i)-110);$('m'+i).classList.toggle('hit',x>=cx(i))}
+  $('pp').innerHTML=playing?ICON.pause:ICON.play;$('pp').setAttribute('aria-label',playing?'থামান':'চালু করুন');
+}
+function tick(t){const dt=last?t-last:0;last=t;if(playing){p=Math.min(1,p+dt/DUR);if(p>=1)playing=false;render()}requestAnimationFrame(tick)}
+$('pp').onclick=()=>{if(p>=1){p=0;playing=true}else playing=!playing;render()};
+$('rp').onclick=()=>{p=0;playing=true;render()};
+render();requestAnimationFrame(tick);
+</script>
+</body>
+</html>
