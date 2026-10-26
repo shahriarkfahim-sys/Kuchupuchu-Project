@@ -326,14 +326,14 @@ export const HomePage: React.FC<HomePageProps> = ({
       <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-3">
           <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-[#25313D] sm:text-3xl">
-            {isBangla ? 'আপনি এবং আপনার সন্তান আরও বেশি কিছু পাওয়ার যোগ্য' : 'You and your child deserve even more'}
+            {isBangla ? <>আপনি এবং আপনার সন্তান <span className="text-[#D66A37]">আরও বেশি কিছু পাওয়ার যোগ্য</span></> : <>You and your child <span className="text-[#D66A37]">deserve even more</span></>}
           </h2>
         </div>
 
         <div className="rounded-3xl border border-[#E8EEEB] bg-white p-5 shadow-[0_12px_32px_rgba(33,55,43,0.07)] sm:p-7">
           <div className="mb-5 flex items-start justify-between">
             <h3 className="text-lg font-extrabold text-[#25313D]">
-              {isBangla ? 'তাই, আপনাদের জন্য থাকছে ৬টি বাড়তি সুবিধা' : 'That’s why you get six extra benefits'}
+              {isBangla ? <>তাই, আপনাদের জন্য থাকছে <span className="text-[#D66A37]">৬টি বাড়তি সুবিধা</span></> : <>That’s why you get <span className="text-[#D66A37]">six extra benefits</span></>}
             </h3>
           </div>
           <div className="journey-highlight-grid" aria-label={isBangla ? 'কুচুপুচুর বাড়তি সুবিধা' : 'Kuchupuchu extra benefits'}>
