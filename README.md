@@ -13,6 +13,7 @@ The Sonai endpoint is deployed as a Vercel Function at `/api/shonai/chat`. Local
 
 - The Ponno checkout UI does not take payments yet. `/api/payments/bkash/create` deliberately returns `503` until a real bKash merchant integration and server-side credentials are configured.
 - Sign-in, child records, and routine data are currently client-side/demo state; they are not a production authentication or cloud database service.
+- The signup screen is currently a UI prototype: email/password and Google, Facebook, Apple, and X options lead into profile onboarding, but do not create or authenticate accounts. Passwords are not stored. Connect an authentication backend before enabling real account access.
 
 ## Local checks
 

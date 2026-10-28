@@ -1,0 +1,140 @@
+.signup-shell {
+  height: min(700px, calc(100dvh - 40px));
+  min-height: min(580px, calc(100dvh - 24px));
+  grid-template-columns: minmax(260px, .78fr) minmax(0, 1.22fr);
+}
+
+.signup-assessment-shell {
+  max-width: 880px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.signup-assessment-aside {
+  display: none;
+}
+
+.signup-welcome-panel {
+  background:
+    radial-gradient(ellipse at 82% 10%, rgba(255, 255, 255, .72), transparent 38%),
+    linear-gradient(145deg, #ffe4d2 0%, #ffcfb3 52%, #f8b997 100%);
+}
+
+.signup-profile-step {
+  width: min(100%, 500px);
+  margin: auto;
+  padding-block: 12px;
+}
+
+.signup-mascot-scene {
+  min-height: 220px;
+}
+
+.signup-mascot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 13px 15px rgba(83, 63, 75, .14));
+  animation: signup-float 3.2s ease-in-out infinite;
+}
+
+.signup-mascot img {
+  display: block;
+  width: clamp(136px, 16vw, 180px);
+  height: clamp(136px, 16vw, 180px);
+  object-fit: contain;
+}
+
+.signup-mascot-character {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  animation: signup-character-flip .8s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.signup-role-moustache {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  color: #563321;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.signup-congrats-badge {
+  animation: signup-congrats-pop .55s cubic-bezier(.2, .8, .25, 1.25) both;
+}
+
+.signup-congrats-sparkle {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  animation: signup-congrats-sparkle .8s .25s ease-out both;
+}
+
+@keyframes signup-float {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes signup-character-flip {
+  0% { opacity: 0; transform: perspective(700px) rotateY(-90deg) scale(.92); }
+  55% { opacity: 1; transform: perspective(700px) rotateY(12deg) scale(1.02); }
+  100% { opacity: 1; transform: perspective(700px) rotateY(0) scale(1); }
+}
+
+@keyframes signup-congrats-pop {
+  from { opacity: 0; transform: scale(.55) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes signup-congrats-sparkle {
+  0% { opacity: 0; transform: scale(.3) rotate(-30deg); }
+  70% { opacity: 1; transform: scale(1.2) rotate(12deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@media (max-width: 767px) {
+  .signup-shell {
+    height: auto;
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .signup-welcome-panel {
+    display: none;
+  }
+
+  .signup-form-panel {
+    padding: 18px;
+  }
+
+}
+
+@media (max-width: 420px) {
+  .signup-overlay {
+    padding: 8px;
+  }
+
+  .signup-shell {
+    max-height: calc(100dvh - 16px);
+    border-radius: 18px;
+  }
+
+  .signup-form-panel {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signup-mascot,
+  .signup-mascot-character,
+  .signup-mascot-scene,
+  .signup-congrats-badge,
+  .signup-congrats-sparkle {
+    animation: none;
+  }
+}

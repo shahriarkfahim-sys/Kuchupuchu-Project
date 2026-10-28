@@ -4,6 +4,14 @@ import { ChildProfile, Language, MoodConfig, UserSubscription } from '../types';
 import { moodOptions } from '../data/mockData';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
 
+const buddyImages: Record<string, string> = {
+  kantha: '/assets/characters/live/5_kuchu_kantha_baby_live.svg',
+  boy: '/assets/characters/live/1_baby_boy_live.svg',
+  girl: '/assets/characters/live/2_baby_girl_live.svg',
+  tiger: '/assets/characters/live/3_tiger_cub_live.svg',
+  doel: '/assets/characters/live/4_doel_bird_live.svg',
+};
+
 interface HeaderBannerProps {
   currentLang: Language;
   activeChild: ChildProfile;
@@ -107,7 +115,11 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#2D3142]">
-            {currentLang === 'bn' ? (
+            {activeChild.isPregnant ? currentLang === 'bn' ? (
+              <>আপনার গর্ভাবস্থা কেমন চলছে?</>
+            ) : (
+              <>How is your pregnancy going?</>
+            ) : currentLang === 'bn' ? (
               <>
                 <span className="text-[#C85D26]">{childName}</span> আজ কেমন আছে?
               </>
@@ -118,21 +130,38 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
             )}
           </h1>
 
+          {activeChild.mascotId && buddyImages[activeChild.mascotId] && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#F0D5C1] bg-[#FFFAF5] py-1 pl-1 pr-3 text-xs font-semibold text-[#8C6D53]">
+              <img src={buddyImages[activeChild.mascotId]} alt="" className="h-8 w-8 object-contain" />
+              <span>{currentLang === 'bn' ? `বুদ্ধি বন্ধু ${activeChild.mascotNameBn ?? ''}` : `Learning buddy ${activeChild.mascotNameBn ?? ''}`}</span>
+            </div>
+          )}
+
           {/* Age and Growth Highlights + Partner Code */}
           <div className="flex flex-wrap items-center gap-y-2 gap-x-3 text-xs sm:text-sm text-[#5C6479]">
-            <span className="font-bold text-[#2D3142]">
-              {t.ageLabel}: {formatLocalizedNumber(activeChild.ageMonths, currentLang)} {t.months} {formatLocalizedNumber(activeChild.ageDays, currentLang)} {t.days}
-            </span>
-            <span aria-hidden="true" className="text-[#D8C2B0]">·</span>
-            <span className="text-[#2F6B47] font-semibold">
-              {currentLang === 'bn' ? 'ওজন: ' : 'Weight: '}
-              {formatLocalizedNumber(activeChild.currentWeightKg, currentLang)} কেজি
-            </span>
-            <span aria-hidden="true" className="text-[#D8C2B0]">·</span>
-            <span className="text-[#C85D26] font-semibold">
-              {currentLang === 'bn' ? 'উচ্চতা: ' : 'Height: '}
-              {formatLocalizedNumber(activeChild.currentHeightCm, currentLang)} সেমি
-            </span>
+            {activeChild.isPregnant ? (
+              <span className="font-bold text-[#2D3142]">
+                {currentLang === 'bn' ? 'গর্ভকাল: ' : 'Pregnancy: '}
+                {formatLocalizedNumber(activeChild.gestationalAgeWeeks ?? 0, currentLang)} {currentLang === 'bn' ? 'সপ্তাহ' : 'weeks'}
+                {activeChild.expectedDueDate && ` · ${currentLang === 'bn' ? 'সম্ভাব্য প্রসব' : 'Due'}: ${activeChild.expectedDueDate}`}
+              </span>
+            ) : (
+              <>
+                <span className="font-bold text-[#2D3142]">
+                  {t.ageLabel}: {formatLocalizedNumber(activeChild.ageMonths, currentLang)} {t.months} {formatLocalizedNumber(activeChild.ageDays, currentLang)} {t.days}
+                </span>
+                <span aria-hidden="true" className="text-[#D8C2B0]">·</span>
+                <span className="text-[#2F6B47] font-semibold">
+                  {currentLang === 'bn' ? 'ওজন: ' : 'Weight: '}
+                  {formatLocalizedNumber(activeChild.currentWeightKg, currentLang)} কেজি
+                </span>
+                <span aria-hidden="true" className="text-[#D8C2B0]">·</span>
+                <span className="text-[#C85D26] font-semibold">
+                  {currentLang === 'bn' ? 'উচ্চতা: ' : 'Height: '}
+                  {formatLocalizedNumber(activeChild.currentHeightCm, currentLang)} সেমি
+                </span>
+              </>
+            )}
 
             {/* Partner Code Badge */}
             {activeChild.partnerCode && (
@@ -152,7 +181,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
         </div>
 
         {/* Right Column: Progress Meters with Elegant Circular Pie Charts */}
-        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-72 shrink-0">
+        {!activeChild.isPregnant && <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-72 shrink-0">
           
           {/* Daily Play Target */}
           <div 
@@ -240,12 +269,12 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
             </div>
           </div>
 
-        </div>
+        </div>}
 
       </div>
 
       {/* Bottom Bar: Interactive Mood Selector & Direct Input Trigger */}
-      <div className="pt-4 border-t border-[#F3E7DC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {!activeChild.isPregnant && <div className="pt-4 border-t border-[#F3E7DC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         
         {/* Mood Selector Buttons */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
@@ -277,7 +306,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
           <span>{t.quickLogCta}</span>
         </button>
 
-      </div>
+      </div>}
 
     </div>
   );

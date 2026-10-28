@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Baby, Heart, Sparkles, Check, Phone, User, Calendar } from 'lucide-react';
 import { ChildProfile, Language } from '../types';
 import { translations } from '../i18n/translations';
+import { calculateAgeFromBirthDate } from '../utils/ecdAssessment';
 
 interface AuthModalProps {
   currentLang: Language;
@@ -32,13 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (activeMode === 'register' && childName && birthDate) {
-      // Calculate age
-      const birth = new Date(birthDate);
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - birth.getTime());
-      const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      const ageMonths = Math.floor(totalDays / 30.4375);
-      const ageDays = Math.floor(totalDays % 30.4375);
+      const { ageMonths, ageDays } = calculateAgeFromBirthDate(birthDate);
 
       onSuccess({
         nameBn: childName,

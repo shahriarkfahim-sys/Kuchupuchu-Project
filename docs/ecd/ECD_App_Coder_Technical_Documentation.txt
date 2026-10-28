@@ -1,0 +1,45 @@
+# Software Requirement Specification (SRS) & System Architecture
+## Project: Early Childhood Development (ECD) & Pregnancy Tracking Web Application (Bangladesh)
+## Feature: Data Analytics, Scoring Engine, Vaccine Alert & Interactive Spider Chart Logic
+
+---
+
+## 1. System Overview & Objective
+This document outlines the technical specification for the backend scoring engine, database mapping, and frontend report visualization logic for the ECD tracking web app. The platform evaluates pregnancy progress and child milestone development across five global domains plus a local vaccine adherence tracker.
+
+The core objective is to ingest user inputs from a multi-choice radio-button form, apply mathematical weights, calculate domain-specific percentiles, trigger localized validation alerts (e.g., Bangladesh EPI Vaccination Schedule), and render an interactive multi-axis Spider Chart with localized action items.
+
+---
+
+## 2. Database Schema & Data Models
+
+### 2.1 Question Master Schema (`questions`)
+Every question from the provided master database must map to this structural model:
+
+```json
+{
+  "question_id": "VARCHAR(50) PRIMARY KEY", 
+  "phase": "ENUM('PREGNANCY', 'CHILD')",
+  "timeline_marker": "VARCHAR(20)",         
+  "domain": "ENUM('GROSS_MOTOR', 'FINE_MOTOR', 'COGNITIVE', 'LANGUAGE', 'SELF_HELP', 'VACCINATION', 'PREGNANCY_CARE')",
+  "core_skill_bn": "TEXT",                  
+  "question_text_bn": "TEXT",               
+  "options": [
+    { "option_id": "OPT_1", "text_bn": "পারছে / হ্যাঁ, নিয়মিত", "weight": 2 },
+    { "option_id": "OPT_2", "text_bn": "চেষ্টা করছে / মাঝে মাঝে", "weight": 1 },
+    { "option_id": "OPT_3", "text_bn": "এখনো না / এখনো শুরু করিনি", "weight": 0 }
+  ]
+}
+```
+
+---
+
+## 3. Mathematical Scoring Engine & Algorithmic Logic
+For any given submission, the backend must group the answers array by the `domain` column. For each isolated domain, compute the percentage using the following mathematical formula:
+
+$$\text{Domain Score (\%)} = \left( \frac{\sum \text{Earned Weights in Domain}}{\sum \text{Maximum Possible Weights in Domain}} \right) \times 100$$
+
+### 3.1 Threshold Matrix Rules
+* 80% to 100%: Green (#4CAF50) -> STATUS_ON_TRACK
+* 50% to 79%: Yellow (#FFC107) -> STATUS_MONITOR
+* Below 50%: Red (#F44336) -> STATUS_DELAY_RISK

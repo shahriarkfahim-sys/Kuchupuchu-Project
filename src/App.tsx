@@ -19,6 +19,7 @@ import {
 import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
 import { AuthGateCard } from './components/AuthGateCard';
+import { calculateAgeFromBirthDate } from './utils/ecdAssessment';
 
 const HeaderBanner = lazy(() => import('./components/HeaderBanner').then((module) => ({ default: module.HeaderBanner })));
 const WormGraphView = lazy(() => import('./components/WormGraphView').then((module) => ({ default: module.WormGraphView })));
@@ -51,7 +52,7 @@ import {
   moodOptions
 } from './data/mockData';
 import { translations, formatLocalizedNumber } from './i18n/translations';
-import { ChildProfile, GrowthLogEntry, Language, RoutineLogEntry, CommunityPost, WormGraphPoint, DomainScore, UserSubscription } from './types';
+import { ChildProfile, GrowthLogEntry, Language, RoutineLogEntry, CommunityPost, WormGraphPoint, UserSubscription } from './types';
 
 export default function App() {
   // Default language is Bangla (বাংলা - Default)
@@ -244,9 +245,11 @@ export default function App() {
     setActiveChild(profile);
     setIsLoggedIn(true);
     setOnboardingModalOpen(false);
-    setActiveTab('ogrogoti-graph');
-    setWeatherModalOpen(true);
-    setHasAutoOpenedWeather(true);
+    setActiveTab(profile.isPregnant ? 'home' : 'ogrogoti-graph');
+    if (!profile.isPregnant) {
+      setWeatherModalOpen(true);
+      setHasAutoOpenedWeather(true);
+    }
   };
 
   // Auth Success
@@ -260,16 +263,18 @@ export default function App() {
     setAuthGateModalOpen(false);
     setAuthModalOpen(false);
     if (newChild && newChild.nameBn) {
+      const profileBirthDate = newChild.birthDate || new Date().toISOString().slice(0, 10);
+      const calculatedAge = calculateAgeFromBirthDate(profileBirthDate);
       const createdChild: ChildProfile = {
         id: `child_${Date.now()}`,
         nameBn: newChild.nameBn,
         nameEn: newChild.nameEn || newChild.nameBn,
         nicknameBn: newChild.nicknameBn || 'বাবু',
         nicknameEn: newChild.nicknameEn || 'Baby',
-        gender: 'boy',
-        birthDate: newChild.birthDate || '2026-01-10',
-        ageMonths: newChild.ageMonths || 9,
-        ageDays: newChild.ageDays || 12,
+        gender: newChild.gender || 'unknown',
+        birthDate: profileBirthDate,
+        ageMonths: newChild.ageMonths ?? calculatedAge.ageMonths,
+        ageDays: newChild.ageDays ?? calculatedAge.ageDays,
         avatarSeed: newChild.nameBn,
         currentLeap: 5,
         motherNameBn: newChild.motherNameBn || 'আম্মু',
@@ -305,7 +310,7 @@ export default function App() {
   };
 
   // Dynamic sync: when assessment is saved, update Worm Graph trajectory
-  const handleSaveAssessment = (month: number, overallScore: number, domainScores: DomainScore[]) => {
+  const handleSaveAssessment = (month: number, overallScore: number) => {
     setWormData((prev) =>
       prev.map((point) => {
         if (point.month === month) {
@@ -420,7 +425,6 @@ export default function App() {
               <SpiderChartRadar
                 currentLang={currentLang}
                 activeChild={activeChild}
-                onNavigateToCare={() => handleSelectTab('care-connect')}
                 onSaveAssessment={handleSaveAssessment}
               />
 
@@ -577,7 +581,7 @@ export default function App() {
         onLinkPartnerCode={handleLinkPartnerCode}
       />}
 
-      {/* Comprehensive 8-Step Onboarding & Milestone Assessment Modal */}
+      {/* Signup, sequential profile setup, and age-based milestone assessment */}
       {onboardingModalOpen && <OnboardingFlowModal
         currentLang={currentLang}
         isOpen
@@ -585,6 +589,12 @@ export default function App() {
         onClose={() => {
           setOnboardingModalOpen(false);
           setOnboardingChildName('');
+        }}
+        onSwitchToLogin={() => {
+          setOnboardingModalOpen(false);
+          setOnboardingChildName('');
+          setAuthMode('login');
+          setAuthModalOpen(true);
         }}
         onComplete={(profile) => {
           setOnboardingChildName('');

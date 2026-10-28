@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 430" width="380" height="430">
+  <style>
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 3.6s ease-in-out infinite; }
+.eye:nth-of-type(2) { animation-delay: .16s; }
+.arm, .hand { transform-box: fill-box; transform-origin: center; }
+.wave-left { animation: wave-left 1.9s ease-in-out infinite; }
+.wave-right { animation: wave-right 2.2s ease-in-out infinite; }
+.leg { transform-box: fill-box; transform-origin: center; }
+.kick-left { animation: kick-left 1.55s ease-in-out infinite; }
+.kick-right { animation: kick-right 1.8s ease-in-out infinite; }
+.wing { transform-box: fill-box; transform-origin: center; }
+.flap-left { animation: flap-left .8s ease-in-out infinite; }
+.flap-right { animation: flap-right .8s ease-in-out infinite .12s; }
+.tail { transform-box: fill-box; transform-origin: center; animation: tail-sway 1.3s ease-in-out infinite; }
+.foot { transform-box: fill-box; transform-origin: center; animation: foot-tap .7s ease-in-out infinite; }
+@keyframes blink { 0%, 43%, 47%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.08); } }
+@keyframes wave-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-10deg); } }
+@keyframes wave-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(10deg); } }
+@keyframes kick-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-5deg); } }
+@keyframes kick-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(5deg); } }
+@keyframes flap-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes flap-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
+@keyframes tail-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(5deg); } }
+@keyframes foot-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+</style>
+  <circle cx="190" cy="215" r="168" fill="#FFE9E4" />
+  <path d="M58 80 Q58 90 48 90 Q58 90 58 100 Q58 90 68 90 Q58 90 58 80Z" fill="#FFC93C" />
+  <path d="M322 120 Q322 130 312 130 Q322 130 322 140 Q322 130 332 130 Q322 130 322 120Z" fill="#FFC93C" />
+  <ellipse cx="190" cy="392" rx="115" ry="14" fill="#000" opacity="0.08" />
+  <ellipse cx="190" cy="305" rx="70" ry="64" fill="#F58FA3" />
+  <polygon points="190,292 196,306 211,307 199,316 203,331 190,323 177,331 181,316 169,307 184,306" fill="#FFD35C" />
+  <g class="arm wave-left">
+    <ellipse cx="125" cy="305" rx="15" ry="28" fill="#EDB78F" transform="rotate(15 125 305)" />
+    <circle cx="117" cy="331" r="14" fill="#EDB78F" />
+  </g>
+  <g class="arm wave-right">
+    <ellipse cx="262" cy="245" rx="16" ry="30" fill="#EDB78F" transform="rotate(35 262 245)" />
+    <circle cx="280" cy="219" r="15" fill="#EDB78F" />
+  </g>
+  <g class="leg kick-left">
+    <ellipse cx="143" cy="368" rx="36" ry="22" fill="#EDB78F" transform="rotate(-12 143 368)" />
+    <ellipse cx="110" cy="364" rx="17" ry="15" fill="#F4A58A" />
+  </g>
+  <g class="leg kick-right">
+    <ellipse cx="237" cy="368" rx="36" ry="22" fill="#EDB78F" transform="rotate(12 237 368)" />
+    <ellipse cx="270" cy="364" rx="17" ry="15" fill="#F4A58A" />
+  </g>
+  <circle cx="108" cy="92" r="27" fill="#2E2222" />
+  <circle cx="272" cy="92" r="27" fill="#2E2222" />
+  <circle cx="97" cy="172" r="17" fill="#EDB78F" />
+  <circle cx="283" cy="172" r="17" fill="#EDB78F" />
+  <ellipse cx="190" cy="165" rx="96" ry="90" fill="#F2BF98" />
+  <path d="M106 130 Q116 74 190 72 Q264 74 274 130 Q240 104 190 108 Q140 104 106 130Z" fill="#2E2222" />
+  <circle cx="122" cy="116" r="8" fill="#E8505B" />
+  <circle cx="258" cy="116" r="8" fill="#E8505B" />
+  <circle cx="232" cy="130" r="4.5" fill="#2B1D1D" />
+  <path d="M135 144 Q150 136 165 144" fill="none" stroke="#5A3A32" stroke-width="3.5" stroke-linecap="round" />
+  <path d="M215 144 Q230 136 245 144" fill="none" stroke="#5A3A32" stroke-width="3.5" stroke-linecap="round" />
+  <g class="eye">
+    <ellipse cx="150" cy="170" rx="13" ry="17" fill="#2B1D1D" />
+    <circle cx="155" cy="163" r="5" fill="#FFF" />
+    <circle cx="146" cy="176" r="2.5" fill="#FFF" />
+  </g>
+  <g class="eye">
+    <ellipse cx="230" cy="170" rx="13" ry="17" fill="#2B1D1D" />
+    <circle cx="235" cy="163" r="5" fill="#FFF" />
+    <circle cx="226" cy="176" r="2.5" fill="#FFF" />
+  </g>
+  <ellipse cx="122" cy="198" rx="17" ry="11" fill="#F29488" opacity="0.75" />
+  <ellipse cx="258" cy="198" rx="17" ry="11" fill="#F29488" opacity="0.75" />
+  <path d="M174 200 Q190 224 206 200 Q190 206 174 200Z" fill="#8A3B3B" />
+  <ellipse cx="190" cy="210" rx="8" ry="4" fill="#F2877F" />
+</svg>

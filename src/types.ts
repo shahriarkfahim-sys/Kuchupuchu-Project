@@ -44,11 +44,17 @@ export interface ChildProfile {
   nameEn: string;
   nicknameBn: string;
   nicknameEn: string;
-  gender: 'boy' | 'girl';
+  gender: 'boy' | 'girl' | 'unknown';
   birthDate: string; // YYYY-MM-DD
   ageMonths: number;
   ageDays: number;
+  isPregnant?: boolean;
+  expectedDueDate?: string;
+  gestationalAgeWeeks?: number;
+  gestationalMonth?: number;
   avatarSeed: string;
+  mascotId?: string;
+  mascotNameBn?: string;
   currentLeap: number;
   motherNameBn: string;
   motherNameEn: string;
@@ -61,6 +67,14 @@ export interface ChildProfile {
   todayMood?: 'happy' | 'fussy' | 'sleepy' | 'active';
   assessmentScore?: number;
   assessmentHighlights?: string[];
+  assessmentDomainScores?: Array<{
+    domain: string;
+    labelBn: string;
+    score: number;
+    status: 'on_track' | 'monitor' | 'delay_risk';
+    earnedPoints: number;
+    totalPoints: number;
+  }>;
 }
 
 export interface RoutineLogEntry {

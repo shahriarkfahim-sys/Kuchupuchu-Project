@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 430" width="380" height="430">
+  <style>
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 3.6s ease-in-out infinite; }
+.eye:nth-of-type(2) { animation-delay: .16s; }
+.arm, .hand { transform-box: fill-box; transform-origin: center; }
+.wave-left { animation: wave-left 1.9s ease-in-out infinite; }
+.wave-right { animation: wave-right 2.2s ease-in-out infinite; }
+.leg { transform-box: fill-box; transform-origin: center; }
+.kick-left { animation: kick-left 1.55s ease-in-out infinite; }
+.kick-right { animation: kick-right 1.8s ease-in-out infinite; }
+.wing { transform-box: fill-box; transform-origin: center; }
+.flap-left { animation: flap-left .8s ease-in-out infinite; }
+.flap-right { animation: flap-right .8s ease-in-out infinite .12s; }
+.tail { transform-box: fill-box; transform-origin: center; animation: tail-sway 1.3s ease-in-out infinite; }
+.foot { transform-box: fill-box; transform-origin: center; animation: foot-tap .7s ease-in-out infinite; }
+@keyframes blink { 0%, 43%, 47%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.08); } }
+@keyframes wave-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-10deg); } }
+@keyframes wave-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(10deg); } }
+@keyframes kick-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-5deg); } }
+@keyframes kick-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(5deg); } }
+@keyframes flap-left { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes flap-right { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
+@keyframes tail-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(5deg); } }
+@keyframes foot-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+</style>
+  <circle cx="190" cy="215" r="168" fill="#FFF0D6" />
+  <path d="M58 80 Q58 90 48 90 Q58 90 58 100 Q58 90 68 90 Q58 90 58 80Z" fill="#7BCBA6" />
+  <path d="M322 120 Q322 130 312 130 Q322 130 322 140 Q322 130 332 130 Q322 130 322 120Z" fill="#7BCBA6" />
+  <ellipse cx="190" cy="392" rx="115" ry="14" fill="#000" opacity="0.08" />
+  <g class="tail">
+    <path d="M252 345 Q322 340 312 285" fill="none" stroke="#F4A340" stroke-width="16" stroke-linecap="round" />
+    <circle cx="312" cy="283" r="9" fill="#4A2C1A" />
+  </g>
+  <ellipse cx="190" cy="305" rx="68" ry="62" fill="#F4A340" />
+  <ellipse cx="190" cy="318" rx="44" ry="44" fill="#FFF1D6" />
+  <path d="M128 290 L142 294 M128 315 L142 317 M252 290 L238 294 M252 315 L238 317" stroke="#4A2C1A" stroke-width="5" stroke-linecap="round" fill="none" />
+  <g class="arm wave-left">
+    <ellipse cx="125" cy="305" rx="15" ry="28" fill="#F4A340" transform="rotate(15 125 305)" />
+    <circle cx="117" cy="331" r="14" fill="#FFF1D6" />
+  </g>
+  <g class="arm wave-right">
+    <ellipse cx="262" cy="245" rx="16" ry="30" fill="#F4A340" transform="rotate(35 262 245)" />
+    <circle cx="280" cy="219" r="15" fill="#FFF1D6" />
+  </g>
+  <g class="leg kick-left">
+    <ellipse cx="143" cy="368" rx="36" ry="22" fill="#F4A340" transform="rotate(-12 143 368)" />
+    <ellipse cx="110" cy="364" rx="17" ry="15" fill="#FFF1D6" />
+  </g>
+  <g class="leg kick-right">
+    <ellipse cx="237" cy="368" rx="36" ry="22" fill="#F4A340" transform="rotate(12 237 368)" />
+    <ellipse cx="270" cy="364" rx="17" ry="15" fill="#FFF1D6" />
+  </g>
+  <circle cx="108" cy="100" r="28" fill="#F4A340" />
+  <circle cx="272" cy="100" r="28" fill="#F4A340" />
+  <circle cx="108" cy="102" r="15" fill="#F8B3A3" />
+  <circle cx="272" cy="102" r="15" fill="#F8B3A3" />
+  <ellipse cx="190" cy="165" rx="100" ry="88" fill="#F4A340" />
+  <path d="M190 52 Q186 66 192 78" fill="none" stroke="#4FA86B" stroke-width="4" stroke-linecap="round" />
+  <ellipse cx="176" cy="52" rx="15" ry="7" fill="#6BCB77" transform="rotate(-25 176 52)" />
+  <ellipse cx="208" cy="48" rx="15" ry="7" fill="#6BCB77" transform="rotate(25 208 48)" />
+  <path d="M190 90 L190 112 M168 94 L172 112 M212 94 L208 112 M92 160 L112 164 M92 182 L112 180 M288 160 L268 164 M288 182 L268 180" stroke="#4A2C1A" stroke-width="5" stroke-linecap="round" fill="none" />
+  <ellipse cx="122" cy="204" rx="16" ry="10" fill="#F2837A" opacity="0.6" />
+  <ellipse cx="258" cy="204" rx="16" ry="10" fill="#F2837A" opacity="0.6" />
+  <ellipse cx="190" cy="205" rx="54" ry="38" fill="#FFF1D6" />
+  <g class="eye">
+    <ellipse cx="148" cy="160" rx="13" ry="17" fill="#2B1D1D" />
+    <circle cx="153" cy="153" r="5" fill="#FFF" />
+    <circle cx="144" cy="166" r="2.5" fill="#FFF" />
+  </g>
+  <g class="eye">
+    <ellipse cx="232" cy="160" rx="13" ry="17" fill="#2B1D1D" />
+    <circle cx="237" cy="153" r="5" fill="#FFF" />
+    <circle cx="228" cy="166" r="2.5" fill="#FFF" />
+  </g>
+  <path d="M178 190 Q190 184 202 190 Q190 204 178 190Z" fill="#E8707A" />
+  <path d="M190 198 L190 208 M176 212 Q190 224 190 208 Q190 224 204 212" fill="none" stroke="#4A2C1A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Calendar, User, Check, Sparkles } from 'lucide-react';
 import { ChildProfile, Language } from '../types';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
+import { calculateAgeFromBirthDate } from '../utils/ecdAssessment';
 
 interface ChildProfileModalProps {
   currentLang: Language;
@@ -31,13 +32,7 @@ export const ChildProfileModal: React.FC<ChildProfileModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Calculate new age from birthDate
-    const birth = new Date(birthDate);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birth.getTime());
-    const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const ageMonths = Math.floor(totalDays / 30.4375);
-    const ageDays = Math.floor(totalDays % 30.4375);
+    const { ageMonths, ageDays } = calculateAgeFromBirthDate(birthDate);
 
     onUpdateChild({
       nameBn,
