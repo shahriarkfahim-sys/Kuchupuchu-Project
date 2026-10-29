@@ -20,12 +20,12 @@ import './ParentDashboard.css';
 
 const journeyItems = [
   { id: 'daily-routine', icon: Activity, bn: 'ট্র্যাকার', en: 'Tracker', noteBn: 'ঘুম, খাবার ও যত্নের হিসাব রাখুন', noteEn: 'Track sleep, feeds, and care' },
-  { id: 'ogrogoti-graph', icon: ChartNoAxesColumnIncreasing, bn: 'বিকাশের অগ্রগতি', en: 'Growth & milestones', noteBn: 'মাইলস্টোন ও অগ্রগতি দেখুন', noteEn: 'See milestones and progress' },
-  { id: 'daily-play', icon: Gamepad2, bn: 'একসঙ্গে খেলার সময়', en: 'Play together', noteBn: 'বয়স অনুযায়ী খেলার আইডিয়া', noteEn: 'Age-based play ideas' },
-  { id: 'baby-diary', icon: BookHeart, bn: 'স্মৃতি ও ডায়েরি', en: 'Memories & diary', noteBn: 'বিশেষ মুহূর্তগুলো লিখে রাখুন', noteEn: 'Save the little moments' },
-  { id: 'care-connect', icon: HeartHandshake, bn: 'প্রয়োজনীয় সহায়তা', en: 'Care & support', noteBn: 'বিশেষজ্ঞ ও সেবা খুঁজুন', noteEn: 'Find services and support' },
-  { id: 'forum', icon: Users, bn: 'অভিভাবকদের সঙ্গে', en: 'Parent community', noteBn: 'অভিজ্ঞতা ভাগ করুন', noteEn: 'Share and learn together' },
-  { id: 'ponno', icon: ShoppingBag, bn: 'দরকারি পণ্য', en: 'Helpful products', noteBn: 'পরিবারের জন্য কেনাকাটা', noteEn: 'Shop for your family' },
+  { id: 'ogrogoti-graph', icon: ChartNoAxesColumnIncreasing, bn: 'অগ্রগতি', en: 'Progress', noteBn: 'মাইলস্টোন ও অগ্রগতি দেখুন', noteEn: 'See milestones and progress' },
+  { id: 'daily-play', icon: Gamepad2, bn: 'খেলা', en: 'Play', noteBn: 'বয়স অনুযায়ী খেলার আইডিয়া', noteEn: 'Age-based play ideas' },
+  { id: 'baby-diary', icon: BookHeart, bn: 'ডায়েরি', en: 'Diary', noteBn: 'বিশেষ মুহূর্তগুলো লিখে রাখুন', noteEn: 'Save the little moments' },
+  { id: 'care-connect', icon: HeartHandshake, bn: 'সহায়তা', en: 'Support', noteBn: 'বিশেষজ্ঞ ও সেবা খুঁজুন', noteEn: 'Find services and support' },
+  { id: 'forum', icon: Users, bn: 'ফোরাম', en: 'Forum', noteBn: 'অভিজ্ঞতা ভাগ করুন', noteEn: 'Share and learn together' },
+  { id: 'ponno', icon: ShoppingBag, bn: 'পণ্য', en: 'Products', noteBn: 'পরিবারের জন্য কেনাকাটা', noteEn: 'Shop for your family' },
 ];
 
 interface ParentDashboardSidebarProps {
@@ -43,7 +43,7 @@ export const ParentDashboardSidebar: React.FC<ParentDashboardSidebarProps> = ({ 
         <button
           type="button"
           onClick={() => onSelectTab('dashboard')}
-          className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors ${activeTab === 'dashboard' ? 'bg-[#FFF2E9] text-[#A84D26]' : 'text-[#46534D] hover:bg-[#FAF7F3]'}`}
+          className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left shadow-sm transition-colors ${activeTab === 'dashboard' ? 'border-[#D66A37] bg-[#FFF2E9] text-[#A84D26]' : 'border-[#E8E2DA] bg-white text-[#46534D] hover:bg-[#FAF7F3]'}`}
           aria-current={activeTab === 'dashboard' ? 'page' : undefined}
         >
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-[#D66A37] shadow-sm"><House className="h-5 w-5" /></span>
@@ -54,8 +54,6 @@ export const ParentDashboardSidebar: React.FC<ParentDashboardSidebarProps> = ({ 
         </button>
 
         <div className="mt-5 flex items-center justify-between gap-2 px-1">
-          <h2 className="text-sm font-extrabold text-[#25313D]">{isBangla ? 'মায়ের পথচলা' : 'Motherhood journey'}</h2>
-          <span className="rounded-full bg-[#F4F7F4] px-2 py-1 text-[10px] font-bold text-[#78837D]">{isBangla ? 'ধাপে ধাপে' : 'STEP BY STEP'}</span>
         </div>
 
         <nav aria-label={isBangla ? 'মাতৃত্বের যাত্রার ধাপ' : 'Motherhood journey steps'} className="journey-sidebar-nav relative mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
@@ -81,11 +79,6 @@ export const ParentDashboardSidebar: React.FC<ParentDashboardSidebarProps> = ({ 
             );
           })}
         </nav>
-
-        <div className="mt-4 hidden items-center gap-2 rounded-2xl bg-[#F7FAF7] p-3 text-xs leading-relaxed text-[#708078] lg:flex">
-          <HeartHandshake className="h-4 w-4 shrink-0 text-[#6C9A78]" />
-          <span>{isBangla ? 'প্রতিটি ছোট পদক্ষেপই বড় হয়ে ওঠার অংশ।' : 'Every small step is part of growing up.'}</span>
-        </div>
       </div>
     </aside>
   );

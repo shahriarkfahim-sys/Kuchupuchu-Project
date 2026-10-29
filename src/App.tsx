@@ -62,7 +62,7 @@ export default function App() {
   // Navigation tabs: 'home' | 'ogrogoti-graph' | 'daily-play' | 'daily-routine' | 'baby-diary' | 'forum' | 'care-connect'
   const [activeTab, setActiveTab] = useState<string>(() => {
     try {
-      return localStorage.getItem('kuchupuchu_is_logged_in') === 'true' ? 'dashboard' : 'home';
+      return localStorage.getItem('kuchupuchu_is_logged_in') === 'true' ? 'daily-routine' : 'home';
     } catch {
       return 'home';
     }
@@ -296,7 +296,11 @@ export default function App() {
       setAllChildren((prev) => [createdChild, ...prev]);
       setActiveChild(createdChild);
     }
-    setActiveTab('dashboard');
+    if (newChild && newChild.nameBn) {
+      setActiveTab('dashboard');
+    } else {
+      setActiveTab('daily-routine');
+    }
   };
 
   // Comprehensive Logout Handler: Log out means log out!

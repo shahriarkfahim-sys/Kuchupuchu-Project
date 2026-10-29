@@ -107,8 +107,8 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
                 <Crown className="w-3.5 h-3.5" />
                 <span>
                   {subscription?.status === 'active'
-                    ? (currentLang === 'bn' ? 'প্রিমিয়াম সক্রিয় (bKash)' : 'Premium Active (bKash)')
-                    : (currentLang === 'bn' ? '৩০ দিন ফ্রি ট্রায়াল (আপগ্রেড)' : '30 Days Free (Upgrade)')}
+                    ? (currentLang === 'bn' ? 'প্রিমিয়াম' : 'Premium')
+                    : (currentLang === 'bn' ? 'ফ্রি মেম্বার' : 'Free member')}
                 </span>
               </button>
             )}
