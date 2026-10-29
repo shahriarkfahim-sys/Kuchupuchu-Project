@@ -352,6 +352,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showVaccineJourney, setShowVaccineJourney] = useState(false);
   const [completedVaccines, setCompletedVaccines] = useState<string[]>([]);
+  const [vaccineDates, setVaccineDates] = useState<Record<string, string>>({});
   const [actualBirthDate, setActualBirthDate] = useState('');
   const [vaccineError, setVaccineError] = useState('');
   const [analysisView, setAnalysisView] = useState<'daily' | 'monthly' | 'range'>('daily');
@@ -407,6 +408,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
       const saved = localStorage.getItem(vaccineStorageKey);
       if (!saved) {
         setCompletedVaccines([]);
+        setVaccineDates({});
         setVaccineError('');
         return;
       }
@@ -416,6 +418,10 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
         throw new Error('Stored vaccine journey is invalid.');
       }
       setCompletedVaccines(parsed);
+      try {
+        const savedDates = localStorage.getItem(`${vaccineStorageKey}_dates`);
+        if (savedDates) setVaccineDates(JSON.parse(savedDates));
+      } catch {}
       setVaccineError('');
     } catch (error) {
       console.error('Unable to read vaccine journey.', error);
@@ -451,19 +457,31 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
     }
   };
 
-  const toggleVaccineCompletion = (milestoneId: string) => {
-    const next = completedVaccines.includes(milestoneId)
-      ? completedVaccines.filter((id) => id !== milestoneId)
-      : [...completedVaccines, milestoneId];
-    try {
-      localStorage.setItem(vaccineStorageKey, JSON.stringify(next));
-      setCompletedVaccines(next);
-      setVaccineError('');
-    } catch (error) {
-      console.error('Unable to save vaccine journey.', error);
-      setVaccineError(currentLang === 'bn' ? 'টিকার তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।' : 'Could not save vaccine progress. Please try again.');
-    }
-  };
+   const toggleVaccineCompletion = (milestoneId: string) => {
+     const next = completedVaccines.includes(milestoneId)
+       ? completedVaccines.filter((id) => id !== milestoneId)
+       : [...completedVaccines, milestoneId];
+     try {
+       localStorage.setItem(vaccineStorageKey, JSON.stringify(next));
+       if (!next.includes(milestoneId)) {
+         const nextDates = { ...vaccineDates };
+         delete nextDates[milestoneId];
+         setVaccineDates(nextDates);
+         localStorage.setItem(`${vaccineStorageKey}_dates`, JSON.stringify(nextDates));
+       }
+       setCompletedVaccines(next);
+       setVaccineError('');
+     } catch (error) {
+       console.error('Unable to save vaccine journey.', error);
+       setVaccineError(currentLang === 'bn' ? 'টিকার তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।' : 'Could not save vaccine progress. Please try again.');
+     }
+   };
+
+   const setVaccineDate = (milestoneId: string, date: string) => {
+     const next = { ...vaccineDates, [milestoneId]: date };
+     setVaccineDates(next);
+     try { localStorage.setItem(`${vaccineStorageKey}_dates`, JSON.stringify(next)); } catch {}
+   };
 
   useEffect(() => {
     const storageKey = activeSleepStorageKey(activeChild.id);
@@ -944,7 +962,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
             </label>
           )}
 
-          <div className="space-y-7">
+          <div className="space-y-4">
             {(activeChild.isPregnant
               ? [
                 { phase: 'pregnancy' as const, labelBn: 'গর্ভকালীন মায়ের টিকা', labelEn: 'Vaccines during pregnancy' },
@@ -956,7 +974,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
               return (
                 <div key={group.phase}>
                   <h4 className="mb-4 text-base font-extrabold text-[#344054]">{currentLang === 'bn' ? group.labelBn : group.labelEn}</h4>
-                  <div className="relative space-y-4 before:absolute before:bottom-5 before:left-[15px] before:top-5 before:w-0.5 before:bg-[#E9DED3]">
+                  <div className="relative space-y-3 before:absolute before:bottom-4 before:left-[15px] before:top-4 before:w-0.5 before:bg-[#E9DED3]">
                     {milestones.map((milestone) => {
                       const completed = completedVaccines.includes(milestone.id);
                       const overdue = milestone.dueDate < localDateString() && !completed;
@@ -975,7 +993,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
                           <span className={`absolute left-0 top-5 z-10 grid h-8 w-8 place-items-center rounded-full border-2 ${completed ? 'border-[#2F6B47] bg-[#2F6B47] text-white' : overdue ? 'border-[#E9753F] bg-[#FFF2E9] text-[#B95727]' : 'border-[#E8DCD1] bg-white text-[#A5ADA7]'}`}>
                             {completed ? <Check className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-current" />}
                           </span>
-                          <div className={`rounded-2xl border p-4 transition-colors sm:p-5 ${completed ? 'border-[#CDE5D1] bg-[#F5FAF6]' : overdue ? 'border-[#F0D4C2] bg-[#FFFAF5]' : 'border-[#E8E2DA] bg-white opacity-75'}`}>
+                          <div className={`rounded-2xl border p-3 transition-colors sm:p-4 ${completed ? 'border-[#CDE5D1] bg-[#F5FAF6]' : overdue ? 'border-[#F0D4C2] bg-[#FFFAF5]' : 'border-[#E8E2DA] bg-white opacity-75'}`}>
                             <div className="flex flex-wrap items-start justify-between gap-2">
                               <div>
                                 <p className="text-xs font-bold text-[#8C6D53]">{currentLang === 'bn' ? milestone.ageBn : milestone.ageEn}</p>
@@ -987,11 +1005,23 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
                               {currentLang === 'bn' ? 'সম্ভাব্য তারিখ' : 'Estimated date'}: {formatDateForLocale(milestone.dueDate, currentLang)}
                             </p>
                             <p className="mt-2 text-sm leading-relaxed text-[#667085]">{currentLang === 'bn' ? milestone.noteBn : milestone.noteEn}</p>
+                            {completed && (
+                              <label className="mt-3 block text-xs font-semibold text-[#667085]">
+                                {currentLang === 'bn' ? 'টিকার তারিখ (ঐচ্ছিক)' : 'Vaccination date (optional)'}
+                                <LocalizedDateInput
+                                  currentLang={currentLang}
+                                  max={localDateString()}
+                                  value={vaccineDates[milestone.id] || ''}
+                                  onChange={(event) => setVaccineDate(milestone.id, event.target.value)}
+                                  className={`${routineFieldClass} mt-1`}
+                                />
+                              </label>
+                            )}
                             <button
                               type="button"
                               aria-pressed={completed}
                               onClick={() => toggleVaccineCompletion(milestone.id)}
-                              className={`mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2F6B47]/20 sm:w-auto ${completed ? 'border border-[#CDE5D1] bg-white text-[#2F6B47] hover:bg-[#F5FAF6]' : 'bg-[#2F6B47] text-white hover:bg-[#1E432D]'}`}
+                              className={`mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2F6B47]/20 sm:w-auto ${completed ? 'border border-[#CDE5D1] bg-white text-[#2F6B47] hover:bg-[#F5FAF6]' : 'bg-[#2F6B47] text-white hover:bg-[#1E432D]'}`}
                             >
                               {completed && <Check className="h-4 w-4" />}
                               {completed
