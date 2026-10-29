@@ -4,6 +4,7 @@ export type ECDPhase = 'pregnancy' | 'child';
 export type ECDQuestion = (typeof questionBank)[number];
 export type ECDAnswers = Record<string, number>;
 export type ECDStatus = 'on_track' | 'monitor' | 'delay_risk';
+export const childAssessmentMonths = [2, 4, 6, 9, 12, 15, 18, 24] as const;
 
 export interface ECDDomainResult {
   key: string;
@@ -81,8 +82,33 @@ export function pregnancyMonthFromWeeks(weeks: number): number {
 }
 
 export function childChecklistMonth(ageMonths: number): number {
-  const availableMonths = [2, 4, 6, 9, 12, 15, 18, 24];
-  return availableMonths.reduce((selected, month) => ageMonths >= month ? month : selected, 2);
+  return childAssessmentMonths.reduce((selected, month) => ageMonths >= month ? month : selected, 2);
+}
+
+export function childChecklistRangeLabel(month: number, language: 'bn' | 'en'): string {
+  const index = childAssessmentMonths.indexOf(month as (typeof childAssessmentMonths)[number]);
+  const nextMonth = childAssessmentMonths[index + 1];
+  if (language === 'bn') {
+    return nextMonth
+      ? `${formatAssessmentNumber(month, language)}–${formatAssessmentNumber(nextMonth, language)} মাস`
+      : `${formatAssessmentNumber(month, language)}+ মাস`;
+  }
+  return nextMonth ? `${month}–${nextMonth} months` : `${month}+ months`;
+}
+
+function formatAssessmentNumber(value: number, language: 'bn' | 'en'): string {
+  if (language === 'en') return String(value);
+  return String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[Number(digit)]);
+}
+
+export function childChecklistEndMonth(month: number): number {
+  const index = childAssessmentMonths.indexOf(month as (typeof childAssessmentMonths)[number]);
+  return childAssessmentMonths[index + 1] ?? month;
+}
+
+export function childMilestoneEndDate(birthDate: string, month: number): Date | null {
+  const birth = parseLocalDate(birthDate);
+  return birth ? addCalendarMonthsClamped(birth, childChecklistEndMonth(month)) : null;
 }
 
 export function getECDQuestions(phase: ECDPhase, month: number): ECDQuestion[] {

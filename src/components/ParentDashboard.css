@@ -1,0 +1,15 @@
+.journey-sidebar-step {
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .journey-sidebar-nav::before {
+    position: absolute;
+    top: 25px;
+    bottom: 25px;
+    left: 30px;
+    width: 1px;
+    background: #e8dcd1;
+    content: '';
+  }
+}

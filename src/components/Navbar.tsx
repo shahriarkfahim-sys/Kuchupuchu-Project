@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Zone 1: Brand Wordmark "কুচুপুচু (Kuchupuchu)" */}
           <div className="flex items-center gap-3 shrink-0">
             <button
-              onClick={() => onSelectTab('home')}
+              onClick={() => onSelectTab(isLoggedIn ? 'dashboard' : 'home')}
               className="flex items-center gap-2.5 text-left group focus:outline-none"
             >
               <div className="w-10 h-10 rounded-2xl bg-[#FF8552] flex items-center justify-center text-white shadow-xs transition-transform group-hover:scale-105">
@@ -84,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Zone 2: Navigation Links (No 'dashboard' tab, simplified and clean) */}
-          {!isLandingPage && <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#4B5563]">
+          {!isLandingPage && !isLoggedIn && <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#4B5563]">
             {navLinks.map((link) => (
               <button
                 key={link.id}
@@ -324,7 +324,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile Horizontal Sub-Navigation */}
-        {!isLandingPage && <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto py-2 border-t border-[#F3E7DC] no-scrollbar">
+        {!isLandingPage && !isLoggedIn && <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto py-2 border-t border-[#F3E7DC] no-scrollbar">
           {navLinks.map((link) => (
             <button
               key={link.id}

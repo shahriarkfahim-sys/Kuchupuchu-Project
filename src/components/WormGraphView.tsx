@@ -1,37 +1,93 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   TrendingUp, 
   Sparkles, 
-  CheckCircle2, 
-  Circle, 
-  Heart, 
   Calendar
 } from 'lucide-react';
-import { ChildProfile, Language, MilestoneItem, WormGraphPoint } from '../types';
+import { ChildProfile, Language, WormGraphPoint } from '../types';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
+import { ECD6Domain } from '../types';
+import { calculateECDResult, childAssessmentMonths, childChecklistRangeLabel, ECDAnswers, getECDQuestions } from '../utils/ecdAssessment';
+
+const chartDomains: Record<string, ECD6Domain> = {
+  'মূল শারীরিক চলন': 'gross_motor',
+  'সূক্ষ্ম হাতের কাজ': 'fine_motor',
+  'বুদ্ধি ও সমস্যা সমাধান': 'cognitive',
+  'ভাষা ও যোগাযোগ': 'communication',
+  'সামাজিক ও আবেগীয়': 'social_emotional',
+  'নিজের যত্ন ও অভ্যাস': 'self_help',
+};
+
+function getRadarPoint(index: number, count: number, radius: number) {
+  const angle = -Math.PI / 2 + (index * 2 * Math.PI) / count;
+  return { x: 200 + Math.cos(angle) * radius, y: 165 + Math.sin(angle) * radius };
+}
+
+function toSvgPoints(points: Array<{ x: number; y: number }>) {
+  return points.map(({ x, y }) => `${x},${y}`).join(' ');
+}
 
 interface WormGraphViewProps {
   currentLang: Language;
   activeChild: ChildProfile;
   wormData: WormGraphPoint[];
-  milestones: MilestoneItem[];
-  onToggleMilestone: (id: string) => void;
-  onNavigateToCare: () => void;
 }
 
 export const WormGraphView: React.FC<WormGraphViewProps> = ({
   currentLang,
   activeChild,
   wormData,
-  milestones,
-  onToggleMilestone,
-  onNavigateToCare,
 }) => {
   const t = translations[currentLang];
   
   // Selected month link bar
   const [selectedMonthRange, setSelectedMonthRange] = useState<number>(9);
-  const [activeHoverNode, setActiveHoverNode] = useState<WormGraphPoint | null>(wormData[3] || wormData[0]);
+  const [activeHoverNode, setActiveHoverNode] = useState<WormGraphPoint | null>(wormData.find((point) => point.month === 9) || wormData[3] || wormData[0]);
+  const selectedGraphMonth = activeHoverNode?.month ?? selectedMonthRange;
+  const selectedPoint = wormData.find((point) => point.month === activeHoverNode?.month) ?? wormData.find((point) => point.month === selectedMonthRange) ?? null;
+  useEffect(() => {
+    setActiveHoverNode((selected) => wormData.find((point) => point.month === selected?.month) ?? wormData.find((point) => point.month === selectedMonthRange) ?? null);
+  }, [wormData, selectedMonthRange]);
+  const assessmentSummary = useMemo(() => {
+    const assessmentMonth = [...childAssessmentMonths].reverse().find((month) => month <= selectedGraphMonth);
+    if (!assessmentMonth) return null;
+
+    const questionById = new Map<string, ReturnType<typeof getECDQuestions>[number]>();
+    const latestAnswers: ECDAnswers = {};
+    const earlierMonths = childAssessmentMonths.filter((month) => month < assessmentMonth);
+    const earlierQuestions = new Map<string, { question: ReturnType<typeof getECDQuestions>[number]; firstMonth: number }>();
+    earlierMonths.forEach((month) => getECDQuestions('child', month).forEach((question) => {
+      if (!earlierQuestions.has(question.id)) earlierQuestions.set(question.id, { question, firstMonth: month });
+    }));
+    for (const { question, firstMonth } of earlierQuestions.values()) {
+      let latestAnswer: number | undefined;
+      for (const month of earlierMonths.filter((candidate) => candidate >= firstMonth)) {
+        try {
+          const saved = localStorage.getItem(`kuchu_ecd_${activeChild.id}_child_${month}`);
+          if (saved) {
+            const answers = JSON.parse(saved) as ECDAnswers;
+            if (answers[question.id] !== undefined) latestAnswer = answers[question.id];
+          }
+        } catch {
+          // Ignore malformed saved answer data.
+        }
+      }
+      if (latestAnswer !== undefined && question.options[latestAnswer]?.weight < 2) {
+        questionById.set(question.id, question);
+      }
+    }
+    getECDQuestions('child', assessmentMonth).forEach((question) => questionById.set(question.id, question));
+    for (const month of childAssessmentMonths.filter((candidate) => candidate <= assessmentMonth)) {
+      try {
+        const saved = localStorage.getItem(`kuchu_ecd_${activeChild.id}_child_${month}`);
+        if (saved) Object.assign(latestAnswers, JSON.parse(saved) as ECDAnswers);
+      } catch {
+        // Leave unavailable saved answers out of the comparison.
+      }
+    }
+    const result = calculateECDResult(Array.from(questionById.values()), latestAnswers, 'child');
+    return result.answeredQuestions > 0 ? { ...result, assessmentMonth } : null;
+  }, [activeChild.id, selectedGraphMonth, wormData]);
 
   // Monthly link bar ranges
   const monthRanges = [
@@ -42,16 +98,6 @@ export const WormGraphView: React.FC<WormGraphViewProps> = ({
     { months: 18, labelBn: '১৩-১৮ মাস', labelEn: '13-18 Months' },
     { months: 24, labelBn: '১৯-২৪ মাস', labelEn: '19-24 Months' },
   ];
-
-  // Filtered milestones based on the selected month range
-  const filteredMilestones = milestones.filter((ms) => {
-    if (selectedMonthRange <= 3) return ms.ageRangeMonths <= 3;
-    if (selectedMonthRange <= 6) return ms.ageRangeMonths > 3 && ms.ageRangeMonths <= 6;
-    if (selectedMonthRange <= 9) return ms.ageRangeMonths > 6 && ms.ageRangeMonths <= 9;
-    if (selectedMonthRange <= 12) return ms.ageRangeMonths > 9 && ms.ageRangeMonths <= 12;
-    if (selectedMonthRange <= 18) return ms.ageRangeMonths > 12 && ms.ageRangeMonths <= 18;
-    return ms.ageRangeMonths > 18;
-  });
 
   // SVG Worm Graph Dimensions
   const svgWidth = 800;
@@ -110,9 +156,6 @@ export const WormGraphView: React.FC<WormGraphViewProps> = ({
         <h2 className="text-2xl sm:text-3xl font-bold text-[#2D3142] tracking-tight mt-1">
           {t.growthTrackerTitle}
         </h2>
-        <p className="text-sm text-[#5C6479] mt-1 max-w-2xl leading-relaxed">
-          {t.growthTrackerSubtitle}
-        </p>
       </div>
 
       {/* 1. VISUAL MONTHLY DEVELOPMENT LINK BAR */}
@@ -123,7 +166,7 @@ export const WormGraphView: React.FC<WormGraphViewProps> = ({
             <span>{currentLang === 'bn' ? 'মাসের অগ্রগতির লিংক বার' : 'Monthly Milestone Roadmap Bar'}</span>
           </span>
           <span className="text-xs text-[#7C8294]">
-            {currentLang === 'bn' ? 'যেকোনো মাসে ক্লিক করে দেখুন' : 'Click to filter milestones below'}
+            {currentLang === 'bn' ? 'মাস বেছে গ্রাফের অগ্রগতি দেখুন' : 'Choose a month to inspect its progress point'}
           </span>
         </div>
 
@@ -168,6 +211,67 @@ export const WormGraphView: React.FC<WormGraphViewProps> = ({
           })}
         </div>
       </div>
+
+      {/* Spider chart and comparison stay in sync with the selected month above. */}
+      <section className="rounded-3xl border border-[#EED9C7] bg-white p-5 shadow-xs sm:p-7">
+        <h3 className="text-center text-xl font-bold text-[#2D3142]">
+          {currentLang === 'bn' ? '৬টি ক্ষেত্রে বিকাশের স্পাইডার চার্ট' : 'Development across six areas'}
+        </h3>
+        <p className="mt-1 text-center text-sm text-[#7C8294]">
+          {currentLang === 'bn'
+            ? `${selectedPoint?.labelBn ?? `${formatLocalizedNumber(selectedGraphMonth, currentLang)} মাস`}-এর নির্বাচিত মূল্যায়নের সঙ্গে মিলিয়ে দেখুন`
+            : `Assessment and growth curve for ${selectedPoint?.labelEn ?? `${selectedGraphMonth} months`}`}
+        </p>
+        {assessmentSummary ? (
+          <>
+            {assessmentSummary.domains.filter((domain) => chartDomains[domain.key]).length > 2 ? (
+              <svg viewBox="0 0 400 330" role="img" aria-label={currentLang === 'bn' ? 'ছয়টি বিকাশের ক্ষেত্রে সন্তানের অগ্রগতির স্পাইডার চার্ট' : 'Spider chart of child development across six areas'} className="mx-auto mt-4 block w-full max-w-md overflow-visible">
+                {[0.25, 0.5, 0.75, 1].map((scale) => (
+                  <polygon key={scale} points={toSvgPoints(assessmentSummary.domains.filter((domain) => chartDomains[domain.key]).map((_, index, domains) => getRadarPoint(index, domains.length, 100 * scale)))} fill="none" stroke="#EEDFD1" strokeWidth="1" />
+                ))}
+                {assessmentSummary.domains.filter((domain) => chartDomains[domain.key]).map((domain, index, domains) => {
+                  const point = getRadarPoint(index, domains.length, 100);
+                  return <line key={`axis-${domain.key}`} x1="200" y1="165" x2={point.x} y2={point.y} stroke="#E8D9CB" strokeWidth="1" />;
+                })}
+                <polygon points={toSvgPoints(assessmentSummary.domains.filter((domain) => chartDomains[domain.key]).map((domain, index, domains) => getRadarPoint(index, domains.length, Math.max(4, domain.score))))} fill="rgba(233,117,63,0.2)" stroke="#E9753F" strokeWidth="2.5" strokeLinejoin="round" />
+                {assessmentSummary.domains.filter((domain) => chartDomains[domain.key]).map((domain, index, domains) => {
+                  const point = getRadarPoint(index, domains.length, Math.max(4, domain.score));
+                  const label = getRadarPoint(index, domains.length, 137);
+                  return <g key={`score-${domain.key}`}>
+                    <circle cx={point.x} cy={point.y} r="4" fill="#C85D26" stroke="white" strokeWidth="1.5" />
+                    <text x={label.x} y={label.y} textAnchor={label.x < 175 ? 'end' : label.x > 225 ? 'start' : 'middle'} dominantBaseline="middle" fontSize="11" fontWeight="600" fill="#5C6479">{domain.labelBn}</text>
+                    <title>{`${domain.labelBn}: ${formatLocalizedNumber(domain.score, currentLang)}%`}</title>
+                  </g>;
+                })}
+              </svg>
+            ) : (
+              <p className="mx-auto mt-4 max-w-xl rounded-xl bg-[#FFFAF5] p-4 text-center text-sm text-[#667085]">
+                {currentLang === 'bn' ? 'স্পাইডার চার্ট দেখাতে এই ধাপের আরও কয়েকটি ক্ষেত্রের উত্তর দরকার।' : 'Answer a few more areas in this milestone to display the spider chart.'}
+              </p>
+            )}
+            <div className="mx-auto mt-4 max-w-2xl rounded-2xl bg-[#FFFAF5] p-4 text-center">
+              <p className="text-sm font-bold text-[#2D3142]">
+                {currentLang === 'bn'
+                  ? `${childChecklistRangeLabel(assessmentSummary.assessmentMonth, currentLang)} মূল্যায়ন: ${formatLocalizedNumber(assessmentSummary.overallScore, currentLang)}% · সাধারণ বেঞ্চমার্ক: ${formatLocalizedNumber(selectedPoint?.standardScore ?? 0, currentLang)}%`
+                  : `${childChecklistRangeLabel(assessmentSummary.assessmentMonth, currentLang)} assessment: ${assessmentSummary.overallScore}% · typical benchmark: ${selectedPoint?.standardScore ?? 0}%`}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-[#667085]">
+                {currentLang === 'bn'
+                  ? (assessmentSummary.overallScore >= (selectedPoint?.standardScore ?? 0)
+                    ? 'এই নির্বাচিত সময়ে মূল্যায়নের সামগ্রিক স্কোর সাধারণ বেঞ্চমার্কের সমান বা বেশি। প্রতিটি ক্ষেত্রের স্কোর ও চর্চার পরামর্শ উপরের স্পাইডার চার্টে দেখুন।'
+                    : 'এই নির্বাচিত সময়ে মূল্যায়নের সামগ্রিক স্কোর সাধারণ বেঞ্চমার্কের নিচে। কোন ক্ষেত্রে আরও চর্চা সহায়ক হতে পারে, তা স্পাইডার চার্টে দেখুন।')
+                  : (assessmentSummary.overallScore >= (selectedPoint?.standardScore ?? 0)
+                    ? 'The assessment score is at or above the typical benchmark for this selected period. Review each area in the radar chart.'
+                    : 'The assessment score is below the typical benchmark for this selected period. Review the radar chart for areas that may benefit from practice.')}
+              </p>
+            </div>
+          </>
+        ) : (
+          <p className="mx-auto mt-4 max-w-xl rounded-xl bg-[#FFFAF5] p-4 text-center text-sm text-[#667085]">
+            {currentLang === 'bn' ? 'এই সময়ের স্পাইডার চার্ট ও তুলনা দেখতে আগে বিকাশের প্রশ্নগুলোর উত্তর দিন।' : 'Complete the developmental assessment to see the spider chart and comparison for this period.'}
+          </p>
+        )}
+      </section>
 
       {/* 2. THE WORM GRAPH (ওয়ার্ম গ্রাফ) COMPARISON */}
       <div className="bg-white rounded-3xl border border-[#EED9C7] p-6 sm:p-8 shadow-xs space-y-6">
@@ -325,134 +429,6 @@ export const WormGraphView: React.FC<WormGraphViewProps> = ({
               })}
             </svg>
           </div>
-        </div>
-
-        {/* Selected Worm Node Details Card */}
-        {activeHoverNode && (
-          <div className="bg-[#FFFAF5] rounded-2xl p-5 border border-[#F0D5C1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#C85D26]">
-                <span>{currentLang === 'bn' ? activeHoverNode.labelBn : activeHoverNode.labelEn}</span>
-                <span aria-hidden="true" className="text-[#D8C2B0]">·</span>
-                <span className="text-[#2F6B47]">
-                  {activeHoverNode.status === 'completed'
-                    ? currentLang === 'bn' ? '✓ সফলভাবে সম্পন্ন' : '✓ Milestone Achieved'
-                    : activeHoverNode.status === 'current'
-                    ? currentLang === 'bn' ? '★ বর্তমান পর্যায়' : '★ Current Window'
-                    : currentLang === 'bn' ? 'পরবর্তী ধাপ' : 'Upcoming Stage'}
-                </span>
-              </div>
-              <h4 className="text-sm sm:text-base font-bold text-[#2D3142]">
-                {currentLang === 'bn' ? activeHoverNode.highlightSkillBn : activeHoverNode.highlightSkillEn}
-              </h4>
-              <p className="text-xs text-[#5C6479]">
-                {currentLang === 'bn' 
-                  ? `সাধারণ গড় স্কোর: ${formatLocalizedNumber(activeHoverNode.standardScore, currentLang)}% | আপনার সন্তানের অগ্রগতি: ${formatLocalizedNumber(activeHoverNode.babyScore, currentLang)}%`
-                  : `Standard Benchmark: ${activeHoverNode.standardScore}% | Baby's Trajectory: ${activeHoverNode.babyScore}%`}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-semibold text-[#8C6D53]">
-                {formatLocalizedNumber(activeHoverNode.milestonesCount, currentLang)} {currentLang === 'bn' ? 'টি মূল দক্ষতা' : 'key milestones'}
-              </span>
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* 3. SIMPLIFIED MILESTONES CHECKLIST FOR SELECTED MONTH */}
-      <div className="bg-white rounded-3xl border border-[#EED9C7] p-6 sm:p-8 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F3E7DC] pb-4">
-          <div>
-            <h3 className="text-lg font-bold text-[#2D3142]">
-              {currentLang === 'bn' 
-                ? `${formatLocalizedNumber(selectedMonthRange, currentLang)} মাসের অগ্রগতি দক্ষতা তালিকা`
-                : `Milestone Checklist for ${selectedMonthRange} Months`}
-            </h3>
-            <p className="text-xs text-[#5C6479] mt-0.5">
-              {currentLang === 'bn' 
-                ? 'সন্তান যা যা করতে পারছে তাতে টিক দিন। না পারলেও চিন্তার কিছু নেই, নিচে সহজ টিপস দেখুন।'
-                : 'Check off what baby has unlocked. Use the parent tips for playful encouragement.'}
-            </p>
-          </div>
-        </div>
-
-        {/* Milestone Items List */}
-        <div className="divide-y divide-[#F3E7DC]">
-          {filteredMilestones.map((item) => {
-            return (
-              <div
-                key={item.id}
-                className="py-4.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
-              >
-                <div className="flex items-start gap-3.5 max-w-2xl">
-                  <button
-                    onClick={() => onToggleMilestone(item.id)}
-                    className="mt-0.5 text-[#FF8552] focus:outline-none transition-transform hover:scale-110 shrink-0"
-                  >
-                    {item.isAchieved ? (
-                      <CheckCircle2 className="w-6 h-6 text-[#2F6B47] fill-[#EAF4EC]" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-[#CBD5E1] hover:text-[#FF8552]" />
-                    )}
-                  </button>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-bold text-sm text-[#2D3142]">
-                        {currentLang === 'bn' ? item.titleBn : item.titleEn}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-[#5C6479] leading-relaxed">
-                      {currentLang === 'bn' ? item.descriptionBn : item.descriptionEn}
-                    </p>
-
-                    {/* Easy Parent Tip */}
-                    <div className="pt-1.5 flex items-start gap-1.5 text-xs text-[#8C6D53] bg-[#FAF4ED] p-2.5 rounded-xl border border-[#F0D5C1]">
-                      <Heart className="w-3.5 h-3.5 text-[#FF8552] shrink-0 mt-0.5" />
-                      <span>
-                        <strong className="font-semibold">{t.easyParentTipTitle}: </strong>
-                        {currentLang === 'bn' ? item.easyParentTipBn : item.easyParentTipEn}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="sm:self-center shrink-0">
-                  <span
-                    className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg ${
-                      item.isAchieved
-                        ? 'bg-[#EAF4EC] text-[#2F6B47]'
-                        : 'bg-[#FFFAF5] text-[#8C6D53] border border-[#F0D5C1]'
-                    }`}
-                  >
-                    {item.isAchieved ? t.achieved : t.notYet}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Reassurance Note */}
-        <div className="bg-[#FAF4ED] rounded-2xl p-4 border border-[#EED9C7] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-0.5">
-            <h4 className="text-xs font-bold text-[#8C6D53]">
-              {t.gentleDelayNoteTitle}
-            </h4>
-            <p className="text-xs text-[#5C6479]">
-              {t.gentleDelayNoteDesc}
-            </p>
-          </div>
-          <button
-            onClick={onNavigateToCare}
-            className="px-4 py-2 bg-white text-[#C85D26] hover:bg-[#FAF4ED] border border-[#EED9C7] rounded-xl text-xs font-semibold whitespace-nowrap transition-colors shrink-0 shadow-xs"
-          >
-            {currentLang === 'bn' ? 'ডাক্তারদের তালিকা দেখুন' : 'View Specialist Directory'}
-          </button>
         </div>
 
       </div>

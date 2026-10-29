@@ -19,6 +19,7 @@ import {
 import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
 import { AuthGateCard } from './components/AuthGateCard';
+import { ParentDashboard, ParentDashboardSidebar } from './components/ParentDashboard';
 import { calculateAgeFromBirthDate } from './utils/ecdAssessment';
 
 const HeaderBanner = lazy(() => import('./components/HeaderBanner').then((module) => ({ default: module.HeaderBanner })));
@@ -52,14 +53,20 @@ import {
   moodOptions
 } from './data/mockData';
 import { translations, formatLocalizedNumber } from './i18n/translations';
-import { ChildProfile, GrowthLogEntry, Language, RoutineLogEntry, CommunityPost, WormGraphPoint, UserSubscription } from './types';
+import { ChildProfile, ECD6Domain, GrowthLogEntry, Language, RoutineLogEntry, CommunityPost, WormGraphPoint, UserSubscription } from './types';
 
 export default function App() {
   // Default language is Bangla (বাংলা - Default)
   const [currentLang, setCurrentLang] = useState<Language>('bn');
   
   // Navigation tabs: 'home' | 'ogrogoti-graph' | 'daily-play' | 'daily-routine' | 'baby-diary' | 'forum' | 'care-connect'
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      return localStorage.getItem('kuchupuchu_is_logged_in') === 'true' ? 'dashboard' : 'home';
+    } catch {
+      return 'home';
+    }
+  });
   
   // User Login State (Real toggle for login/logout, synced with localStorage; defaults to logged out guest)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
@@ -74,8 +81,9 @@ export default function App() {
   // Data states
   const [allChildren, setAllChildren] = useState<ChildProfile[]>(initialProfiles);
   const [activeChild, setActiveChild] = useState<ChildProfile>(initialProfiles[0]);
+  const [playFocus, setPlayFocus] = useState<{ domain: ECD6Domain; skill: string; ageMonth: number } | null>(null);
   const [activities, setActivities] = useState(initialActivities);
-  const [milestones, setMilestones] = useState(initialMilestones);
+  const milestones = initialMilestones;
   const [growthLogs, setGrowthLogs] = useState<GrowthLogEntry[]>(initialGrowthLogs);
   const [routineLogs, setRoutineLogs] = useState<RoutineLogEntry[]>(initialRoutineLogs);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialCommunityPosts);
@@ -89,7 +97,6 @@ export default function App() {
   const [onboardingChildName, setOnboardingChildName] = useState('');
   const [weatherModalOpen, setWeatherModalOpen] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
-  const [hasAutoOpenedWeather, setHasAutoOpenedWeather] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
   const [authGateModalOpen, setAuthGateModalOpen] = useState(false);
   const [authGateTargetTab, setAuthGateTargetTab] = useState<string>('ogrogoti-graph');
@@ -143,29 +150,19 @@ export default function App() {
 
   // Tab switch with Auth Gate interception
   const handleSelectTab = (tab: string) => {
+    if (tab === 'daily-play') setPlayFocus(null);
     if (!isLoggedIn && protectedTabs.includes(tab)) {
       setAuthGateTargetTab(tab);
       setAuthGateModalOpen(true);
       return;
     }
     setActiveTab(tab);
-    if (tab === 'ogrogoti-graph' && !hasAutoOpenedWeather) {
-      setWeatherModalOpen(true);
-      setHasAutoOpenedWeather(true);
-    }
   };
 
   // Activity toggle
   const handleToggleActivityComplete = (id: string) => {
     setActivities((prev) =>
       prev.map((act) => (act.id === id ? { ...act, completed: !act.completed } : act))
-    );
-  };
-
-  // Milestone toggle
-  const handleToggleMilestone = (id: string) => {
-    setMilestones((prev) =>
-      prev.map((ms) => (ms.id === id ? { ...ms, isAchieved: !ms.isAchieved } : ms))
     );
   };
 
@@ -245,11 +242,7 @@ export default function App() {
     setActiveChild(profile);
     setIsLoggedIn(true);
     setOnboardingModalOpen(false);
-    setActiveTab(profile.isPregnant ? 'home' : 'ogrogoti-graph');
-    if (!profile.isPregnant) {
-      setWeatherModalOpen(true);
-      setHasAutoOpenedWeather(true);
-    }
+    setActiveTab('dashboard');
   };
 
   // Auth Success
@@ -288,11 +281,7 @@ export default function App() {
       setAllChildren((prev) => [createdChild, ...prev]);
       setActiveChild(createdChild);
     }
-    if (authGateTargetTab && protectedTabs.includes(authGateTargetTab)) {
-      setActiveTab(authGateTargetTab);
-    } else {
-      setActiveTab('ogrogoti-graph');
-    }
+    setActiveTab('dashboard');
   };
 
   // Comprehensive Logout Handler: Log out means log out!
@@ -336,7 +325,10 @@ export default function App() {
         onLanguageChange={setCurrentLang}
         activeChild={activeChild}
         allChildren={allChildren}
-        onSelectChild={setActiveChild}
+        onSelectChild={(child) => {
+          setActiveChild(child);
+          setPlayFocus(null);
+        }}
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
@@ -353,12 +345,16 @@ export default function App() {
         onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
         subscription={subscription}
         isLoggedIn={isLoggedIn}
-        isLandingPage={activeTab === 'home'}
+        isLandingPage={activeTab === 'home' && !isLoggedIn}
         onLogout={handleLogout}
       />
 
       {/* Main Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-12">
+      <main className={`mx-auto flex-1 w-full px-4 sm:px-6 lg:px-8 ${isLoggedIn && activeTab !== 'home' ? 'flex max-w-[1600px] flex-col gap-2 lg:flex-row lg:gap-6' : 'max-w-7xl'}`}>
+        {isLoggedIn && activeTab !== 'home' && (
+          <ParentDashboardSidebar currentLang={currentLang} activeTab={activeTab} onSelectTab={handleSelectTab} />
+        )}
+        <div className={`min-w-0 flex-1 py-6 sm:py-8 ${isLoggedIn ? 'space-y-8' : 'space-y-12'}`}>
         <Suspense fallback={<div className="min-h-[35vh]" aria-label={currentLang === 'bn' ? 'লোড হচ্ছে' : 'Loading'} />}>
         
         {/* VIEW 1: HOME PAGE (LANDING) */}
@@ -382,6 +378,35 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'dashboard' && isLoggedIn && (
+          <ParentDashboard
+            currentLang={currentLang}
+            activeChild={activeChild}
+            activitiesCount={activities.length}
+            completedActivitiesCount={completedActivitiesCount}
+            milestonesCount={milestones.length}
+            achievedMilestonesCount={achievedMilestonesCount}
+            onNavigate={handleSelectTab}
+          >
+            <HeaderBanner
+              currentLang={currentLang}
+              activeChild={activeChild}
+              completedActivitiesCount={completedActivitiesCount}
+              totalActivitiesCount={activities.length}
+              achievedMilestonesCount={achievedMilestonesCount}
+              totalMilestonesCount={milestones.length}
+              onNavigateToTracker={() => handleSelectTab('ogrogoti-graph')}
+              onNavigateToPlay={() => handleSelectTab('daily-play')}
+              onNavigateToDiary={() => handleSelectTab('baby-diary')}
+              onSelectMood={handleSelectMood}
+              onOpenWeatherModal={() => setWeatherModalOpen(true)}
+              onOpenPartnerModal={() => setPartnerModalOpen(true)}
+              onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
+              subscription={subscription}
+            />
+          </ParentDashboard>
+        )}
+
         {activeTab === 'ponno' && <PonnoPage currentLang={currentLang} />}
 
         {/* VIEW 2: 'অগ্রগতি ও গ্রাফ' (Contains HeaderBanner + SpiderChartRadar + WormGraphView) */}
@@ -403,29 +428,16 @@ export default function App() {
             />
           ) : (
             <div className="space-y-10 animate-in fade-in duration-200">
-              {/* Header Banner matching image_52b4bcd9 */}
-              <HeaderBanner
-                currentLang={currentLang}
-                activeChild={activeChild}
-                completedActivitiesCount={completedActivitiesCount}
-                totalActivitiesCount={activities.length}
-                achievedMilestonesCount={achievedMilestonesCount}
-                totalMilestonesCount={milestones.length}
-                onNavigateToTracker={() => handleSelectTab('ogrogoti-graph')}
-                onNavigateToPlay={() => handleSelectTab('daily-play')}
-                onNavigateToDiary={() => handleSelectTab('baby-diary')}
-                onSelectMood={handleSelectMood}
-                onOpenWeatherModal={() => setWeatherModalOpen(true)}
-                onOpenPartnerModal={() => setPartnerModalOpen(true)}
-                onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
-                subscription={subscription}
-              />
-
               {/* 6 Core ECD Domains Spider Radar Assessment */}
               <SpiderChartRadar
                 currentLang={currentLang}
                 activeChild={activeChild}
                 onSaveAssessment={handleSaveAssessment}
+                onNavigateToPlay={(domain, skill) => {
+                  const ageMonth = Math.max(1, calculateAgeFromBirthDate(activeChild.birthDate).ageMonths);
+                  setPlayFocus({ domain, skill, ageMonth });
+                  setActiveTab('daily-play');
+                }}
               />
 
               {/* Worm Graph View with Child's Trajectory (no future line) */}
@@ -433,9 +445,6 @@ export default function App() {
                 currentLang={currentLang}
                 activeChild={activeChild}
                 wormData={wormData}
-                milestones={milestones}
-                onToggleMilestone={handleToggleMilestone}
-                onNavigateToCare={() => handleSelectTab('care-connect')}
               />
             </div>
           )
@@ -465,6 +474,7 @@ export default function App() {
                 activeChild={activeChild}
                 activities={activities}
                 onToggleComplete={handleToggleActivityComplete}
+                focus={playFocus}
               />
             </div>
           )
@@ -559,7 +569,7 @@ export default function App() {
         )}
 
         </Suspense>
-
+        </div>
       </main>
 
       {/* Weather Advisory Modal */}
@@ -642,7 +652,7 @@ export default function App() {
       </Suspense>
 
       {/* Warm Footer */}
-      <footer className="mt-16 bg-white border-t border-[#EED9C7] py-10">
+      <footer className={isLoggedIn ? 'hidden' : 'mt-16 bg-white border-t border-[#EED9C7] py-10'}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             

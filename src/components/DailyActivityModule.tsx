@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Play, 
   CheckCircle2, 
@@ -12,84 +12,31 @@ import {
   Sparkles,
   Info
 } from 'lucide-react';
-import { Activity, ChildProfile, Language } from '../types';
+import { Activity, ChildProfile, ECD6Domain, Language } from '../types';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
 import { getMonthMilestones } from '../data/ecdDataset';
+import { calculateECDResult, childAssessmentMonths, ECDAnswers, getECDQuestions, questionBank } from '../utils/ecdAssessment';
 
 interface DailyActivityModuleProps {
   currentLang: Language;
   activeChild: ChildProfile;
   activities?: Activity[];
   onToggleComplete?: (id: string) => void;
+  focus?: { domain: ECD6Domain; skill: string; ageMonth: number } | null;
 }
 
-// 6 Distinctive Opposite-Contrast Color Palettes for Cards
+// Keep all play cards on one calm, consistent palette.
 const cardThemes = [
   {
-    cardBg: 'bg-[#FFF9F5]',
-    cardBorder: 'border-[#F8D2BD]',
-    borderHover: 'hover:border-[#FF8552]',
-    tagBg: 'bg-[#2D3142]',
-    tagText: 'text-[#FFF0E2]',
+    cardBg: 'bg-white',
+    cardBorder: 'border-[#EED9C7]',
+    borderHover: 'hover:border-[#FFB07C]',
+    tagBg: 'bg-[#F4F1EC]',
+    tagText: 'text-[#5C6479]',
     accentText: 'text-[#C85D26]',
     doneBg: 'bg-[#FF8552]',
-    guideBtn: 'text-[#C85D26] hover:text-[#9A3412] bg-[#FFEBDD]',
-    doneBtnUnchecked: 'bg-white border-[#F8D2BD] text-[#2D3142] hover:bg-[#FFEBDD]',
-  },
-  {
-    cardBg: 'bg-[#F2FBF5]',
-    cardBorder: 'border-[#BEE6CB]',
-    borderHover: 'hover:border-[#2F6B47]',
-    tagBg: 'bg-[#194D33]',
-    tagText: 'text-[#DCFCE7]',
-    accentText: 'text-[#1E432D]',
-    doneBg: 'bg-[#2F6B47]',
-    guideBtn: 'text-[#1E432D] hover:text-[#0F291B] bg-[#DCF5E3]',
-    doneBtnUnchecked: 'bg-white border-[#BEE6CB] text-[#1E432D] hover:bg-[#DCF5E3]',
-  },
-  {
-    cardBg: 'bg-[#F7F6FF]',
-    cardBorder: 'border-[#D9D3F8]',
-    borderHover: 'hover:border-[#6366F1]',
-    tagBg: 'bg-[#312E81]',
-    tagText: 'text-[#EEF2FF]',
-    accentText: 'text-[#4338CA]',
-    doneBg: 'bg-[#4F46E5]',
-    guideBtn: 'text-[#4338CA] hover:text-[#312E81] bg-[#EDE9FE]',
-    doneBtnUnchecked: 'bg-white border-[#D9D3F8] text-[#312E81] hover:bg-[#EDE9FE]',
-  },
-  {
-    cardBg: 'bg-[#FFFDF0]',
-    cardBorder: 'border-[#F6E6A8]',
-    borderHover: 'hover:border-[#D97706]',
-    tagBg: 'bg-[#78350F]',
-    tagText: 'text-[#FEF3C7]',
-    accentText: 'text-[#92400E]',
-    doneBg: 'bg-[#D97706]',
-    guideBtn: 'text-[#92400E] hover:text-[#78350F] bg-[#FEF3C7]',
-    doneBtnUnchecked: 'bg-white border-[#F6E6A8] text-[#78350F] hover:bg-[#FEF3C7]',
-  },
-  {
-    cardBg: 'bg-[#F0FDFB]',
-    cardBorder: 'border-[#B4EBE2]',
-    borderHover: 'hover:border-[#0D9488]',
-    tagBg: 'bg-[#134E4A]',
-    tagText: 'text-[#CCFBF1]',
-    accentText: 'text-[#115E59]',
-    doneBg: 'bg-[#0D9488]',
-    guideBtn: 'text-[#115E59] hover:text-[#134E4A] bg-[#CCFBF1]',
-    doneBtnUnchecked: 'bg-white border-[#B4EBE2] text-[#134E4A] hover:bg-[#CCFBF1]',
-  },
-  {
-    cardBg: 'bg-[#FFF5F7]',
-    cardBorder: 'border-[#F8CAD3]',
-    borderHover: 'hover:border-[#E11D48]',
-    tagBg: 'bg-[#881337]',
-    tagText: 'text-[#FFE4E6]',
-    accentText: 'text-[#9F1239]',
-    doneBg: 'bg-[#E11D48]',
-    guideBtn: 'text-[#9F1239] hover:text-[#881337] bg-[#FFE4E6]',
-    doneBtnUnchecked: 'bg-white border-[#F8CAD3] text-[#881337] hover:bg-[#FFE4E6]',
+    guideBtn: 'text-[#C85D26] hover:text-[#9A3412] bg-[#FFF0E2]',
+    doneBtnUnchecked: 'bg-white border-[#EED9C7] text-[#5C6479] hover:bg-[#F8F7F5]',
   },
 ];
 
@@ -99,19 +46,61 @@ function stripBrackets(str: string): string {
   return str.replace(/\s*\([A-Za-z0-9\s/,-]+\)/g, '').trim();
 }
 
+function normalizeBanglaMatch(value: string) {
+  return value.normalize('NFC').toLowerCase().replace(/ড়/g, 'ড়').replace(/ঢ়/g, 'ঢ়').replace(/[^\p{L}\p{N}\s]/gu, ' ').trim();
+}
+
+function editDistanceAtMostOne(left: string, right: string) {
+  const a = Array.from(left);
+  const b = Array.from(right);
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+    edits += 1;
+    if (edits > 1) return false;
+    if (a.length > b.length) i += 1;
+    else if (b.length > a.length) j += 1;
+    else {
+      i += 1;
+      j += 1;
+    }
+  }
+  return edits + Number(i < a.length || j < b.length) <= 1;
+}
+
+function countSkillWordMatches(skill: string, searchableText: string) {
+  const skillWords = normalizeBanglaMatch(skill).split(/\s+/).filter((word) => Array.from(word).length > 2);
+  const activityWords = normalizeBanglaMatch(searchableText).split(/\s+/);
+  return skillWords.reduce((score, word) => score + (activityWords.some((candidate) => candidate.includes(word) || word.includes(candidate) || editDistanceAtMostOne(word, candidate)) ? 1 : 0), 0);
+}
+
 export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
   currentLang,
   activeChild,
   onToggleComplete,
+  focus,
 }) => {
   const t = translations[currentLang];
-  const [selectedAgeMonth, setSelectedAgeMonth] = useState<number>(activeChild.ageMonths || 9);
+  const [selectedAgeMonth, setSelectedAgeMonth] = useState<number>(focus?.ageMonth ?? (activeChild.ageMonths || 9));
   const [completedIds, setCompletedIds] = useState<Record<string, boolean>>({});
+  const [showAllActivities, setShowAllActivities] = useState(false);
   const [activeModalActivity, setActiveModalActivity] = useState<any | null>(null);
 
   // Interactive Timer state inside activity modal
   const [timerSecondsLeft, setTimerSecondsLeft] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSelectedAgeMonth(focus?.ageMonth ?? (activeChild.ageMonths || 9));
+    setShowAllActivities(false);
+  }, [activeChild.id, activeChild.ageMonths, focus?.ageMonth, focus?.domain, focus?.skill]);
 
   // Dynamically generate age-customized activities using the master ECD dataset
   const dynamicActivities = useMemo(() => {
@@ -140,6 +129,7 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
 
       return {
         id: `custom_act_${selectedAgeMonth}_${ms.id}`,
+        domain: ms.domain,
         titleBn: simpleTitleBn,
         titleEn: `Play: ${cleanMilestoneTitle}`,
         domainBn: domainNameBn,
@@ -162,6 +152,60 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
       };
     });
   }, [selectedAgeMonth]);
+
+  const assessmentRecommendations = useMemo(() => {
+    let assessedMonth: number | null = null;
+    let savedAnswers: ECDAnswers = {};
+    for (const month of [...childAssessmentMonths].reverse().filter((candidate) => candidate <= selectedAgeMonth)) {
+      try {
+        const serialized = localStorage.getItem(`kuchu_ecd_${activeChild.id}_child_${month}`);
+        const parsed = serialized ? JSON.parse(serialized) as ECDAnswers : {};
+        if (Object.keys(parsed).length) {
+          assessedMonth = month;
+          savedAnswers = parsed;
+          break;
+        }
+      } catch {
+        // Try the preceding milestone if this saved record is malformed.
+      }
+    }
+    if (assessedMonth === null) return { hasAssessment: false, activities: [] as typeof dynamicActivities };
+
+    // Use the same answered question IDs saved for the selected assessment report,
+    // including earlier skills that were brought forward for another check.
+    const questions = questionBank.filter((question) => question.phase === 'child' && savedAnswers[question.id] !== undefined);
+    const result = calculateECDResult(questions, savedAnswers, 'child');
+    const followUps = result.domains.flatMap((domain) => domain.followUpSkills.map((skill) => ({ domain: domain.key as ECD6Domain, skill })));
+    if (!followUps.length) return { hasAssessment: true, activities: [] as typeof dynamicActivities };
+
+    const rankedActivities = dynamicActivities
+      .map((activity) => {
+        const searchableText = `${activity.milestoneMappedBn} ${activity.objectiveBn}`.normalize('NFC');
+        const matchScore = followUps.reduce((score, followUp) => {
+          if (activity.domain !== followUp.domain) return score;
+          return score + countSkillWordMatches(followUp.skill, searchableText);
+        }, 0);
+        return { activity, matchScore };
+      })
+      .sort((a, b) => b.matchScore - a.matchScore);
+    const relevantActivities = rankedActivities.filter(({ matchScore }) => matchScore > 0).map(({ activity }) => activity);
+    if (relevantActivities.length) return { hasAssessment: true, activities: relevantActivities };
+    const recommendedDomains = new Set(followUps.map(({ domain }) => domain));
+    return { hasAssessment: true, activities: dynamicActivities.filter((activity) => recommendedDomains.has(activity.domain)) };
+  }, [activeChild.id, dynamicActivities, selectedAgeMonth]);
+
+  const focusedActivities = useMemo(() => {
+    if (!focus) return assessmentRecommendations.activities;
+    const ranked = dynamicActivities
+      .filter((activity) => activity.domain === focus.domain)
+      .map((activity) => ({ activity, score: countSkillWordMatches(focus.skill, `${activity.milestoneMappedBn} ${activity.objectiveBn}`) }))
+      .sort((a, b) => b.score - a.score);
+    const matching = ranked.filter(({ score }) => score > 0);
+    return (matching.length ? matching : ranked).map(({ activity }) => activity);
+  }, [assessmentRecommendations.activities, dynamicActivities, focus]);
+
+  const hasPersonalizedSuggestions = Boolean(focus) || assessmentRecommendations.hasAssessment;
+  const displayedActivities = showAllActivities || !hasPersonalizedSuggestions ? dynamicActivities : focusedActivities;
 
   const toggleComplete = (id: string) => {
     setCompletedIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -206,6 +250,16 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
 
   return (
     <section id="daily-play" className="space-y-6">
+
+      {focus && (
+        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-[#CDE5D1] bg-[#F2FAF3] p-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[#4E7657]">{currentLang === 'bn' ? 'চলুন, এই দক্ষতার খেলা শুরু করি' : 'Let’s play to build this skill'}</p>
+            <p className="mt-1 text-sm font-extrabold text-[#2D4935]">{focus.skill}</p>
+            <p className="mt-1 text-xs text-[#66816D]">{currentLang === 'bn' ? `${formatLocalizedNumber(selectedAgeMonth, currentLang)} মাস বয়সের উপযোগী` : `Age-appropriate for ${selectedAgeMonth} months`}</p>
+          </div>
+        </div>
+      )}
       
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#F3E7DC] pb-4">
@@ -226,28 +280,53 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
 
         {/* Age Checkpoint Switcher */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-          {[2, 4, 6, 9, 12, 18, 24].map((m) => {
+          {[...new Set([...(focus ? [focus.ageMonth] : []), 2, 4, 6, 9, 12, 18, 24])].sort((a, b) => a - b).map((m) => {
             const isSelected = selectedAgeMonth === m;
             return (
               <button
                 key={m}
-                onClick={() => setSelectedAgeMonth(m)}
+                onClick={() => {
+                  setSelectedAgeMonth(m);
+                  setShowAllActivities(false);
+                }}
                 className={`px-3 py-1.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all border ${
                   isSelected
                     ? 'bg-[#FF8552] text-white border-[#FF8552] shadow-xs'
                     : 'bg-white text-[#64748B] border-[#EED9C7] hover:border-[#FFB07C]'
                 }`}
               >
-                {formatLocalizedNumber(m, currentLang)} {t.monthUnit}
+                {formatLocalizedNumber(m, currentLang)} {t.monthUnit}{focus?.ageMonth === m ? (currentLang === 'bn' ? ' · বর্তমান' : ' · current') : ''}
               </button>
             );
           })}
         </div>
       </div>
 
+      {hasPersonalizedSuggestions && (
+        <div className="flex flex-col gap-2 rounded-xl border border-[#EED9C7] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[#667085]">
+            {focus
+              ? (currentLang === 'bn' ? `“${focus.skill}” চর্চার সঙ্গে মেলে এমন ${formatLocalizedNumber(focusedActivities.length, currentLang)}টি খেলা` : `${focusedActivities.length} play ideas matched to “${focus.skill}”`)
+              : focusedActivities.length
+                ? (currentLang === 'bn' ? `অগ্রগতি মূল্যায়নে চর্চার জন্য বাছাই করা ${formatLocalizedNumber(focusedActivities.length, currentLang)}টি খেলা` : `${focusedActivities.length} activities selected from the assessment`)
+                : (currentLang === 'bn' ? 'এই বয়সে আলাদা করে চর্চার খেলা পাওয়া যায়নি।' : 'No extra practice games were identified for this age.')}
+          </p>
+          <button
+            type="button"
+            aria-expanded={showAllActivities}
+            onClick={() => setShowAllActivities((showAll) => !showAll)}
+            className="shrink-0 rounded-lg border border-[#EED9C7] bg-[#FFFAF5] px-3 py-2 text-xs font-bold text-[#5C6479] hover:bg-[#FFF0E2]"
+          >
+            {showAllActivities
+              ? (currentLang === 'bn' ? 'শুধু পরামর্শের খেলাগুলো দেখুন' : 'Show recommended games only')
+              : (currentLang === 'bn' ? 'বাকি সব বয়সোপযোগী খেলা দেখুন' : 'Show all age-appropriate games')}
+          </button>
+        </div>
+      )}
+
       {/* Activities Grid - Compact, neat rectangular boxes with opposite contrast colors */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {dynamicActivities.map((activity, idx) => {
+        {displayedActivities.map((activity, idx) => {
           const isDone = Boolean(completedIds[activity.id]);
           const theme = cardThemes[idx % cardThemes.length];
 
@@ -307,6 +386,11 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
           );
         })}
       </div>
+      {hasPersonalizedSuggestions && !showAllActivities && displayedActivities.length === 0 && (
+        <p className="rounded-2xl border border-[#E8EEEB] bg-white p-5 text-sm text-[#697582]">
+          {currentLang === 'bn' ? 'এই বয়সে assessment অনুযায়ী আলাদা করে চর্চার খেলা পাওয়া যায়নি। চাইলে বাকি বয়সোপযোগী খেলাগুলো দেখুন।' : 'No additional practice games were matched to this assessment at this age. You can browse all age-appropriate games.'}
+        </p>
+      )}
 
       {/* Activity Details & Interactive Play Guide Modal ("কীভাবে খেলবেন" and complete instructions) */}
       {activeModalActivity && (
