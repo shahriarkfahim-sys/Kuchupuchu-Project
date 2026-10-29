@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   ChevronDown,
@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
+import mascotFamily from '../assets/images/mascot_family.svg';
 import { JourneyAnimation } from './JourneyAnimation';
 import { HowItWorksJourney } from './HowItWorksJourney';
-import { makeMascot } from './SonaiAssistant';
 import './HomePage.css';
 
 const hookEndingsByLanguage: Record<Language, string[]> = {
@@ -49,8 +49,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [sampleName, setSampleName] = useState('');
   const [animatedHook, setAnimatedHook] = useState('');
-  const [tukiChatStarted, setTukiChatStarted] = useState(false);
-  const tukiStageRef = useRef<HTMLDivElement>(null);
   const hookEndings = hookEndingsByLanguage[currentLang];
   const sampleNames = sampleNamesByLanguage[currentLang];
 
@@ -92,32 +90,6 @@ export const HomePage: React.FC<HomePageProps> = ({
     timeoutId = window.setTimeout(step, 700);
     return () => window.clearTimeout(timeoutId);
   }, [currentLang, hookEndings]);
-
-  useEffect(() => {
-    const stage = tukiStageRef.current;
-    if (!stage || tukiChatStarted) return;
-
-    let visibleTimer: number | undefined;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        if (visibleTimer === undefined) {
-          visibleTimer = window.setTimeout(() => {
-            setTukiChatStarted(true);
-            observer.disconnect();
-          }, 3000);
-        }
-      } else if (visibleTimer !== undefined) {
-        window.clearTimeout(visibleTimer);
-        visibleTimer = undefined;
-      }
-    }, { threshold: 0.4 });
-
-    observer.observe(stage);
-    return () => {
-      observer.disconnect();
-      if (visibleTimer !== undefined) window.clearTimeout(visibleTimer);
-    };
-  }, [tukiChatStarted]);
 
   useEffect(() => {
     if (childName || isNameFocused) {
@@ -365,40 +337,23 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      <section className="tuki-intro grid items-center gap-8 overflow-hidden rounded-3xl border border-[#F1DFD2] bg-gradient-to-br from-[#FFF9F3] via-white to-[#F5FAF7] p-6 shadow-[0_12px_36px_rgba(73,58,47,0.06)] sm:p-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
-        <div ref={tukiStageRef} className={`tuki-mascot-stage relative mx-auto flex w-full max-w-sm flex-col items-center gap-3${tukiChatStarted ? ' tuki-stage-active' : ''}`}>
-          <div className="tuki-mascot-card relative flex min-h-[480px] w-full items-center justify-center rounded-[2rem] bg-[#FFF1E6] p-5 sm:p-7">
-            <span className="tuki-orbit tuki-orbit-one" aria-hidden="true" />
-            <span className="tuki-orbit tuki-orbit-two" aria-hidden="true" />
-            <span className="tuki-mascot-glow" aria-hidden="true" />
-            <div className="tuki-chat-bubbles" aria-hidden={!tukiChatStarted}>
-              <span className="tuki-chat-bubble tuki-chat-one">{isBangla ? 'হাই, আমি পুকি... হিহি! না, আমি টুকি!' : 'Hi, I’m Puki... hehe! No, I’m Tuki!'}</span>
-              <span className="tuki-chat-bubble tuki-chat-two">{isBangla ? 'তুমি সাইন আপ করলেই পৃথিবীতে আসব!' : 'Sign up and I’ll be there when your baby arrives!'}</span>
-              <span className="tuki-chat-bubble tuki-chat-three">{isBangla ? 'আমি কি তোমাদের আম্মু বা আব্বু বলে ডাকব?' : 'Should I call you Ammu or Abbu?'}</span>
-              <span className="tuki-chat-bubble tuki-chat-four">{isBangla ? 'আমার সঙ্গে গল্প করবে?' : 'Will you tell me a story?'}</span>
-              <span className="tuki-chat-bubble tuki-chat-five">{isBangla ? 'তোমার সোনামণির মজার খবরগুলো আমি মনে রাখব!' : 'I’ll remember all the fun little updates!'}</span>
-              <span className="tuki-chat-bubble tuki-chat-six">{isBangla ? 'তাহলে, আমরা বন্ধু?' : 'So, are we friends?'}</span>
-              <span className="tuki-chat-bubble tuki-chat-seven">{isBangla ? 'আমার প্রিয় কাজ? তোমাদের সঙ্গে বড় হওয়া!' : 'My favorite thing? Growing up with you!'}</span>
-            </div>
-            <div className="tuki-mascot" aria-label={isBangla ? 'টুকি, আপনার সহায়ক বন্ধু' : 'Tuki, your helpful friend'}>
-              {makeMascot('large')}
-            </div>
-          </div>
+      <section className="buddy-intro flex flex-col items-center gap-2 overflow-hidden rounded-3xl border border-[#F1DFD2] bg-gradient-to-br from-[#FFF9F3] via-white to-[#F5FAF7] p-5 shadow-[0_12px_36px_rgba(73,58,47,0.06)] sm:gap-0 sm:p-8">
+        <div className="mx-auto w-full max-w-4xl">
+          <img
+            src={mascotFamily}
+            alt={isBangla ? 'কুচুপুচুর বুদ্ধি বন্ধুদের পরিবার' : 'Kuchupuchu’s learning buddy family'}
+            className="block h-auto w-full"
+          />
         </div>
-        <div className="space-y-5">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-extrabold leading-snug tracking-tight text-[#25313D] sm:text-3xl">
-              {isBangla ? <>আপনার যাত্রায় পাশে থাকবে <span className="text-[#D66A37]">টুকি</span></> : <>Tuki will be with you on your journey</>}
-            </h2>
-            <p className="text-base font-bold leading-relaxed text-[#46534D] sm:text-lg">
-              {isBangla ? 'আপনার সন্তানের সঙ্গে বড় হবে আপনার কৃত্রিম বুদ্ধিমত্তার বন্ধু টুকি।' : 'Your helpful companion Tuki will grow alongside your child.'}
-            </p>
-            <p className="text-sm leading-7 text-[#697582] sm:text-base">
-              {isBangla
-                ? 'সন্তানের রিপোর্ট বিশ্লেষণ করতে চান? জানতে চান, গড়ে আপনার সন্তান কতক্ষণ ঘুমাচ্ছে? টিকার তারিখে রিমাইন্ডার দরকার? এমন হাজারো প্রশ্নের উত্তর দেবে আপনার সন্তানের নিজস্ব কৃত্রিম বুদ্ধিমত্তার বন্ধু টুকি।'
-                : 'Want help understanding your child’s report, finding out how long they sleep on average, or getting a vaccination reminder? Tuki, your child’s own AI friend, is ready to help with questions like these and many more.'}
-            </p>
-          </div>
+        <div className="mx-auto w-full max-w-5xl space-y-3 text-center">
+          <h2 className="text-2xl font-extrabold leading-snug tracking-tight text-[#25313D] sm:text-3xl">
+            {isBangla ? <>আপনার যাত্রায় পাশে থাকবে <span className="text-[#D66A37]">বুদ্ধি বন্ধুরা</span></> : <>Learning buddies by your side, every step of the way</>}
+          </h2>
+          <p className="text-base leading-7 text-[#697582] sm:text-lg">
+            {isBangla
+              ? <>সন্তানের অগ্রগতির রিপোর্ট, দৈনন্দিন যত্ন, টিকার সময় আর বয়সোপযোগী খেলার আইডিয়া—সবকিছু সঙ্গে সঙ্গেই জানাবে আমাদের ছোট্ট বুদ্ধি বন্ধুরা।<br />শুধু তাই নয়, আপনার সন্তানের সঙ্গে ওরাও বড় হবে।</>
+              : 'Our little learning buddies keep you up to date on your child’s progress, daily care, vaccinations, and age-appropriate play ideas. They’ll grow alongside your child, too.'}
+          </p>
         </div>
       </section>
 
@@ -494,10 +449,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <tr key={String(feature)}>
                     <th scope="row" className="px-4 py-3.5 text-left font-semibold leading-relaxed sm:px-6">{feature}</th>
                     <td className="px-4 py-3.5 text-center">
-                      {freeIncluded ? <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#47765D]" /> : <X aria-label={isBangla ? 'পাওয়া যাবে না' : 'Not included'} className="mx-auto h-5 w-5 text-[#B3BDB8]" />}
+                      {freeIncluded ? <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#47765D]" /> : <X aria-label={isBangla ? 'পাওয়া যাবে না' : 'Not included'} className="mx-auto h-5 w-5 text-[#DC2626]" />}
                     </td>
                     <td className="bg-[#FFFCF9] px-4 py-3.5 text-center">
-                      <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#E9753F]" />
+                      <Check aria-label={isBangla ? 'পাওয়া যাবে' : 'Included'} className="mx-auto h-5 w-5 text-[#47765D]" />
                     </td>
                   </tr>
                 ))}
