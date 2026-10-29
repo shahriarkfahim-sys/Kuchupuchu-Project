@@ -2,12 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { 
   Moon, 
   Baby, 
-  Clock, 
   CheckCircle2, 
   Droplets,
   Utensils,
   CalendarDays,
+  ArrowLeft,
+  Syringe,
+  Check,
   X,
+  LucideProps,
 } from 'lucide-react';
 import { ChildProfile, Language, RoutineLogEntry } from '../types';
 import { formatLocalizedNumber } from '../i18n/translations';
@@ -48,17 +51,25 @@ const timeOptions = Array.from({ length: 48 }, (_, index) => {
 const routineEntryTitles: Record<RoutineLogEntry['type'], { bn: string; en: string }> = {
   feed: { bn: 'খাবারের তথ্য লিখুন', en: 'Log a feeding' },
   sleep: { bn: 'ঘুমের তথ্য লিখুন', en: 'Log sleep' },
-  diaper: { bn: 'ডায়াপার পরিবর্তনের তথ্য লিখুন', en: 'Log a diaper change' },
+  diaper: { bn: 'ডায়পার পরিবর্তনের তথ্য লিখুন', en: 'Log a diaper change' },
   potty: { bn: 'পটির তথ্য লিখুন', en: 'Log potty' },
 };
 
 const routineFieldClass = 'mt-2 block min-h-12 w-full rounded-xl border border-[#E6DDD4] bg-white px-4 text-base text-[#2D3142] shadow-sm outline-none transition placeholder:text-[#98A2B3] focus:border-[#2F6B47] focus:ring-4 focus:ring-[#2F6B47]/10';
 const routineLabelClass = 'block text-sm font-semibold text-[#344054]';
 
+const DiaperIcon = React.forwardRef<SVGSVGElement, LucideProps>(({ className, ...props }, ref) => (
+  <svg ref={ref} aria-hidden="true" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4.5 5.5h15l-1.4 9.1a4 4 0 0 1-1.8 2.8L12 20l-4.3-2.6a4 4 0 0 1-1.8-2.8L4.5 5.5Z" />
+    <path d="M4.8 8.5c2.4 1.2 4.8 1.8 7.2 1.8s4.8-.6 7.2-1.8M8 17.4c.4-2.6 1.8-4 4-4s3.6 1.4 4 4" />
+    <path d="M7.3 6.4 8 8.1m8.7-1.7L16 8.1" />
+  </svg>
+));
+
 const diaperTypes = [
   { id: 'urine', label: 'প্রস্রাব', labelEn: 'Urine', sticker: '💧' },
   { id: 'stool', label: 'পায়খানা', labelEn: 'Stool', sticker: '💩' },
-  { id: 'both', label: 'দুটিই', labelEn: 'Both', sticker: '🧷' },
+  { id: 'both', label: 'দুটিই', labelEn: 'Both', sticker: '💧💩' },
 ] as const;
 
 const stoolConsistencyOptions = [
@@ -75,6 +86,165 @@ const diaperAmountOptions = [
   { id: 'medium', label: 'মাঝারি', labelEn: 'Medium', sticker: '🌼' },
   { id: 'heavy', label: 'বেশি', labelEn: 'Heavy', sticker: '🌊' },
 ] as const;
+
+type VaccineMilestone = {
+  id: string;
+  phase: 'pregnancy' | 'baby';
+  offsetDays?: number;
+  offsetMonths?: number;
+  ageBn: string;
+  ageEn: string;
+  nameBn: string;
+  nameEn: string;
+  noteBn: string;
+  noteEn: string;
+  isReview?: boolean;
+};
+
+const pregnancyVaccineMilestones: VaccineMilestone[] = [
+  {
+    id: 'maternal-td-1',
+    phase: 'pregnancy',
+    offsetDays: 16 * 7,
+    ageBn: 'গর্ভের ১৬ সপ্তাহ · ৪র্থ মাস',
+    ageEn: '16 weeks pregnant · Month 4',
+    nameBn: 'টিটি/টিডি — ১ম ডোজ',
+    nameEn: 'TT/Td — Dose 1',
+    noteBn: 'আগের টিকার ইতিহাস দেখে চিকিৎসক বা টিকাকর্মীর সাথে ডোজটি নিশ্চিত করুন।',
+    noteEn: 'Confirm the dose with a clinician or vaccinator based on prior vaccination history.',
+  },
+  {
+    id: 'maternal-td-2',
+    phase: 'pregnancy',
+    offsetDays: 21 * 7,
+    ageBn: 'গর্ভের ২১ সপ্তাহ · ৬ষ্ঠ মাসের দিকে',
+    ageEn: '21 weeks pregnant · Around Month 6',
+    nameBn: 'টিটি/টিডি — ২য় ডোজ',
+    nameEn: 'TT/Td — Dose 2',
+    noteBn: 'প্রথম ডোজের অন্তত ১ মাস পরের সময়; আগের টিকার কার্ড ও স্বাস্থ্যকর্মীর পরামর্শ মেনে চলুন।',
+    noteEn: 'Usually at least 1 month after the first dose; follow the vaccination card and health worker’s advice.',
+  },
+];
+
+const babyVaccineMilestones: VaccineMilestone[] = [
+  {
+    id: 'baby-bcg',
+    phase: 'baby',
+    offsetDays: 0,
+    ageBn: 'জন্মের সময়',
+    ageEn: 'At birth',
+    nameBn: 'বিসিজি (BCG)',
+    nameEn: 'BCG',
+    noteBn: 'জন্মের পর যত দ্রুত সম্ভব; না হয়ে থাকলে টিকাকেন্দ্রে যোগাযোগ করুন।',
+    noteEn: 'As soon as possible after birth; contact an EPI center if missed.',
+  },
+  {
+    id: 'baby-6-weeks',
+    phase: 'baby',
+    offsetDays: 42,
+    ageBn: '৬ সপ্তাহ · প্রায় দেড় মাস',
+    ageEn: '6 weeks · About 1.5 months',
+    nameBn: 'পেন্টা-১, ওপিভি-১, পিসিভি-১ ও আইপিভি-১',
+    nameEn: 'Penta-1, OPV-1, PCV-1 & IPV-1',
+    noteBn: 'শিশুর টিকাকার্ড অনুযায়ী প্রথম সেটের টিকা দিন।',
+    noteEn: 'First set of vaccines; follow the child’s EPI card.',
+  },
+  {
+    id: 'baby-10-weeks',
+    phase: 'baby',
+    offsetDays: 70,
+    ageBn: '১০ সপ্তাহ · প্রায় আড়াই মাস',
+    ageEn: '10 weeks · About 2.5 months',
+    nameBn: 'পেন্টা-২, ওপিভি-২ ও পিসিভি-২',
+    nameEn: 'Penta-2, OPV-2 & PCV-2',
+    noteBn: 'দ্বিতীয় ডোজগুলো টিকাকার্ডের তারিখে সম্পন্ন করুন।',
+    noteEn: 'Complete the second doses on the dates in the EPI card.',
+  },
+  {
+    id: 'baby-14-weeks',
+    phase: 'baby',
+    offsetDays: 98,
+    ageBn: '১৪ সপ্তাহ · প্রায় সাড়ে তিন মাস',
+    ageEn: '14 weeks · About 3.5 months',
+    nameBn: 'পেন্টা-৩, ওপিভি-৩, পিসিভি-৩ ও আইপিভি-২',
+    nameEn: 'Penta-3, OPV-3, PCV-3 & IPV-2',
+    noteBn: 'এই পর্যায়ের ডোজের জন্য টিকাকার্ডের নির্দেশনা অনুসরণ করুন।',
+    noteEn: 'Follow the EPI card for doses due at this stage.',
+  },
+  {
+    id: 'baby-9-months',
+    phase: 'baby',
+    offsetMonths: 9,
+    ageBn: '৯ মাস',
+    ageEn: '9 months',
+    nameBn: 'এমআর-১ ও ভিটামিন-এ',
+    nameEn: 'MR-1 & Vitamin A',
+    noteBn: 'জাতীয় টিকাকার্ড/স্বাস্থ্যকর্মীর নির্দেশনা অনুযায়ী।',
+    noteEn: 'Follow the national vaccination card and health worker’s advice.',
+  },
+  {
+    id: 'baby-15-months',
+    phase: 'baby',
+    offsetMonths: 15,
+    ageBn: '১৫ মাস',
+    ageEn: '15 months',
+    nameBn: 'এমআর-২',
+    nameEn: 'MR-2',
+    noteBn: 'হাম-রুবেলার পরবর্তী ডোজের সময় টিকাকার্ডে মিলিয়ে নিন।',
+    noteEn: 'Check the EPI card for the next measles-rubella dose.',
+  },
+  {
+    id: 'baby-18-month-review',
+    phase: 'baby',
+    offsetMonths: 18,
+    ageBn: '১৮ মাস',
+    ageEn: '18 months',
+    nameBn: 'টিকাকার্ড পর্যালোচনা',
+    nameEn: 'Review the vaccination card',
+    noteBn: 'স্বাস্থ্যকর্মীর সাথে বাকি বা অতিরিক্ত ডোজের সময় যাচাই করুন।',
+    noteEn: 'Ask a health worker to check for any due or additional doses.',
+    isReview: true,
+  },
+  {
+    id: 'baby-24-month-review',
+    phase: 'baby',
+    offsetMonths: 24,
+    ageBn: '২৪ মাস',
+    ageEn: '24 months',
+    nameBn: 'টিকাকার্ড পর্যালোচনা',
+    nameEn: 'Review the vaccination card',
+    noteBn: 'সব ডোজের রেকর্ড সম্পূর্ণ আছে কি না টিকাকার্ডে মিলিয়ে নিন।',
+    noteEn: 'Check the vaccination card to make sure all doses are recorded.',
+    isReview: true,
+  },
+];
+
+const feedMethods = [
+  { id: 'bottle', label: 'বোতল', labelEn: 'Bottle', sticker: '🍼' },
+  { id: 'breastfeeding', label: 'ব্রেস্টফিডিং', labelEn: 'Breastfeeding', sticker: '🤱' },
+  { id: 'solid', label: 'সলিড খাবার', labelEn: 'Solid food', sticker: '🥣' },
+] as const;
+
+const feedAmountUnits: Record<(typeof feedMethods)[number]['id'], readonly { id: string; label: string; labelEn: string }[]> = {
+  bottle: [
+    { id: 'ml', label: 'মিলিলিটার', labelEn: 'ml' },
+    { id: 'oz', label: 'আউন্স', labelEn: 'oz' },
+  ],
+  breastfeeding: [
+    { id: 'minutes', label: 'মিনিট', labelEn: 'minutes' },
+  ],
+  solid: [
+    { id: 'spoon', label: 'চামচ', labelEn: 'spoons' },
+    { id: 'bowl', label: 'বাটি', labelEn: 'bowls' },
+    { id: 'piece', label: 'পিস', labelEn: 'pieces' },
+  ],
+};
+
+const feedMethodOptions: Record<(typeof feedMethods)[number]['id'], typeof feedOptions[number][]> = {
+  bottle: feedOptions.filter((item) => item.id === 'formula' || item.id === 'breastmilk'),
+  breastfeeding: feedOptions.filter((item) => item.id === 'breastmilk'),
+  solid: feedOptions.filter((item) => item.id !== 'formula' && item.id !== 'breastmilk'),
+};
 
 function formatRoutineTime(value: string, lang: Language) {
   const [hoursText, minutes] = value.split(':');
@@ -102,6 +272,15 @@ function shiftDate(value: string, days: number) {
   const date = dateFromLocalString(value);
   date.setDate(date.getDate() + days);
   return localDateString(date);
+}
+
+function addMonthsToDate(value: string, months: number) {
+  const date = dateFromLocalString(value);
+  const targetMonth = date.getMonth() + months;
+  const targetDate = new Date(date.getFullYear(), targetMonth, 1);
+  const lastDayOfTargetMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+  targetDate.setDate(Math.min(date.getDate(), lastDayOfTargetMonth));
+  return localDateString(targetDate);
 }
 
 function logDateForAnalysis(log: RoutineLogEntry) {
@@ -171,6 +350,10 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   const [selectedType, setSelectedType] = useState<'feed' | 'sleep' | 'diaper' | 'potty'>('feed');
   const [isEntryOpen, setIsEntryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showVaccineJourney, setShowVaccineJourney] = useState(false);
+  const [completedVaccines, setCompletedVaccines] = useState<string[]>([]);
+  const [actualBirthDate, setActualBirthDate] = useState('');
+  const [vaccineError, setVaccineError] = useState('');
   const [analysisView, setAnalysisView] = useState<'daily' | 'monthly' | 'range'>('daily');
   const [analysisCategory, setAnalysisCategory] = useState<RoutineLogEntry['type']>('sleep');
   const [analysisDate, setAnalysisDate] = useState(() => localDateString());
@@ -180,23 +363,107 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   const [logDate, setLogDate] = useState(() => localDateString());
   const [logTime, setLogTime] = useState(() => currentTimeSlot());
   const [feedItem, setFeedItem] = useState<string>(feedOptions[3].id);
+  const [feedMethod, setFeedMethod] = useState<(typeof feedMethods)[number]['id']>('solid');
+  const [feedAmount, setFeedAmount] = useState('');
+  const [feedAmountUnit, setFeedAmountUnit] = useState(feedAmountUnits.solid[0].id);
   const [customFeedItem, setCustomFeedItem] = useState('');
+  const [activeActionMenu, setActiveActionMenu] = useState<'feed' | 'diaper' | null>(null);
   const [sleepDuration, setSleepDuration] = useState(60);
   const [sleepEntryMode, setSleepEntryMode] = useState<'timer' | 'manual'>('timer');
   const [diaperType, setDiaperType] = useState<(typeof diaperTypes)[number]['id']>('urine');
   const [stoolConsistency, setStoolConsistency] = useState<(typeof stoolConsistencyOptions)[number]['id']>('solid');
   const [diaperAmount, setDiaperAmount] = useState<(typeof diaperAmountOptions)[number]['id']>('medium');
-  const [diaperChoicesOpen, setDiaperChoicesOpen] = useState(false);
   const [pottyStatus, setPottyStatus] = useState('স্বাভাবিক ও নরম');
   const [customNote, setCustomNote] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [activeSleep, setActiveSleep] = useState<ActiveSleepSession | null>(null);
   const [sleepError, setSleepError] = useState('');
   const [clockNow, setClockNow] = useState(() => Date.now());
-  const entryFormRef = useRef<HTMLDivElement>(null);
+  const entryFormRef = useRef<HTMLElement>(null);
 
   const childName = currentLang === 'bn' ? activeChild.nameBn : activeChild.nameEn;
   const isCurrentChildSleeping = activeSleep?.childId === activeChild.id;
+  const vaccineStorageKey = `kuchupuchu_vaccine_journey_${activeChild.id}`;
+  const expectedBirthDate = activeChild.isPregnant && activeChild.expectedDueDate
+    ? activeChild.expectedDueDate
+    : activeChild.birthDate;
+  const vaccineAnchorDate = activeChild.isPregnant ? actualBirthDate || expectedBirthDate : activeChild.birthDate;
+  const pregnancyStartDate = shiftDate(expectedBirthDate, -280);
+  const vaccineTimeline = [
+    ...(activeChild.isPregnant ? pregnancyVaccineMilestones : []),
+    ...babyVaccineMilestones,
+  ].map((milestone) => ({
+    ...milestone,
+    dueDate: milestone.phase === 'pregnancy'
+      ? shiftDate(pregnancyStartDate, milestone.offsetDays ?? 0)
+      : milestone.offsetMonths !== undefined
+        ? addMonthsToDate(vaccineAnchorDate, milestone.offsetMonths)
+        : shiftDate(vaccineAnchorDate, milestone.offsetDays ?? 0),
+  }));
+  const completedVaccineCount = vaccineTimeline.filter((milestone) => completedVaccines.includes(milestone.id)).length;
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(vaccineStorageKey);
+      if (!saved) {
+        setCompletedVaccines([]);
+        setVaccineError('');
+        return;
+      }
+
+      const parsed: unknown = JSON.parse(saved);
+      if (!Array.isArray(parsed) || parsed.some((id) => typeof id !== 'string')) {
+        throw new Error('Stored vaccine journey is invalid.');
+      }
+      setCompletedVaccines(parsed);
+      setVaccineError('');
+    } catch (error) {
+      console.error('Unable to read vaccine journey.', error);
+      setCompletedVaccines([]);
+      setVaccineError(currentLang === 'bn' ? 'টিকার যাত্রার তথ্য পড়া যায়নি।' : 'Could not load the vaccination journey.');
+    }
+  }, [vaccineStorageKey, currentLang]);
+
+  useEffect(() => {
+    if (!activeChild.isPregnant) {
+      setActualBirthDate('');
+      return;
+    }
+
+    try {
+      setActualBirthDate(localStorage.getItem(`kuchupuchu_actual_birth_date_${activeChild.id}`) ?? '');
+    } catch (error) {
+      console.error('Unable to read actual birth date for vaccine journey.', error);
+      setVaccineError(currentLang === 'bn' ? 'প্রকৃত জন্মতারিখ পড়া যায়নি।' : 'Could not load the actual birth date.');
+    }
+  }, [activeChild.id, activeChild.isPregnant, currentLang]);
+
+  const handleActualBirthDateChange = (value: string) => {
+    try {
+      const key = `kuchupuchu_actual_birth_date_${activeChild.id}`;
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+      setActualBirthDate(value);
+      setVaccineError('');
+    } catch (error) {
+      console.error('Unable to save actual birth date for vaccine journey.', error);
+      setVaccineError(currentLang === 'bn' ? 'প্রকৃত জন্মতারিখ সংরক্ষণ করা যায়নি।' : 'Could not save the actual birth date.');
+    }
+  };
+
+  const toggleVaccineCompletion = (milestoneId: string) => {
+    const next = completedVaccines.includes(milestoneId)
+      ? completedVaccines.filter((id) => id !== milestoneId)
+      : [...completedVaccines, milestoneId];
+    try {
+      localStorage.setItem(vaccineStorageKey, JSON.stringify(next));
+      setCompletedVaccines(next);
+      setVaccineError('');
+    } catch (error) {
+      console.error('Unable to save vaccine journey.', error);
+      setVaccineError(currentLang === 'bn' ? 'টিকার তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।' : 'Could not save vaccine progress. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const storageKey = activeSleepStorageKey(activeChild.id);
@@ -228,7 +495,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   }, [isCurrentChildSleeping]);
 
   useEffect(() => {
-    if (!isEntryOpen) return;
+    if (!isEntryOpen && !activeActionMenu && !showAnalysis && !showVaccineJourney) return;
 
     const dialog = entryFormRef.current;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -241,7 +508,15 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsEntryOpen(false);
+        if (activeActionMenu) {
+          setActiveActionMenu(null);
+        } else if (showAnalysis) {
+          setShowAnalysis(false);
+        } else if (showVaccineJourney) {
+          setShowVaccineJourney(false);
+        } else {
+          setIsEntryOpen(false);
+        }
         return;
       }
 
@@ -265,7 +540,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
-  }, [isEntryOpen]);
+  }, [activeActionMenu, isEntryOpen, showAnalysis, showVaccineJourney]);
 
   const selectedDateLogs = routineLogs.filter((log) => (log.date ?? localDateString()) === logDate);
   const feedCount = selectedDateLogs.filter((log) => log.type === 'feed').length;
@@ -274,7 +549,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   const diaperCount = selectedDateLogs.filter((log) => log.type === 'diaper').length;
   const pottyCount = selectedDateLogs.filter((log) => log.type === 'potty').length;
   const totalCareEntries = feedCount + sleepLogs.length + diaperCount + pottyCount;
-  const SelectedTypeIcon = selectedType === 'feed' ? Utensils : selectedType === 'sleep' ? Moon : selectedType === 'diaper' ? Baby : Droplets;
+  const SelectedTypeIcon = selectedType === 'feed' ? Utensils : selectedType === 'sleep' ? Moon : selectedType === 'diaper' ? DiaperIcon : Droplets;
   const analysisRange = (() => {
     if (analysisView === 'daily') return { start: analysisDate, end: analysisDate };
     if (analysisView === 'monthly') {
@@ -339,7 +614,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
   }> = [
     { id: 'sleep', icon: Moon, labelBn: 'ঘুম', labelEn: 'Sleep', color: '#4955A4', softColor: '#F0F1FF' },
     { id: 'feed', icon: Utensils, labelBn: 'খাওয়া', labelEn: 'Feeding', color: '#B95727', softColor: '#FFF2E9' },
-    { id: 'diaper', icon: Baby, labelBn: 'ডায়াপার পরিবর্তন', labelEn: 'Diaper changes', color: '#28745C', softColor: '#EAF7F1' },
+    { id: 'diaper', icon: DiaperIcon, labelBn: 'ডায়পার পরিবর্তন', labelEn: 'Diaper changes', color: '#28745C', softColor: '#EAF7F1' },
     { id: 'potty', icon: Droplets, labelBn: 'পটি', labelEn: 'Potty', color: '#61752D', softColor: '#F3F7E8' },
   ];
   const selectedAnalysisCategory = analysisCategories.find((category) => category.id === analysisCategory)!;
@@ -461,13 +736,17 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
     let detailsEn = '';
 
     if (selectedType === 'feed') {
-      const selectedFeed = feedOptions.find((item) => item.id === feedItem);
+      const selectedFeed = feedMethodOptions[feedMethod].find((item) => item.id === feedItem);
       const foodBn = feedItem === 'other' ? customFeedItem.trim() : selectedFeed?.labelBn ?? '';
       const foodEn = feedItem === 'other' ? customFeedItem.trim() : selectedFeed?.labelEn ?? '';
-      titleBn = `খাবার: ${foodBn}`;
-      titleEn = `Feed: ${foodEn}`;
-      detailsBn = customNote || 'পর্যাপ্ত পরিমাণে খেয়েছে, খাওয়ার পর বেশ তৃপ্ত ছিল।';
-      detailsEn = customNote || 'Good healthy intake, satisfied after feed.';
+      const method = feedMethods.find((item) => item.id === feedMethod)!;
+      const amountUnit = feedAmountUnits[feedMethod].find((item) => item.id === feedAmountUnit) ?? feedAmountUnits[feedMethod][0];
+      titleBn = feedMethod === 'breastfeeding' ? 'ব্রেস্টফিডিং' : `${method.label}: ${foodBn}`;
+      titleEn = feedMethod === 'breastfeeding' ? 'Breastfeeding' : `${method.labelEn}: ${foodEn}`;
+      const feedAmountDetailsBn = `${feedMethod === 'breastfeeding' ? 'খাওয়ানোর সময়' : 'পরিমাণ'}: ${formatLocalizedNumber(Number(feedAmount), currentLang)} ${amountUnit.label}`;
+      const feedAmountDetailsEn = `${feedMethod === 'breastfeeding' ? 'Feeding duration' : 'Amount'}: ${feedAmount} ${amountUnit.labelEn}`;
+      detailsBn = [customNote.trim(), feedAmountDetailsBn].filter(Boolean).join(' · ');
+      detailsEn = [customNote.trim(), feedAmountDetailsEn].filter(Boolean).join(' · ');
     } else if (selectedType === 'sleep') {
       titleBn = `ঘুম (${formatLocalizedNumber(Math.floor(sleepDuration / 60), currentLang)} ঘণ্টা ${formatLocalizedNumber(sleepDuration % 60, currentLang)} মিনিট)`;
       titleEn = `Sleep (${Math.floor(sleepDuration / 60)}h ${sleepDuration % 60}m)`;
@@ -480,7 +759,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
       const includesStool = diaperType === 'stool' || diaperType === 'both';
       const diaperActivityBn = selectedDiaperType.label;
       const diaperActivityEn = diaperType === 'both' ? 'Urine and stool' : selectedDiaperType.labelEn;
-      titleBn = `ডায়াপার পরিবর্তন · ${diaperActivityBn}`;
+      titleBn = `ডায়পার পরিবর্তন · ${diaperActivityBn}`;
       titleEn = `Diaper change · ${diaperActivityEn}`;
       const detailsPartsBn = [
         includesStool ? `পায়খানার ধরন: ${selectedConsistency.label}` : '',
@@ -519,15 +798,35 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
     setTimeout(() => setSavedSuccess(false), 2200);
   };
 
+  const openRoutineEntry = (type: 'feed' | 'sleep' | 'diaper' | 'potty') => {
+    setSelectedType(type);
+    if (type === 'sleep') setSleepEntryMode('timer');
+    setLogDate(localDateString());
+    setLogTime(currentTimeSlot());
+    setShowAnalysis(false);
+    setActiveActionMenu(null);
+    setIsEntryOpen(true);
+  };
+
+  const openFeedEntry = (method: (typeof feedMethods)[number]['id']) => {
+    setFeedMethod(method);
+    setFeedItem(feedMethodOptions[method][0].id);
+    setCustomFeedItem('');
+    setFeedAmount('');
+    setFeedAmountUnit(feedAmountUnits[method][0].id);
+    openRoutineEntry('feed');
+  };
+
+  const openDiaperEntry = (type: (typeof diaperTypes)[number]['id']) => {
+    setDiaperType(type);
+    openRoutineEntry('diaper');
+  };
+
   return (
     <section id="daily-routine" className="space-y-8">
       
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold text-[#2F6B47] uppercase tracking-wider">
-          <Clock className="w-4 h-4" />
-          <span>{currentLang === 'bn' ? 'দৈনন্দিন রুটিন ও স্বাস্থ্য বিশ্লেষণ' : 'Daily Routine & Habit Tracker'}</span>
-        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-[#2D3142] tracking-tight mt-1">
           {currentLang === 'bn' 
             ? 'ট্র্যাকার'
@@ -568,65 +867,248 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-        {[
-          { id: 'feed', icon: Utensils, labelBn: 'খাওয়া', labelEn: 'Feeding', color: 'border-[#A9471C] bg-[#B95727] text-white hover:bg-[#A9471C]' },
-          { id: 'sleep', icon: Moon, labelBn: 'ঘুম', labelEn: 'Sleep', color: 'border-[#39458E] bg-[#4955A4] text-white hover:bg-[#39458E]' },
-          { id: 'diaper', icon: Baby, labelBn: 'ডায়াপার পরিবর্তন', labelEn: 'Diaper change', color: 'border-[#1F624D] bg-[#28745C] text-white hover:bg-[#1F624D]' },
-          { id: 'potty', icon: Droplets, labelBn: 'পটি', labelEn: 'Potty', color: 'border-[#526324] bg-[#61752D] text-white hover:bg-[#526324]' },
-        ].map(({ id, icon: Icon, labelBn, labelEn, color }) => {
-          const openEntry = (type: 'feed' | 'sleep' | 'diaper' | 'potty') => {
-            setSelectedType(type);
-            if (type === 'sleep') setSleepEntryMode('timer');
-            setLogDate(localDateString());
-            setLogTime(currentTimeSlot());
-            setShowAnalysis(false);
-            setDiaperChoicesOpen(false);
-            setIsEntryOpen(true);
-          };
+      {showVaccineJourney ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#202532]/65 p-2 backdrop-blur-sm sm:items-center sm:p-5"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowVaccineJourney(false);
+          }}
+        >
+        <section ref={entryFormRef} role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="vaccine-journey-title" className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col space-y-6 overflow-y-auto rounded-2xl border border-[#E9DED3] bg-white p-5 shadow-[0_24px_80px_rgba(27,35,48,0.28)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[min(90dvh,900px)] sm:rounded-3xl sm:p-7">
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              onClick={() => setShowVaccineJourney(false)}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#E8E2DA] bg-white text-[#475467] transition hover:bg-[#F8F5F1] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30"
+              aria-label={currentLang === 'bn' ? 'ট্র্যাকারে ফিরে যান' : 'Back to tracker'}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 text-[#B95727]">
+                <Syringe className="h-5 w-5" />
+                <p className="text-xs font-bold uppercase tracking-wider">{currentLang === 'bn' ? 'সুরক্ষার পথচলা' : 'VACCINATION JOURNEY'}</p>
+              </div>
+              <h3 id="vaccine-journey-title" className="mt-1 text-xl font-extrabold text-[#2D3142] sm:text-2xl">{currentLang === 'bn' ? `${childName}-এর টিকার যাত্রা` : `${childName}'s vaccine journey`}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-[#667085]">
+                {currentLang === 'bn'
+                  ? activeChild.isPregnant ? 'গর্ভকালীন টিকা থেকে শিশুর ২৪ মাস পর্যন্ত ধাপে ধাপে মনে রাখুন।' : 'জন্ম থেকে ২৪ মাস পর্যন্ত টিকার ধাপগুলো মনে রাখুন।'
+                  : activeChild.isPregnant ? 'Follow each step from pregnancy through your baby’s first 24 months.' : 'Keep track of each vaccine step from birth through 24 months.'}
+              </p>
+            </div>
+            <button type="button" onClick={() => setShowVaccineJourney(false)} aria-label={currentLang === 'bn' ? 'টিকার যাত্রা বন্ধ করুন' : 'Close vaccine journey'} className="shrink-0 rounded-xl p-2 text-[#667085] transition hover:bg-[#F4F1EC] hover:text-[#25313D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B95727]/20"><X className="h-5 w-5" /></button>
+          </div>
 
-          if (id === 'diaper') {
-            return (
-              <div key={id} role="group" aria-label="ডায়াপার পরিবর্তনের ধরন বাছুন" className="group relative min-w-0">
-                <button
-                  type="button"
-                  aria-expanded={diaperChoicesOpen}
-                  onClick={() => setDiaperChoicesOpen((open) => !open)}
-                  className={`flex min-h-24 w-full items-center gap-3 rounded-2xl border-2 px-4 py-4 text-left text-base font-bold shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30 sm:min-h-28 sm:px-5 sm:text-lg ${color}`}
-                >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-xs sm:h-14 sm:w-14">
-                    <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
-                  </span>
-                  <span>{currentLang === 'bn' ? labelBn : labelEn}</span>
-                </button>
-                <div className={`absolute inset-0 z-10 grid grid-cols-3 gap-1.5 rounded-2xl border-2 border-[#1F624D] bg-[#28745C] p-2 shadow-lg transition-all sm:gap-2 sm:p-3 ${diaperChoicesOpen ? 'visible opacity-100' : 'invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100'}`}>
-                  {diaperTypes.map(({ id: type, label, sticker }) => (
+          <div className="rounded-2xl border border-[#F0D4C2] bg-[#FFFAF5] p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-[#8F421F]">{currentLang === 'bn' ? 'যাত্রার অগ্রগতি' : 'Journey progress'}</p>
+                <p className="mt-1 text-xs text-[#8C6D53]">{formatLocalizedNumber(completedVaccineCount, currentLang)} / {formatLocalizedNumber(vaccineTimeline.length, currentLang)} {currentLang === 'bn' ? 'ধাপ সম্পন্ন' : 'steps completed'}</p>
+              </div>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-sm font-extrabold text-[#B95727]">
+                {Math.round((completedVaccineCount / Math.max(vaccineTimeline.length, 1)) * 100)}%
+              </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F0D4C2]">
+              <div className="h-full rounded-full bg-[#E9753F] transition-all" style={{ width: `${(completedVaccineCount / Math.max(vaccineTimeline.length, 1)) * 100}%` }} />
+            </div>
+          </div>
+
+          {vaccineError && (
+            <div role="alert" className="rounded-xl border border-[#F2B8B5] bg-[#FFF4F2] px-4 py-3 text-sm font-semibold text-[#A3332B]">
+              {vaccineError}
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-[#E6E9F2] bg-[#F7F8FC] p-4 text-sm leading-relaxed text-[#5C6479]">
+            {currentLang === 'bn'
+              ? 'এটি মনে রাখার সহায়ক তালিকা—টিকার সঠিক সময় ও ডোজ আপনার EPI টিকাকার্ড এবং স্বাস্থ্যকর্মীর পরামর্শ অনুযায়ী মিলিয়ে নিন। কোনো ডোজ বাদ পড়লে করণীয় জানতে টিকাকেন্দ্রে যোগাযোগ করুন।'
+              : 'This is a reminder, not a medical schedule. Confirm exact timing and doses with your EPI card and health worker. Contact an EPI center for advice if a dose was missed.'}
+          </div>
+
+          {activeChild.isPregnant && (
+            <label className={routineLabelClass}>
+              {currentLang === 'bn' ? 'শিশুর প্রকৃত জন্মতারিখ (জন্মের পর যোগ করুন)' : 'Baby’s actual birth date (add after birth)'}
+              <LocalizedDateInput
+                currentLang={currentLang}
+                max={localDateString()}
+                value={actualBirthDate}
+                onChange={(event) => handleActualBirthDateChange(event.target.value)}
+                className={routineFieldClass}
+              />
+              <span className="mt-2 block text-xs font-normal leading-relaxed text-[#667085]">
+                {currentLang === 'bn'
+                  ? 'জন্মতারিখ দিলে শিশুর পরবর্তী টিকার তারিখ সম্ভাব্য প্রসবের তারিখ নয়, প্রকৃত জন্মতারিখ থেকে গণনা হবে।'
+                  : 'After you add it, your baby’s vaccine dates will be calculated from the actual birth date instead of the due date.'}
+              </span>
+            </label>
+          )}
+
+          <div className="space-y-7">
+            {(activeChild.isPregnant
+              ? [
+                { phase: 'pregnancy' as const, labelBn: 'গর্ভকালীন মায়ের টিকা', labelEn: 'Vaccines during pregnancy' },
+                { phase: 'baby' as const, labelBn: 'জন্ম থেকে ২৪ মাস', labelEn: 'Birth to 24 months' },
+              ]
+              : [{ phase: 'baby' as const, labelBn: 'জন্ম থেকে ২৪ মাস', labelEn: 'Birth to 24 months' }]
+            ).map((group) => {
+              const milestones = vaccineTimeline.filter((milestone) => milestone.phase === group.phase);
+              return (
+                <div key={group.phase}>
+                  <h4 className="mb-4 text-base font-extrabold text-[#344054]">{currentLang === 'bn' ? group.labelBn : group.labelEn}</h4>
+                  <div className="relative space-y-4 before:absolute before:bottom-5 before:left-[15px] before:top-5 before:w-0.5 before:bg-[#E9DED3]">
+                    {milestones.map((milestone) => {
+                      const completed = completedVaccines.includes(milestone.id);
+                      const overdue = milestone.dueDate < localDateString() && !completed;
+                      const dueSoon = milestone.dueDate >= localDateString()
+                        && milestone.dueDate <= shiftDate(localDateString(), 14)
+                        && !completed;
+                      const statusLabel = completed
+                        ? currentLang === 'bn' ? 'সম্পন্ন' : 'Completed'
+                        : overdue
+                          ? currentLang === 'bn' ? 'সময় পেরিয়েছে' : 'Past due'
+                          : dueSoon
+                            ? currentLang === 'bn' ? 'শিগগিরই' : 'Due soon'
+                            : currentLang === 'bn' ? 'পরবর্তী ধাপ' : 'Upcoming';
+                      return (
+                        <article key={milestone.id} className="relative pl-10">
+                          <span className={`absolute left-0 top-5 z-10 grid h-8 w-8 place-items-center rounded-full border-2 ${completed ? 'border-[#2F6B47] bg-[#2F6B47] text-white' : overdue ? 'border-[#E9753F] bg-[#FFF2E9] text-[#B95727]' : 'border-[#E8DCD1] bg-white text-[#A5ADA7]'}`}>
+                            {completed ? <Check className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-current" />}
+                          </span>
+                          <div className={`rounded-2xl border p-4 transition-colors sm:p-5 ${completed ? 'border-[#CDE5D1] bg-[#F5FAF6]' : overdue ? 'border-[#F0D4C2] bg-[#FFFAF5]' : 'border-[#E8E2DA] bg-white opacity-75'}`}>
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div>
+                                <p className="text-xs font-bold text-[#8C6D53]">{currentLang === 'bn' ? milestone.ageBn : milestone.ageEn}</p>
+                                <h5 className="mt-1 text-base font-extrabold text-[#2D3142]">{currentLang === 'bn' ? milestone.nameBn : milestone.nameEn}</h5>
+                              </div>
+                              <span className={`rounded-full px-3 py-1 text-xs font-bold ${completed ? 'bg-[#EAF4EC] text-[#2F6B47]' : overdue ? 'bg-[#FFF0E8] text-[#A84D26]' : 'bg-[#F4F1EC] text-[#78837D]'}`}>{statusLabel}</span>
+                            </div>
+                            <p className="mt-2 text-xs font-semibold text-[#667085]">
+                              {currentLang === 'bn' ? 'সম্ভাব্য তারিখ' : 'Estimated date'}: {formatDateForLocale(milestone.dueDate, currentLang)}
+                            </p>
+                            <p className="mt-2 text-sm leading-relaxed text-[#667085]">{currentLang === 'bn' ? milestone.noteBn : milestone.noteEn}</p>
+                            <button
+                              type="button"
+                              aria-pressed={completed}
+                              onClick={() => toggleVaccineCompletion(milestone.id)}
+                              className={`mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2F6B47]/20 sm:w-auto ${completed ? 'border border-[#CDE5D1] bg-white text-[#2F6B47] hover:bg-[#F5FAF6]' : 'bg-[#2F6B47] text-white hover:bg-[#1E432D]'}`}
+                            >
+                              {completed && <Check className="h-4 w-4" />}
+                              {completed
+                                ? currentLang === 'bn' ? 'সম্পন্ন হয়েছে · বাতিল করুন' : 'Completed · Undo'
+                                : milestone.isReview
+                                  ? currentLang === 'bn' ? 'পর্যালোচনা সম্পন্ন' : 'Mark review complete'
+                                  : currentLang === 'bn' ? 'টিকা নেওয়া হয়েছে' : 'Mark vaccine as received'}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        </div>
+      ) : activeActionMenu ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#202532]/65 p-2 backdrop-blur-sm sm:items-center sm:p-5"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setActiveActionMenu(null);
+          }}
+        >
+          <section
+            ref={entryFormRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="routine-action-menu-title"
+            tabIndex={-1}
+            className="relative my-auto flex w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-[#E9DED3] bg-white p-5 shadow-[0_24px_80px_rgba(27,35,48,0.28)] animate-in fade-in zoom-in-95 duration-200 sm:rounded-3xl sm:p-7"
+          >
+            <div className="mb-6 flex items-start justify-between gap-4 border-b border-[#F0E8E1] pb-4">
+              <div className="flex items-center gap-3">
+                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${activeActionMenu === 'feed' ? 'bg-[#FFF2E9] text-[#B95727]' : 'bg-[#EAF7F1] text-[#28745C]'}`}>
+                  {activeActionMenu === 'feed' ? <Utensils className="h-6 w-6" /> : <Baby className="h-6 w-6" />}
+                </span>
+                <div>
+                  <h3 id="routine-action-menu-title" className="text-lg font-bold leading-snug text-[#25313D] sm:text-xl">
+                    {activeActionMenu === 'feed'
+                      ? currentLang === 'bn' ? 'খাবারের ধরন বেছে নিন' : 'Choose a feeding type'
+                      : currentLang === 'bn' ? 'ডায়পারে কী হয়েছে?' : 'Choose a diaper entry'}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#667085]">{childName} · {currentLang === 'bn' ? 'নতুন এন্ট্রি' : 'New entry'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveActionMenu(null)}
+                aria-label={currentLang === 'bn' ? 'বন্ধ করুন' : 'Close'}
+                className="shrink-0 rounded-xl p-2 text-[#667085] transition hover:bg-[#F4F1EC] hover:text-[#25313D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className={`rounded-2xl border p-4 sm:p-5 ${activeActionMenu === 'feed' ? 'border-[#F0D4C2] bg-[#FFFAF5]' : 'border-[#D7E8DE] bg-[#F4FAF7]'}`}>
+              <p className={`mb-4 text-sm font-bold ${activeActionMenu === 'feed' ? 'text-[#8F421F]' : 'text-[#1F624D]'}`}>
+                {activeActionMenu === 'feed'
+                  ? currentLang === 'bn' ? 'যে ধরনের খাবারের এন্ট্রি দিতে চান, সেটি বেছে নিন।' : 'Choose the feeding type you want to log.'
+                  : currentLang === 'bn' ? 'যে তথ্যটি লিখতে চান, সেটি বেছে নিন।' : 'Choose what you want to log.'}
+              </p>
+              <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-[#F4F1EC] p-1.5" role="group" aria-label={activeActionMenu === 'feed' ? (currentLang === 'bn' ? 'খাবারের ধরন' : 'Feeding type') : (currentLang === 'bn' ? 'ডায়পারের ধরন' : 'Diaper type')}>
+                {activeActionMenu === 'feed'
+                  ? feedMethods.map(({ id: method, label, labelEn, sticker }) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => openFeedEntry(method)}
+                      className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-2 text-center text-sm font-bold text-[#5C6479] transition hover:bg-[#B95727] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B95727]/20 sm:min-h-16 sm:flex-row sm:gap-2 sm:px-3 sm:text-base"
+                    >
+                      <span className="text-2xl leading-none" aria-hidden="true">{sticker}</span>
+                      <span>{currentLang === 'bn' ? label : labelEn}</span>
+                    </button>
+                  ))
+                  : diaperTypes.map(({ id: type, label, labelEn, sticker }) => (
                     <button
                       key={type}
                       type="button"
-                      onClick={() => {
-                        setDiaperType(type);
-                        openEntry('diaper');
-                      }}
-                      className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-white/12 px-1 py-2 text-center text-xs font-bold leading-tight text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      onClick={() => openDiaperEntry(type)}
+                      className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-2 text-center text-sm font-bold text-[#5C6479] transition hover:bg-[#28745C] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#28745C]/20 sm:min-h-16 sm:flex-row sm:gap-2 sm:px-3 sm:text-base"
                     >
-                      <span className="text-xl sm:text-2xl" aria-hidden="true">{sticker}</span>
-                      <span>{label}</span>
+                      <span className="text-2xl leading-none" aria-hidden="true">{sticker}</span>
+                      <span>{currentLang === 'bn' ? label : labelEn}</span>
                     </button>
                   ))}
-                </div>
               </div>
-            );
-          }
-
-          return (
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            { id: 'feed', icon: Utensils, labelBn: 'খাওয়া', labelEn: 'Feeding', color: 'border-[#A9471C] bg-[#B95727] text-white hover:bg-[#A9471C]' },
+            { id: 'sleep', icon: Moon, labelBn: 'ঘুম', labelEn: 'Sleep', color: 'border-[#39458E] bg-[#4955A4] text-white hover:bg-[#39458E]' },
+            { id: 'diaper', icon: DiaperIcon, labelBn: 'ডায়পার পরিবর্তন', labelEn: 'Diaper change', color: 'border-[#1F624D] bg-[#28745C] text-white hover:bg-[#1F624D]' },
+            { id: 'vaccine', icon: Syringe, labelBn: 'টিকা', labelEn: 'Vaccines', color: 'border-[#A9471C] bg-[#B95727] text-white hover:bg-[#A9471C]' },
+          ].map(({ id, icon: Icon, labelBn, labelEn, color }) => (
             <button
               key={id}
               type="button"
               disabled={id === 'sleep' && isCurrentChildSleeping}
               onClick={() => {
                 if (id === 'sleep' && isCurrentChildSleeping) return;
-                openEntry(id as 'feed' | 'sleep' | 'potty');
+                if (id === 'feed' || id === 'diaper') {
+                  setActiveActionMenu(id);
+                  setShowAnalysis(false);
+                  return;
+                }
+                if (id === 'vaccine') {
+                  setShowVaccineJourney(true);
+                  setShowAnalysis(false);
+                  return;
+                }
+                openRoutineEntry('sleep');
               }}
               className={`flex min-h-24 items-center gap-3 rounded-2xl border-2 px-4 py-4 text-left text-base font-bold shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30 disabled:cursor-not-allowed disabled:opacity-70 sm:min-h-28 sm:px-5 sm:text-lg ${color}`}
             >
@@ -635,30 +1117,39 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
               </span>
               <span>{id === 'sleep' && isCurrentChildSleeping ? (currentLang === 'bn' ? 'ঘুম চলছে' : 'Sleep in progress') : currentLang === 'bn' ? labelBn : labelEn}</span>
             </button>
-          );
-        })}
-        <button
-          type="button"
-          aria-expanded={showAnalysis}
-          onClick={() => {
-            setIsEntryOpen(false);
-            setShowAnalysis((show) => !show);
-          }}
-          className="flex min-h-24 items-center gap-3 rounded-2xl border-2 border-[#39458E] bg-[#4955A4] px-4 py-4 text-left text-base font-bold text-white shadow-xs transition-all hover:-translate-y-0.5 hover:bg-[#39458E] hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#A5B1EE]/60 sm:min-h-28 sm:px-5 sm:text-lg"
-        >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-xs sm:h-14 sm:w-14">
-            <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7" />
-          </span>
-          <span>{currentLang === 'bn' ? 'বিশ্লেষণ' : 'Analysis'}</span>
-        </button>
-      </div>
+          ))}
+          <button
+            type="button"
+            aria-expanded={showAnalysis}
+            onClick={() => {
+              setIsEntryOpen(false);
+              setShowAnalysis((show) => !show);
+            }}
+            className="flex min-h-24 items-center gap-3 rounded-2xl border-2 border-[#39458E] bg-[#4955A4] px-4 py-4 text-left text-base font-bold text-white shadow-xs transition-all hover:-translate-y-0.5 hover:bg-[#39458E] hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#A5B1EE]/60 sm:min-h-28 sm:px-5 sm:text-lg"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-xs sm:h-14 sm:w-14">
+              <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7" />
+            </span>
+            <span>{currentLang === 'bn' ? 'বিশ্লেষণ' : 'Analysis'}</span>
+          </button>
+        </div>
+      )}
 
       {showAnalysis && (
-        <section className="space-y-6 rounded-3xl border border-[#E8E2DA] bg-white p-4 shadow-sm sm:p-6" aria-labelledby="routine-analysis-title">
-          <div>
+        <div
+          className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#202532]/65 p-2 backdrop-blur-sm sm:items-center sm:p-5"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowAnalysis(false);
+          }}
+        >
+        <section ref={entryFormRef} role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="routine-analysis-title" className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-y-auto rounded-2xl border border-[#E9DED3] bg-white p-5 shadow-[0_24px_80px_rgba(27,35,48,0.28)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[min(90dvh,900px)] sm:rounded-3xl sm:p-7">
+          <div className="mb-6 flex items-start justify-between gap-4 border-b border-[#F0E8E1] pb-4">
+            <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[#B95727]">{currentLang === 'bn' ? 'যত্নের অগ্রগতি' : 'CARE TRENDS'}</p>
             <h3 id="routine-analysis-title" className="mt-1 text-xl font-extrabold text-[#2D3142] sm:text-2xl">{currentLang === 'bn' ? `${childName}-এর বিশ্লেষণ` : `${childName}'s analysis`}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#667085]">{currentLang === 'bn' ? 'আপনার সংরক্ষিত এন্ট্রি থেকে ঘুম, খাওয়া, ডায়াপার ও পটির ধারাবাহিকতা দেখুন।' : 'Explore sleep, feeding, diaper, and potty patterns from your saved entries.'}</p>
+            <p className="mt-1 text-sm leading-relaxed text-[#667085]">{currentLang === 'bn' ? 'আপনার সংরক্ষিত এন্ট্রি থেকে ঘুম, খাওয়া, ডায়পার ও পটির ধারাবাহিকতা দেখুন।' : 'Explore sleep, feeding, diaper, and potty patterns from your saved entries.'}</p>
+            </div>
+            <button type="button" onClick={() => setShowAnalysis(false)} aria-label={currentLang === 'bn' ? 'বিশ্লেষণ বন্ধ করুন' : 'Close analysis'} className="shrink-0 rounded-xl p-2 text-[#667085] transition hover:bg-[#F4F1EC] hover:text-[#25313D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B95727]/20"><X className="h-5 w-5" /></button>
           </div>
 
           <div className="grid grid-cols-3 gap-1.5 rounded-2xl bg-[#F4F1EC] p-1.5" role="tablist" aria-label={currentLang === 'bn' ? 'বিশ্লেষণের সময়কাল' : 'Analysis period'}>
@@ -801,6 +1292,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
             </>
           )}
         </section>
+        </div>
       )}
 
       {/* Selected day's summary */}
@@ -824,7 +1316,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
           </div>
           <div className="flex items-center gap-3 rounded-2xl border border-[#BFE4D7] bg-white p-4">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F0FAF6] text-[#28745C]"><Baby className="h-5 w-5" /></span>
-            <div><p className="text-xs text-[#667085]">{currentLang === 'bn' ? 'ডায়াপার পরিবর্তন' : 'Diaper changes'}</p><p className="text-lg font-extrabold text-[#2D3142]">{formatLocalizedNumber(diaperCount, currentLang)} {currentLang === 'bn' ? 'বার' : 'times'}</p></div>
+            <div><p className="text-xs text-[#667085]">{currentLang === 'bn' ? 'ডায়পার পরিবর্তন' : 'Diaper changes'}</p><p className="text-lg font-extrabold text-[#2D3142]">{formatLocalizedNumber(diaperCount, currentLang)} {currentLang === 'bn' ? 'বার' : 'times'}</p></div>
           </div>
           <div className="flex items-center gap-3 rounded-2xl border border-[#D5DDB2] bg-white p-4">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F8FAEF] text-[#61752D]"><Droplets className="h-5 w-5" /></span>
@@ -872,10 +1364,51 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
               <label className={routineLabelClass}>{selectedType === 'diaper' || currentLang === 'bn' ? 'সময়' : 'Time'}<select required value={logTime} onChange={(event) => setLogTime(event.target.value)} className={routineFieldClass}>{timeOptions.map((time) => <option key={time} value={time}>{formatRoutineTime(time, selectedType === 'diaper' ? 'bn' : currentLang)}</option>)}</select></label>
             </div>}
 
-            {selectedType === 'feed' && <div>
-              <label className={routineLabelClass}>{currentLang === 'bn' ? 'কী খেয়েছে?' : 'What did the child eat?'}<select required value={feedItem} onChange={(event) => setFeedItem(event.target.value)} className={routineFieldClass}>{feedOptions.map((item) => <option key={item.id} value={item.id}>{currentLang === 'bn' ? item.labelBn : item.labelEn}</option>)}<option value="other">{currentLang === 'bn' ? 'অন্যান্য' : 'Other'}</option></select></label>
-              {feedItem === 'other' && <input type="text" required value={customFeedItem} onChange={(event) => setCustomFeedItem(event.target.value)} placeholder={currentLang === 'bn' ? 'খাবারের নাম লিখুন' : 'Enter food name'} className={routineFieldClass} />}
-            </div>}
+            {selectedType === 'feed' && (
+              <div className="space-y-4 rounded-2xl border border-[#F0D4C2] bg-[#FFFAF5] p-4 sm:p-5">
+                <p className="flex items-center gap-2 text-sm font-bold text-[#8F421F]">
+                  <span aria-hidden="true">{feedMethods.find((item) => item.id === feedMethod)?.sticker}</span>
+                  {feedMethods.find((item) => item.id === feedMethod)?.label}
+                </p>
+                {feedMethod === 'breastfeeding' ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-[#F0D4C2] bg-white p-4">
+                    <span className="text-2xl" aria-hidden="true">🤱</span>
+                    <span className="font-semibold text-[#344054]">মায়ের বুকের দুধ</span>
+                  </div>
+                ) : (
+                  <div>
+                    <label className={routineLabelClass}>
+                      {currentLang === 'bn'
+                        ? feedMethod === 'bottle' ? 'বোতলে কী দিয়েছেন?' : 'কী খেয়েছে?'
+                        : feedMethod === 'bottle' ? 'What was in the bottle?' : 'What did your baby eat?'}
+                      <select required value={feedItem} onChange={(event) => setFeedItem(event.target.value)} className={routineFieldClass}>
+                        {feedMethodOptions[feedMethod].map((item) => <option key={item.id} value={item.id}>{currentLang === 'bn' ? item.labelBn : item.labelEn}</option>)}
+                        <option value="other">{currentLang === 'bn' ? 'অন্যান্য' : 'Other'}</option>
+                      </select>
+                    </label>
+                    {feedItem === 'other' && <input type="text" required value={customFeedItem} onChange={(event) => setCustomFeedItem(event.target.value)} placeholder={currentLang === 'bn' ? feedMethod === 'bottle' ? 'দুধের নাম লিখুন' : 'খাবারের নাম লিখুন' : feedMethod === 'bottle' ? 'Enter the milk type' : 'Enter the food name'} className={routineFieldClass} />}
+                  </div>
+                )}
+                <label className={routineLabelClass}>
+                  {currentLang === 'bn' ? feedMethod === 'breastfeeding' ? 'খাওয়ানোর সময়' : 'পরিমাণ' : feedMethod === 'breastfeeding' ? 'Feeding duration' : 'Amount'}
+                  <span className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="any"
+                      required
+                      value={feedAmount}
+                      onChange={(event) => setFeedAmount(event.target.value)}
+                      placeholder={feedMethod === 'breastfeeding' ? '10' : feedMethod === 'bottle' ? '120' : '1'}
+                      className={routineFieldClass}
+                    />
+                    <select required value={feedAmountUnit} onChange={(event) => setFeedAmountUnit(event.target.value)} className="mt-2 min-h-12 rounded-xl border border-[#E6DDD4] bg-white px-3 text-base text-[#2D3142] shadow-sm outline-none transition focus:border-[#2F6B47] focus:ring-4 focus:ring-[#2F6B47]/10">
+                      {feedAmountUnits[feedMethod].map((unit) => <option key={unit.id} value={unit.id}>{currentLang === 'bn' ? unit.label : unit.labelEn}</option>)}
+                    </select>
+                  </span>
+                </label>
+              </div>
+            )}
 
             {selectedType === 'sleep' && (
               <div className="space-y-4">
@@ -972,7 +1505,7 @@ export const BabyRoutineTracker: React.FC<BabyRoutineTrackerProps> = ({
               </>
             )}
 
-            {selectedType === 'potty' && <label className={routineLabelClass}>{currentLang === 'bn' ? 'পটির অবস্থা' : 'Potty details'}<select value={pottyStatus} onChange={(event) => setPottyStatus(event.target.value)} className={routineFieldClass}><option value="স্বাভাবিক ও নরম">স্বাভাবিক ও নরম</option><option value="শুধু প্রস্রাব (ভেজা ডায়াপার)">শুধু প্রস্রাব (ভেজা ডায়াপার)</option><option value="সামান্য শক্ত (পানি কম)">সামান্য শক্ত (পানি কম)</option><option value="পাতলা পায়খানা">পাতলা পায়খানা</option></select></label>}
+            {selectedType === 'potty' && <label className={routineLabelClass}>{currentLang === 'bn' ? 'পটির অবস্থা' : 'Potty details'}<select value={pottyStatus} onChange={(event) => setPottyStatus(event.target.value)} className={routineFieldClass}><option value="স্বাভাবিক ও নরম">স্বাভাবিক ও নরম</option><option value="শুধু প্রস্রাব (ভেজা ডায়পার)">শুধু প্রস্রাব (ভেজা ডায়পার)</option><option value="সামান্য শক্ত (পানি কম)">সামান্য শক্ত (পানি কম)</option><option value="পাতলা পায়খানা">পাতলা পায়খানা</option></select></label>}
 
             {(selectedType !== 'sleep' && selectedType !== 'diaper' || selectedType === 'sleep' && sleepEntryMode === 'manual') && <label className={routineLabelClass}>{currentLang === 'bn' ? 'নোট (ঐচ্ছিক)' : 'Note (optional)'}<textarea rows={3} value={customNote} onChange={(event) => setCustomNote(event.target.value)} placeholder={currentLang === 'bn' ? 'কোনো বিশেষ তথ্য লিখুন…' : 'Add any details…'} className={`${routineFieldClass} min-h-28 resize-y py-3`} /></label>}
 

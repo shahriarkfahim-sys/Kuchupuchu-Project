@@ -33,21 +33,21 @@ interface Product {
 }
 
 const products: Product[] = [
-  { id: 'bashundhara-diaper', brandBn: 'বসুন্ধরা', brandEn: 'Bashundhara', nameBn: 'বেবি ডায়াপার প্যান্ট', nameEn: 'Baby Diaper Pants', category: 'diapering', price: 699, oldPrice: 780, sizeBn: 'এম • ৩২ পিস', sizeEn: 'M • 32 pcs', emoji: '👶', color: 'bg-[#E4F1FF]', promoted: true },
+  { id: 'bashundhara-diaper', brandBn: 'বসুন্ধরা', brandEn: 'Bashundhara', nameBn: 'বেবি ডায়পার প্যান্ট', nameEn: 'Baby Diaper Pants', category: 'diapering', price: 699, oldPrice: 780, sizeBn: 'এম • ৩২ পিস', sizeEn: 'M • 32 pcs', emoji: '👶', color: 'bg-[#E4F1FF]', promoted: true },
   { id: 'lactogen-formula', brandBn: 'ল্যাকটোজেন', brandEn: 'Lactogen', nameBn: 'ইনফ্যান্ট ফর্মুলা', nameEn: 'Infant Formula', category: 'feeding', price: 845, sizeBn: '১ নম্বর • ৩৫০ গ্রাম', sizeEn: 'Stage 1 • 350 g', emoji: '🍼', color: 'bg-[#FFF0D8]' },
   { id: 'fresh-wipes', brandBn: 'ফ্রেশ', brandEn: 'Fresh', nameBn: 'বেবি ওয়েট ওয়াইপস', nameEn: 'Baby Wet Wipes', category: 'diapering', price: 145, sizeBn: '৮০টি', sizeEn: '80 wipes', emoji: '🧻', color: 'bg-[#E7F4EB]', promoted: true },
   { id: 'meril-lotion', brandBn: 'মেরিল', brandEn: 'Meril', nameBn: 'বেবি লোশন', nameEn: 'Baby Lotion', category: 'care', price: 260, sizeBn: '২০০ মিলি', sizeEn: '200 ml', emoji: '🧴', color: 'bg-[#FCE8E5]' },
   { id: 'kodomo-shampoo', brandBn: 'কোডোমো', brandEn: 'Kodomo', nameBn: 'জেন্টল বেবি শ্যাম্পু', nameEn: 'Gentle Baby Shampoo', category: 'bath', price: 310, sizeBn: '২০০ মিলি', sizeEn: '200 ml', emoji: '🫧', color: 'bg-[#E7F2FB]' },
   { id: 'savlon-soap', brandBn: 'স্যাভলন', brandEn: 'Savlon', nameBn: 'বেবি সোপ', nameEn: 'Baby Soap', category: 'bath', price: 95, sizeBn: '৭৫ গ্রাম', sizeEn: '75 g', emoji: '🧼', color: 'bg-[#F2EAFE]' },
   { id: 'cerelac-cereal', brandBn: 'সেরেলাক', brandEn: 'Cerelac', nameBn: 'রাইস ও ভেজিটেবল সিরিয়াল', nameEn: 'Rice & Vegetable Cereal', category: 'feeding', price: 430, sizeBn: '৬ মাস+ • ৩০০ গ্রাম', sizeEn: '6+ months • 300 g', emoji: '🥣', color: 'bg-[#FFF2D5]' },
-  { id: 'supermom-diaper', brandBn: 'সুপারমম', brandEn: 'Supermom', nameBn: 'বেবি ডায়াপার', nameEn: 'Baby Diaper', category: 'diapering', price: 525, sizeBn: 'এল • ৩০ পিস', sizeEn: 'L • 30 pcs', emoji: '🧷', color: 'bg-[#FBE8F0]' },
+  { id: 'supermom-diaper', brandBn: 'সুপারমম', brandEn: 'Supermom', nameBn: 'বেবি ডায়পার', nameEn: 'Baby Diaper', category: 'diapering', price: 525, sizeBn: 'এল • ৩০ পিস', sizeEn: 'L • 30 pcs', emoji: '🧷', color: 'bg-[#FBE8F0]' },
   { id: 'dano-milk', brandBn: 'ডানো', brandEn: 'Dano', nameBn: 'গ্রোয়িং-আপ মিল্ক', nameEn: 'Growing-up Milk', category: 'feeding', price: 780, sizeBn: '১+ বছর • ৪০০ গ্রাম', sizeEn: '1+ years • 400 g', emoji: '🥛', color: 'bg-[#E5F3F0]' },
   { id: 'jui-oil', brandBn: 'জুঁই', brandEn: 'Jui', nameBn: 'বেবি ম্যাসাজ অয়েল', nameEn: 'Baby Massage Oil', category: 'care', price: 190, sizeBn: '২০০ মিলি', sizeEn: '200 ml', emoji: '🌼', color: 'bg-[#FFF3DA]' },
 ];
 
 const categories: { id: Category; bn: string; en: string }[] = [
   { id: 'all', bn: 'সব পণ্য', en: 'All items' },
-  { id: 'diapering', bn: 'ডায়াপার ও ওয়াইপস', en: 'Diapers & wipes' },
+  { id: 'diapering', bn: 'ডায়পার ও ওয়াইপস', en: 'Diapers & wipes' },
   { id: 'feeding', bn: 'খাবার ও ফিডিং', en: 'Food & feeding' },
   { id: 'bath', bn: 'গোসল ও পরিচর্যা', en: 'Bath & body' },
   { id: 'care', bn: 'দৈনন্দিন যত্ন', en: 'Daily care' },

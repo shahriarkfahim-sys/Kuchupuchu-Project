@@ -500,8 +500,8 @@ export default function App() {
           !isLoggedIn ? (
             <AuthGateCard
               currentLang={currentLang}
-              tabTitle={currentLang === 'bn' ? 'দৈনন্দিন রুটিন ও যত্ন ট্র্যাকার' : 'Daily Routine & Care Tracker'}
-              tabDescription={currentLang === 'bn' ? 'খাবার, ঘুম, ডায়াপার পরিবর্তন ও পটির হিসাব রাখতে লগইন করুন অথবা পেরেন্ট কোড দিন।' : 'Sign in or enter parent code to track feeds, sleep, diaper changes, and potty.'}
+              tabTitle={currentLang === 'bn' ? 'ট্র্যাকার' : 'Tracker'}
+              tabDescription={currentLang === 'bn' ? 'খাবার, ঘুম, ডায়পার পরিবর্তন ও পটির হিসাব রাখতে লগইন করুন অথবা পেরেন্ট কোড দিন।' : 'Sign in or enter parent code to track feeds, sleep, diaper changes, and potty.'}
               onOpenLogin={() => {
                 setAuthGateTargetTab('daily-routine');
                 setAuthGateModalOpen(true);

@@ -24,6 +24,18 @@ interface ChatRequest {
   ip?: string;
 }
 
+const assistantNames = {
+  kantha: { bn: 'কুচু', en: 'Kuchu' },
+  boy: { bn: 'টুকু', en: 'Tuku' },
+  girl: { bn: 'মিম', en: 'Mim' },
+  tiger: { bn: 'বাঘু', en: 'Baghu' },
+  doel: { bn: 'পিউ', en: 'Piu' },
+} as const;
+
+function isAssistantMascotId(value: unknown): value is keyof typeof assistantNames {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(assistantNames, value);
+}
+
 interface ChatResponse {
   status(code: number): ChatResponse;
   json(body: Record<string, unknown>): void;
@@ -62,12 +74,14 @@ export async function handleSonaiChat(request: ChatRequest, response: ChatRespon
   const language = payload.language;
   const rawHistory = payload.history;
   const rawChild = payload.child;
+  const rawMascotId = payload.mascotId;
   if (
     typeof message !== 'string' ||
     !message.trim() ||
     message.length > 1000 ||
     (language !== 'bn' && language !== 'en') ||
     !Array.isArray(rawHistory) ||
+    (rawMascotId !== undefined && !isAssistantMascotId(rawMascotId)) ||
     rawHistory.length > 8
   ) {
     response.status(400).json({ error: 'invalid_request' });
@@ -170,6 +184,8 @@ export async function handleSonaiChat(request: ChatRequest, response: ChatRespon
   }
 
   const languageName = language === 'bn' ? 'Bangla' : 'English';
+  const mascotId = isAssistantMascotId(rawMascotId) ? rawMascotId : 'kantha';
+  const assistantName = assistantNames[mascotId][language];
   const siteKnowledge = `
 Kuchupuchu is a Bangla/English parenting and early-childhood-development website.
 Its features include a child growth roadmap and charts across six domains, developmental milestone checklists,
@@ -182,7 +198,7 @@ ${childContext ? `Selected child's private context (no name or direct identifier
 `;
 
   const systemInstruction = `
-You are Tuki, Kuchupuchu's warm, cute, kind, heroic little AI helper. Answer only in ${languageName}.
+You are ${assistantName}, Kuchupuchu's warm, cute, kind, heroic little AI helper. Answer only in ${languageName}.
 Use simple, friendly language and keep answers concise but complete. For lists, include all relevant available items;
 finish each sentence and list item instead of stopping mid-thought. You can explain only Kuchupuchu information in the supplied
 site knowledge, general child-development education, and the selected child's supplied records. Never invent site
@@ -214,15 +230,15 @@ ${siteKnowledge}
     if (!answer || answer.includes(unknownMarker)) {
       response.json({
         answer: language === 'bn'
-          ? 'আমি নিজে এখনো ছোট, আমি একটু একটু শিখছি। এটা শিখতে আমার একটু সময় লাগবে।'
-          : "I'm still little and learning bit by bit. I'll need a little more time to learn this.",
+          ? `আমি ${assistantName}। আমি নিজে এখনো ছোট, আমি একটু একটু শিখছি। এটা শিখতে আমার একটু সময় লাগবে।`
+          : `I'm ${assistantName}. I'm still little and learning bit by bit. I'll need a little more time to learn this.`,
       });
       return;
     }
 
     response.json({ answer });
   } catch (error) {
-    console.error('Tuki DeepSeek request failed:', error);
+    console.error('Kuchupuchu assistant DeepSeek request failed:', error);
     const status = error instanceof DeepSeekError ? error.status : null;
     if (status === 429) {
       const retryAfterSeconds = error instanceof DeepSeekError ? error.retryAfterSeconds : null;

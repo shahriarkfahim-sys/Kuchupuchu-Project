@@ -105,14 +105,14 @@ function createRoutineAnalysisDemoLogs(): RoutineLogEntry[] {
   }> = [
     { type: 'feed', hour: 7, minute: 30, titleBn: 'সকালের নাশতা', titleEn: 'Breakfast', detailsBn: 'বয়স অনুযায়ী পুষ্টিকর নাশতা খেয়েছে।', detailsEn: 'Enjoyed a nutritious age-appropriate breakfast.', iconType: 'soup' },
     { type: 'sleep', hour: 9, minute: 30, durationMinutes: 75, titleBn: 'সকালের ঘুম (১ ঘণ্টা ১৫ মিনিট)', titleEn: 'Morning nap (1h 15m)', detailsBn: 'শান্ত পরিবেশে আরাম করে ঘুমিয়েছে।', detailsEn: 'Had a comfortable nap in a calm environment.', iconType: 'moon' },
-    { type: 'diaper', hour: 10, minute: 50, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পরিষ্কার ও শুকনো ডায়াপার পরানো হয়েছে।', detailsEn: 'Changed into a clean, dry diaper.', iconType: 'diaper' },
+    { type: 'diaper', hour: 10, minute: 50, titleBn: 'ডায়পার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পরিষ্কার ও শুকনো ডায়পার পরানো হয়েছে।', detailsEn: 'Changed into a clean, dry diaper.', iconType: 'diaper' },
     { type: 'feed', hour: 12, minute: 30, titleBn: 'দুপুরের খাবার', titleEn: 'Lunch', detailsBn: 'সবজি ও ডাল দিয়ে নরম খাবার খেয়েছে।', detailsEn: 'Had a soft meal with vegetables and lentils.', iconType: 'soup' },
     { type: 'potty', hour: 13, minute: 10, titleBn: 'স্বাভাবিক পটি', titleEn: 'Normal potty', detailsBn: 'পটির অবস্থা স্বাভাবিক ছিল।', detailsEn: 'Potty was normal.', iconType: 'baby' },
-    { type: 'diaper', hour: 13, minute: 25, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পটি করার পর ডায়াপার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper after potty.', iconType: 'diaper' },
+    { type: 'diaper', hour: 13, minute: 25, titleBn: 'ডায়পার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পটি করার পর ডায়পার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper after potty.', iconType: 'diaper' },
     { type: 'sleep', hour: 14, minute: 30, durationMinutes: 60, titleBn: 'বিকালের ঘুম (১ ঘণ্টা)', titleEn: 'Afternoon nap (1h)', detailsBn: 'বিকেলে এক ঘণ্টা নিশ্চিন্তে ঘুমিয়েছে।', detailsEn: 'Slept comfortably for an hour in the afternoon.', iconType: 'moon' },
-    { type: 'diaper', hour: 16, minute: 0, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'আরামের জন্য পরিষ্কার ডায়াপার পরানো হয়েছে।', detailsEn: 'Changed into a clean diaper for comfort.', iconType: 'diaper' },
+    { type: 'diaper', hour: 16, minute: 0, titleBn: 'ডায়পার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'আরামের জন্য পরিষ্কার ডায়পার পরানো হয়েছে।', detailsEn: 'Changed into a clean diaper for comfort.', iconType: 'diaper' },
     { type: 'feed', hour: 17, minute: 30, titleBn: 'বিকেলের নাশতা', titleEn: 'Afternoon snack', detailsBn: 'হালকা নাশতা ও পানি খেয়েছে।', detailsEn: 'Had a light snack and some water.', iconType: 'soup' },
-    { type: 'diaper', hour: 19, minute: 0, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'রাতের আগে ডায়াপার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper before bedtime.', iconType: 'diaper' },
+    { type: 'diaper', hour: 19, minute: 0, titleBn: 'ডায়পার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'রাতের আগে ডায়পার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper before bedtime.', iconType: 'diaper' },
   ];
 
   for (let daysAgo = 29; daysAgo >= 0; daysAgo -= 1) {
@@ -183,7 +183,7 @@ export const initialRoutineLogs: RoutineLogEntry[] = [
     id: 'r_3',
     type: 'potty',
     time: 'দুপুর ১২:১৫',
-    titleBn: 'স্বাভাবিক পটি ও ডায়াপার পরিবর্তন',
+    titleBn: 'স্বাভাবিক পটি ও ডায়পার পরিবর্তন',
     titleEn: 'Normal Potty & Diaper Change',
     detailsBn: 'পেটের অবস্থা স্বাভাবিক ও নরম। পরিষ্কার করে খাঁটি নারিকেল তেল মালিশ করা হয়েছে।',
     detailsEn: 'Normal healthy stool, cleaned and moisturized.',

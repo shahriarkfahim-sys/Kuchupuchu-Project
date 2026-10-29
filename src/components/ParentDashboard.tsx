@@ -19,12 +19,12 @@ import mascotFamily from '../assets/images/mascot_family.svg';
 import './ParentDashboard.css';
 
 const journeyItems = [
+  { id: 'daily-routine', icon: Activity, bn: 'ট্র্যাকার', en: 'Tracker', noteBn: 'ঘুম, খাবার ও যত্নের হিসাব রাখুন', noteEn: 'Track sleep, feeds, and care' },
   { id: 'ogrogoti-graph', icon: ChartNoAxesColumnIncreasing, bn: 'বিকাশের অগ্রগতি', en: 'Growth & milestones', noteBn: 'মাইলস্টোন ও অগ্রগতি দেখুন', noteEn: 'See milestones and progress' },
   { id: 'daily-play', icon: Gamepad2, bn: 'একসঙ্গে খেলার সময়', en: 'Play together', noteBn: 'বয়স অনুযায়ী খেলার আইডিয়া', noteEn: 'Age-based play ideas' },
-  { id: 'daily-routine', icon: Activity, bn: 'দৈনন্দিন যত্ন', en: 'Everyday care', noteBn: 'ঘুম, খাবার ও রুটিন রাখুন', noteEn: 'Track sleep, feeds, and routines' },
   { id: 'baby-diary', icon: BookHeart, bn: 'স্মৃতি ও ডায়েরি', en: 'Memories & diary', noteBn: 'বিশেষ মুহূর্তগুলো লিখে রাখুন', noteEn: 'Save the little moments' },
-  { id: 'forum', icon: Users, bn: 'অভিভাবকদের সঙ্গে', en: 'Parent community', noteBn: 'অভিজ্ঞতা ভাগ করুন', noteEn: 'Share and learn together' },
   { id: 'care-connect', icon: HeartHandshake, bn: 'প্রয়োজনীয় সহায়তা', en: 'Care & support', noteBn: 'বিশেষজ্ঞ ও সেবা খুঁজুন', noteEn: 'Find services and support' },
+  { id: 'forum', icon: Users, bn: 'অভিভাবকদের সঙ্গে', en: 'Parent community', noteBn: 'অভিজ্ঞতা ভাগ করুন', noteEn: 'Share and learn together' },
   { id: 'ponno', icon: ShoppingBag, bn: 'দরকারি পণ্য', en: 'Helpful products', noteBn: 'পরিবারের জন্য কেনাকাটা', noteEn: 'Shop for your family' },
 ];
 
@@ -119,7 +119,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const steps = [
     { id: 'ogrogoti-graph', icon: ChartNoAxesColumnIncreasing, title: isBangla ? 'বিকাশের অগ্রগতি' : 'Growth & milestones', text: isBangla ? 'মাইলস্টোনগুলো দেখুন, সন্তানের নতুন অগ্রগতি বুঝুন।' : 'Explore milestones and see how your child is growing.' },
     { id: 'daily-play', icon: Gamepad2, title: isBangla ? 'আজকের খেলার আইডিয়া' : 'Play together today', text: isBangla ? 'বয়স অনুযায়ী সহজ খেলা বেছে নিন।' : 'Choose a simple activity for your child’s age.' },
-    { id: 'daily-routine', icon: Activity, title: isBangla ? 'দৈনন্দিন যত্ন' : 'Everyday care', text: isBangla ? 'ঘুম, খাওয়া ও যত্নের রুটিন লিখে রাখুন।' : 'Keep track of sleep, feeding, and care.' },
+    { id: 'daily-routine', icon: Activity, title: isBangla ? 'ট্র্যাকার' : 'Tracker', text: isBangla ? 'ঘুম, খাওয়া ও যত্নের হিসাব লিখে রাখুন।' : 'Keep track of sleep, feeding, and care.' },
   ];
 
   return (

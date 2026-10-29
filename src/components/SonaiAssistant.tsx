@@ -31,35 +31,26 @@ interface ChildContext {
   completedActivities: number;
 };
 
-export function makeMascot(size: 'small' | 'large' = 'small') {
-  const dimensions = size === 'large' ? 'h-24 w-24' : 'h-14 w-14';
+const mascotImages: Record<string, string> = {
+  kantha: '/assets/characters/live/5_kuchu_kantha_baby_live.svg',
+  boy: '/assets/characters/live/1_baby_boy_live.svg',
+  girl: '/assets/characters/live/2_baby_girl_live.svg',
+  tiger: '/assets/characters/live/3_tiger_cub_live.svg',
+  doel: '/assets/characters/live/4_doel_bird_live.svg',
+};
+
+const mascotNamesEn: Record<string, string> = {
+  kantha: 'Kuchu',
+  boy: 'Tuku',
+  girl: 'Mim',
+  tiger: 'Baghu',
+  doel: 'Piu',
+};
+
+export function makeMascot(size: 'small' | 'large' = 'small', mascotId = 'kantha', name = 'কুচু') {
+  const dimensions = size === 'large' ? 'h-24 w-24' : 'h-12 w-12';
   return (
-    <svg className={`${dimensions} overflow-visible`} viewBox="0 0 96 96" role="img" aria-label="Tuki, a friendly little helper">
-      <ellipse cx="48" cy="87" rx="26" ry="6" fill="#5B4A68" opacity=".12" />
-      <g className="shonai-body">
-        <path d="M30 72c3-9 10-13 18-13s15 4 18 13l5 12H25z" fill="#F08B78" />
-        <path d="M39 61h18v13c0 5-4 9-9 9s-9-4-9-9z" fill="#F3BBA2" />
-        <path d="M28 39c0-19 9-30 23-30 15 0 24 12 22 31l-5 23H33z" fill="#553F4B" />
-        <path d="M30 42c0-16 8-25 19-25 13 0 20 9 19 25l-2 15c-1 9-9 15-18 15s-16-6-17-15z" fill="#F6C7A8" />
-        <path d="M29 39c-2-18 7-31 23-31 14 0 24 11 23 27-7-1-12-5-15-11-5 7-16 11-31 12z" fill="#553F4B" />
-        <path d="M26 28c-5-9 0-17 8-16 5-11 18-11 22-2 9-4 17 3 15 11 7 5 3 14-4 17l-3-12c-9 2-20 0-28-4l-6 13z" fill="#553F4B" />
-        <path d="M31 37c-7-4-12 1-10 7 1 4 5 6 9 4M67 37c7-4 12 1 10 7-1 4-5 6-9 4" fill="#F6C7A8" />
-        <g className="shonai-face">
-          <ellipse cx="40" cy="47" rx="2.1" ry="2.8" fill="#403444" />
-          <ellipse cx="58" cy="47" rx="2.1" ry="2.8" fill="#403444" />
-          <path d="M39 42q2-2 4 0M55 42q2-2 4 0" fill="none" stroke="#684850" strokeWidth="1.7" strokeLinecap="round" />
-          <path d="M45 55q3 3 6 0" fill="none" stroke="#C76F70" strokeWidth="1.8" strokeLinecap="round" />
-          <ellipse cx="34" cy="53" rx="4" ry="2" fill="#EB8E89" opacity=".45" />
-          <ellipse cx="64" cy="53" rx="4" ry="2" fill="#EB8E89" opacity=".45" />
-        </g>
-        <path d="M39 70l-3 9m21-9 3 9" stroke="#F6C7A8" strokeWidth="5" strokeLinecap="round" />
-        <path d="M38 83l-5 2m26-2 5 2" stroke="#604A70" strokeWidth="5" strokeLinecap="round" />
-        <path d="M27 67l-5 8m47-8 5 8" stroke="#F6C7A8" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="23" cy="76" r="2.5" fill="#F4C76A" />
-        <circle cx="73" cy="76" r="2.5" fill="#F4C76A" />
-      </g>
-      <path d="M72 23l2.4 5 5 2.4-5 2.4-2.4 5-2.4-5-5-2.4 5-2.4z" fill="#F4C76A" />
-    </svg>
+    <img className={`${dimensions} shrink-0 object-contain`} src={mascotImages[mascotId] ?? mascotImages.kantha} alt={name} />
   );
 }
 
@@ -73,6 +64,10 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
   activities,
 }) => {
   const isBn = currentLang === 'bn';
+  const mascotId = activeChild.mascotId && mascotImages[activeChild.mascotId] ? activeChild.mascotId : 'kantha';
+  const assistantNameBn = activeChild.mascotNameBn || 'কুচু';
+  const assistantNameEn = mascotNamesEn[mascotId];
+  const assistantName = isBn ? assistantNameBn : assistantNameEn;
   const [isOpen, setIsOpen] = useState(false);
   const [reminder, setReminder] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -122,6 +117,12 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
   }, [messages, isSending, isOpen]);
 
   useEffect(() => {
+    setMessages([]);
+    setInput('');
+    setError('');
+  }, [activeChild.id, mascotId]);
+
+  useEffect(() => {
     if (quotaSleepUntil === null) return;
     const remaining = quotaSleepUntil - Date.now();
     if (remaining <= 0) {
@@ -159,6 +160,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
         body: JSON.stringify({
           message: cleanText,
           language: currentLang,
+          mascotId,
           history: nextMessages.slice(-9, -1),
           child: isLoggedIn ? childContext : null,
         }),
@@ -197,7 +199,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : '';
       if (message === 'assistant_not_configured') {
-        setError(isBn ? 'টুকিকে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।' : 'Add a DeepSeek API key on the server to enable Tuki.');
+        setError(isBn ? `${assistantNameBn}-কে চালু করতে server-এ DeepSeek API key যোগ করতে হবে।` : `Add a DeepSeek API key on the server to enable ${assistantNameEn}.`);
       } else if (message === 'assistant_invalid_api_key') {
         setError(isBn
           ? 'DeepSeek API key গ্রহণ করা হয়নি। server-এর DEEPSEEK_API_KEY পরীক্ষা করুন।'
@@ -219,7 +221,7 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
       } else if (message === 'rate_limited') {
         setError(isBn ? 'অল্প সময়ে অনেকবার চেষ্টা হয়েছে। এক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।' : 'There have been too many requests. Please wait a minute and try again.');
       } else {
-        setError(isBn ? 'এখন টুকির সাথে যোগাযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।' : 'Tuki could not connect just now. Please try again in a moment.');
+        setError(isBn ? `এখন ${assistantNameBn}-এর সাথে যোগাযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।` : `${assistantNameEn} could not connect just now. Please try again in a moment.`);
       }
     } finally {
       setIsSending(false);
@@ -239,21 +241,11 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
 
   return (
     <>
-      <style>{`
-        @keyframes shonai-bob { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-5px) rotate(1deg); } }
-        @keyframes shonai-nod { 0%,82%,100% { transform: rotate(0); } 86% { transform: rotate(-7deg); } 90% { transform: rotate(5deg); } 94% { transform: rotate(-3deg); } }
-        @keyframes shonai-blink { 0%,45%,49%,100% { transform: scaleY(1); } 47% { transform: scaleY(.12); } }
-        .shonai-body { transform-origin: 48px 77px; animation: shonai-bob 3s ease-in-out infinite; }
-        .shonai-face { transform-origin: 48px 49px; animation: shonai-nod 7s ease-in-out infinite; }
-        .shonai-face ellipse:nth-child(-n+2) { transform-box: fill-box; transform-origin: center; animation: shonai-blink 5s linear infinite; }
-        @media (prefers-reduced-motion: reduce) { .shonai-body,.shonai-face,.shonai-face ellipse { animation: none; } }
-      `}</style>
-
       <div className="fixed bottom-5 right-4 z-[60] flex flex-col items-end gap-2 sm:bottom-6 sm:right-6">
         {reminder && isLoggedIn && !isOpen && (
           <div className="relative flex max-w-[280px] items-center gap-2 rounded-2xl border border-[#F0D9CC] bg-white p-3 pr-9 text-xs leading-relaxed text-[#4F4A55] shadow-lg">
             <span className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-b border-r border-[#F0D9CC] bg-white" />
-            <span className="shrink-0">{makeMascot('small')}</span>
+            <span className="shrink-0">{makeMascot('small', mascotId, assistantNameBn)}</span>
             <button onClick={openReminder} className="text-left hover:text-[#A95E49]">{reminderQuestion}</button>
             <button onClick={() => setReminder(false)} className="absolute right-2 top-2 rounded p-1 text-[#99919A]" aria-label={isBn ? 'রিমাইন্ডার বন্ধ করুন' : 'Dismiss reminder'}>
               <X className="h-3.5 w-3.5" />
@@ -262,12 +254,12 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
         )}
 
         {isOpen && (
-          <section role="dialog" aria-modal="false" aria-label={isBn ? 'টুকি চ্যাট' : 'Chat with Tuki'} className="mb-1 flex h-[min(600px,calc(100dvh-120px))] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-[#EDE1D8] bg-[#FFFCF8] shadow-2xl">
+          <section role="dialog" aria-modal="false" aria-label={isBn ? `${assistantNameBn} চ্যাট` : `Chat with ${assistantNameEn}`} className="mb-1 flex h-[min(600px,calc(100dvh-120px))] w-[min(380px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-[#EDE1D8] bg-[#FFFCF8] shadow-2xl">
             <header className="flex items-center justify-between bg-[#F5E8DF] px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80">{makeMascot('small')}</div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80">{makeMascot('small', mascotId, assistantNameBn)}</div>
                 <div>
-                  <h2 className="text-sm font-extrabold text-[#383341]">{isBn ? 'টুকি' : 'Tuki'} <span className="text-[#B77362]">♡</span></h2>
+                  <h2 className="text-sm font-extrabold text-[#383341]">{assistantName} <span className="text-[#B77362]">♡</span></h2>
                   <p className="text-[10px] text-[#7D737B]">{isBn ? 'তোমার ছোট্ট AI বন্ধু' : 'Your little AI friend'}</p>
                 </div>
               </div>
@@ -279,18 +271,18 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
             <div className="flex-1 space-y-3 overflow-y-auto px-3.5 py-4">
               {messages.length === 0 && (
                 <div className="flex items-end gap-2">
-                  {makeMascot('small')}
+                  {makeMascot('small', mascotId, assistantNameBn)}
                   <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-white px-3.5 py-3 text-xs leading-relaxed text-[#514B56] shadow-sm">
                     {isBn
-                      ? `হ্যালো! আমি টুকি। ${isLoggedIn ? 'তোমার ছোট্ট সোনামণির বিকাশ আর এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো।' : 'শিশুর বিকাশ বা এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো!'}`
-                      : `Hello! I'm Tuki. ${isLoggedIn ? 'Ask me about your little one’s development or this website.' : 'Ask me about child development or this website!'}`}
+                      ? `হ্যালো! আমি ${assistantNameBn}। ${isLoggedIn ? 'তোমার ছোট্ট সোনামণির বিকাশ আর এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো।' : 'শিশুর বিকাশ বা এই ওয়েবসাইট নিয়ে আমাকে জিজ্ঞেস করতে পারো!'}`
+                      : `Hello! I'm ${assistantNameEn}. ${isLoggedIn ? 'Ask me about your little one’s development or this website.' : 'Ask me about child development or this website!'}`}
                   </div>
                 </div>
               )}
 
               {messages.map((message, index) => (
                 <div key={`${index}-${message.role}`} className={`flex items-end gap-2 ${message.role === 'user' ? 'justify-end' : ''}`}>
-                  {message.role === 'model' && makeMascot('small')}
+                  {message.role === 'model' && makeMascot('small', mascotId, assistantNameBn)}
                   <p className={`max-w-[84%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                     message.role === 'user'
                       ? 'rounded-br-sm bg-[#D78D78] text-white'
@@ -314,8 +306,8 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
 
               {isSending && (
                 <div className="flex items-center gap-2 text-[11px] text-[#887D85]">
-                  {makeMascot('small')}
-                  <span className="animate-pulse">{isBn ? 'টুকি ভাবছে…' : 'Tuki is thinking…'}</span>
+                  {makeMascot('small', mascotId, assistantNameBn)}
+                  <span className="animate-pulse">{isBn ? `${assistantNameBn} ভাবছে…` : `${assistantNameEn} is thinking…`}</span>
                 </div>
               )}
               {error && <p role="alert" className="rounded-xl bg-[#FFF0ED] px-3 py-2 text-[11px] leading-relaxed text-[#A34840]">{error}</p>}
@@ -337,10 +329,10 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   placeholder={quotaSleepUntil !== null
-                    ? isBn ? 'টুকি এখন ঘুমাচ্ছে…' : 'Tuki is sleeping…'
-                    : isBn ? 'টুকিকে কিছু জিজ্ঞেস করো…' : 'Ask Tuki something…'}
+                    ? isBn ? `${assistantNameBn} এখন ঘুমাচ্ছে…` : `${assistantNameEn} is sleeping…`
+                    : isBn ? `${assistantNameBn}-কে কিছু জিজ্ঞেস করো…` : `Ask ${assistantNameEn} something…`}
                   className="min-w-0 flex-1 rounded-xl border border-[#E9DED6] bg-white px-3 py-2.5 text-xs outline-none focus:border-[#CF927E]"
-                  aria-label={isBn ? 'টুকিকে বার্তা লিখুন' : 'Message Tuki'}
+                  aria-label={isBn ? `${assistantNameBn}-কে বার্তা লিখুন` : `Message ${assistantNameEn}`}
                   maxLength={1000}
                   disabled={quotaSleepUntil !== null}
                 />
@@ -358,10 +350,10 @@ export const SonaiAssistant: React.FC<SonaiAssistantProps> = ({
             setReminder(false);
           }}
           className="group flex items-center gap-2 rounded-full border border-[#F0DCD2] bg-white p-1.5 pr-4 text-sm font-bold text-[#5A4651] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-          aria-label={isOpen ? (isBn ? 'টুকি চ্যাট বন্ধ করুন' : 'Close Tuki chat') : (isBn ? 'টুকির সাথে কথা বলুন' : 'Chat with Tuki')}
+          aria-label={isOpen ? (isBn ? `${assistantNameBn} চ্যাট বন্ধ করুন` : `Close ${assistantNameEn} chat`) : (isBn ? `${assistantNameBn}-র সাথে কথা বলুন` : `Chat with ${assistantNameEn}`)}
         >
-          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F9E7DE]">{makeMascot('small')}</span>
-          <span>{isBn ? 'টুকি' : 'Tuki'}</span>
+          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F9E7DE]">{makeMascot('small', mascotId, assistantNameBn)}</span>
+          <span>{assistantName}</span>
           <span className="ml-0.5 flex h-2 w-2 rounded-full bg-[#70A87C]" />
           <span className="sr-only">AI assistant</span>
           <MessageCircle className="h-4 w-4 text-[#B77362]" />
