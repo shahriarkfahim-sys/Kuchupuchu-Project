@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Play, 
   CheckCircle2, 
+  Check,
   Clock, 
   BookOpen, 
   RotateCcw, 
@@ -10,11 +11,12 @@ import {
   X,
   Baby,
   Sparkles,
-  Info
+  Info,
+  ArrowLeft,
 } from 'lucide-react';
 import { Activity, ChildProfile, ECD6Domain, Language } from '../types';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
-import { getMonthMilestones } from '../data/ecdDataset';
+import { domainMeta, getMonthMilestones } from '../data/ecdDataset';
 import { calculateECDResult, childAssessmentMonths, ECDAnswers, getECDQuestions, questionBank } from '../utils/ecdAssessment';
 
 interface DailyActivityModuleProps {
@@ -81,6 +83,30 @@ function countSkillWordMatches(skill: string, searchableText: string) {
   return skillWords.reduce((score, word) => score + (activityWords.some((candidate) => candidate.includes(word) || word.includes(candidate) || editDistanceAtMostOne(word, candidate)) ? 1 : 0), 0);
 }
 
+const assessmentDomainToPlay: Record<string, ECD6Domain> = {
+  'মূল শারীরিক চলন': 'gross_motor',
+  'সূক্ষ্ম হাতের কাজ': 'fine_motor',
+  'বুদ্ধি ও সমস্যা সমাধান': 'cognitive',
+  'ভাষা ও যোগাযোগ': 'communication',
+  'সামাজিক ও আবেগীয়': 'social_emotional',
+  'নিজের যত্ন ও অভ্যাস': 'self_help',
+};
+
+const playDomains: ECD6Domain[] = ['gross_motor', 'fine_motor', 'cognitive', 'communication', 'social_emotional', 'self_help'];
+
+function activityCompletionKey(childId: string, ageMonth: number) {
+  return `kuchu_play_done_${childId}_${ageMonth}`;
+}
+
+function readCompletedActivities(childId: string, ageMonth: number): Record<string, boolean> {
+  try {
+    const saved = localStorage.getItem(activityCompletionKey(childId, ageMonth));
+    return saved ? JSON.parse(saved) as Record<string, boolean> : {};
+  } catch {
+    return {};
+  }
+}
+
 export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
   currentLang,
   activeChild,
@@ -89,8 +115,9 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
 }) => {
   const t = translations[currentLang];
   const [selectedAgeMonth, setSelectedAgeMonth] = useState<number>(focus?.ageMonth ?? (activeChild.ageMonths || 9));
-  const [completedIds, setCompletedIds] = useState<Record<string, boolean>>({});
+  const [completedIds, setCompletedIds] = useState<Record<string, boolean>>(() => readCompletedActivities(activeChild.id, focus?.ageMonth ?? (activeChild.ageMonths || 9)));
   const [showAllActivities, setShowAllActivities] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState<ECD6Domain | null>(focus?.domain ?? null);
   const [activeModalActivity, setActiveModalActivity] = useState<any | null>(null);
 
   // Interactive Timer state inside activity modal
@@ -100,7 +127,12 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
   useEffect(() => {
     setSelectedAgeMonth(focus?.ageMonth ?? (activeChild.ageMonths || 9));
     setShowAllActivities(false);
+    setSelectedDomain(focus?.domain ?? null);
   }, [activeChild.id, activeChild.ageMonths, focus?.ageMonth, focus?.domain, focus?.skill]);
+
+  useEffect(() => {
+    setCompletedIds(readCompletedActivities(activeChild.id, selectedAgeMonth));
+  }, [activeChild.id, selectedAgeMonth]);
 
   // Dynamically generate age-customized activities using the master ECD dataset
   const dynamicActivities = useMemo(() => {
@@ -194,6 +226,44 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
     return { hasAssessment: true, activities: dynamicActivities.filter((activity) => recommendedDomains.has(activity.domain)) };
   }, [activeChild.id, dynamicActivities, selectedAgeMonth]);
 
+  const assessmentCompletedActivityIds = useMemo(() => {
+    const latestAnswers: Record<string, { answer: number; month: number }> = {};
+    for (const month of childAssessmentMonths.filter((candidate) => candidate <= selectedAgeMonth)) {
+      try {
+        const serialized = localStorage.getItem(`kuchu_ecd_${activeChild.id}_child_${month}`);
+        if (!serialized) continue;
+        const answers = JSON.parse(serialized) as ECDAnswers;
+        Object.entries(answers).forEach(([questionId, answer]) => {
+          latestAnswers[questionId] = { answer, month };
+        });
+      } catch {
+        // Keep valid answers from other milestones.
+      }
+    }
+
+    const assessedQuestions = questionBank.filter((question) => question.phase === 'child' && question.month <= selectedAgeMonth);
+    const completed = new Set<string>();
+    dynamicActivities.forEach((activity) => {
+      const candidates = assessedQuestions
+        .filter((question) => assessmentDomainToPlay[question.domainSource] === activity.domain)
+        .map((question) => {
+          const answered = latestAnswers[question.id];
+          return {
+            question,
+            answered,
+            score: countSkillWordMatches(question.coreSkillBn, activity.milestoneMappedBn),
+          };
+        })
+        .filter(({ answered, score }) => answered !== undefined && score > 0)
+        .sort((a, b) => (b.score - a.score) || (b.answered!.month - a.answered!.month));
+      const best = candidates[0];
+      if (best?.answered && best.question.options[best.answered.answer]?.weight === 2) {
+        completed.add(activity.id);
+      }
+    });
+    return completed;
+  }, [activeChild.id, dynamicActivities, selectedAgeMonth]);
+
   const focusedActivities = useMemo(() => {
     if (!focus) return assessmentRecommendations.activities;
     const ranked = dynamicActivities
@@ -205,10 +275,33 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
   }, [assessmentRecommendations.activities, dynamicActivities, focus]);
 
   const hasPersonalizedSuggestions = Boolean(focus) || assessmentRecommendations.hasAssessment;
-  const displayedActivities = showAllActivities || !hasPersonalizedSuggestions ? dynamicActivities : focusedActivities;
+  const domainActivities = selectedDomain ? dynamicActivities.filter((activity) => activity.domain === selectedDomain) : [];
+  const recommendedDomainActivities = selectedDomain
+    ? [...new Map([
+        ...focusedActivities.filter((activity) => activity.domain === selectedDomain),
+        ...domainActivities.filter((activity) => assessmentCompletedActivityIds.has(activity.id) || completedIds[activity.id]),
+      ].map((activity) => [activity.id, activity])).values()]
+    : [];
+  const displayedActivities = selectedDomain
+    ? showAllActivities || !hasPersonalizedSuggestions ? domainActivities : recommendedDomainActivities
+    : [];
+  const domainProgress = playDomains.map((domain) => {
+    const activities = dynamicActivities.filter((activity) => activity.domain === domain);
+    const completed = activities.filter((activity) => assessmentCompletedActivityIds.has(activity.id) || completedIds[activity.id]).length;
+    return { domain, activities, completed, total: activities.length, percentage: activities.length ? Math.round((completed / activities.length) * 100) : 0 };
+  });
 
   const toggleComplete = (id: string) => {
-    setCompletedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+    if (assessmentCompletedActivityIds.has(id)) return;
+    setCompletedIds((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(activityCompletionKey(activeChild.id, selectedAgeMonth), JSON.stringify(next));
+      } catch {
+        // Preserve the in-session completion state if storage is unavailable.
+      }
+      return next;
+    });
     if (onToggleComplete) onToggleComplete(id);
   };
 
@@ -302,66 +395,115 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
         </div>
       </div>
 
-      {hasPersonalizedSuggestions && (
+      {!selectedDomain && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {domainProgress.map(({ domain, activities, completed, total, percentage }) => (
+            <button
+              key={domain}
+              type="button"
+              onClick={() => {
+                setSelectedDomain(domain);
+                setShowAllActivities(false);
+              }}
+              className="flex min-h-40 items-center justify-between gap-5 rounded-3xl border-2 border-[#EED9C7] bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#FFB07C] hover:bg-[#FFFCF9] hover:shadow-md active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30 sm:min-h-48 sm:p-7"
+            >
+              <span className="min-w-0">
+                <span className="block text-lg font-bold leading-snug text-[#2D3142] sm:text-xl">{currentLang === 'bn' ? domainMeta[domain].labelBn : domainMeta[domain].labelEn}</span>
+                <span className="mt-2 block text-sm text-[#667085]">
+                  {formatLocalizedNumber(completed, currentLang)} / {formatLocalizedNumber(total, currentLang)} {currentLang === 'bn' ? 'টি খেলা সম্পন্ন' : 'activities complete'}
+                </span>
+                <span className="mt-2 block text-xs font-semibold text-[#C85D26]">{currentLang === 'bn' ? 'খেলা দেখতে চাপুন' : 'Open activities'}</span>
+              </span>
+              <span
+                className="flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full sm:h-24 sm:w-24"
+                style={{ background: `conic-gradient(#2F6B47 ${percentage * 3.6}deg, #E8E2DA 0deg)` }}
+                aria-label={`${percentage}%`}
+              >
+                <span className="flex h-[66px] w-[66px] items-center justify-center rounded-full bg-white text-base font-extrabold text-[#2F6B47] sm:h-[78px] sm:w-[78px] sm:text-lg">
+                  {formatLocalizedNumber(percentage, currentLang)}%
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selectedDomain && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#EED9C7] bg-white px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setSelectedDomain(null)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5C6479] hover:bg-[#F8F7F5]">
+              <ArrowLeft className="h-4 w-4" /> {currentLang === 'bn' ? 'সব ক্ষেত্র' : 'All areas'}
+            </button>
+            <span className="font-bold text-[#2D3142]">{currentLang === 'bn' ? domainMeta[selectedDomain].labelBn : domainMeta[selectedDomain].labelEn}</span>
+            <span className="text-xs text-[#667085]">{formatLocalizedNumber(domainProgress.find((item) => item.domain === selectedDomain)?.completed ?? 0, currentLang)} / {formatLocalizedNumber(domainActivities.length, currentLang)} {currentLang === 'bn' ? 'সম্পন্ন' : 'complete'}</span>
+          </div>
+          {hasPersonalizedSuggestions && (
+            <button
+              type="button"
+              aria-expanded={showAllActivities}
+              onClick={() => setShowAllActivities((showAll) => !showAll)}
+              className="rounded-lg border border-[#EED9C7] bg-[#FFFAF5] px-3 py-2 text-xs font-bold text-[#5C6479] hover:bg-[#FFF0E2]"
+            >
+              {showAllActivities
+                ? (currentLang === 'bn' ? 'শুধু পরামর্শের খেলাগুলো দেখুন' : 'Show recommended games only')
+                : (currentLang === 'bn' ? 'এই ক্ষেত্রের বাকি খেলাগুলো দেখুন' : 'Show all games in this area')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {selectedDomain && hasPersonalizedSuggestions && (
         <div className="flex flex-col gap-2 rounded-xl border border-[#EED9C7] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[#667085]">
             {focus
-              ? (currentLang === 'bn' ? `“${focus.skill}” চর্চার সঙ্গে মেলে এমন ${formatLocalizedNumber(focusedActivities.length, currentLang)}টি খেলা` : `${focusedActivities.length} play ideas matched to “${focus.skill}”`)
-              : focusedActivities.length
-                ? (currentLang === 'bn' ? `অগ্রগতি মূল্যায়নে চর্চার জন্য বাছাই করা ${formatLocalizedNumber(focusedActivities.length, currentLang)}টি খেলা` : `${focusedActivities.length} activities selected from the assessment`)
+              ? (currentLang === 'bn' ? `“${focus.skill}” চর্চার সঙ্গে মেলে এমন ${formatLocalizedNumber(recommendedDomainActivities.length, currentLang)}টি খেলা` : `${recommendedDomainActivities.length} play ideas matched to “${focus.skill}”`)
+              : recommendedDomainActivities.length
+                ? (currentLang === 'bn' ? `অগ্রগতি মূল্যায়নে চর্চার জন্য বাছাই করা ${formatLocalizedNumber(recommendedDomainActivities.length, currentLang)}টি খেলা` : `${recommendedDomainActivities.length} activities selected from the assessment`)
                 : (currentLang === 'bn' ? 'এই বয়সে আলাদা করে চর্চার খেলা পাওয়া যায়নি।' : 'No extra practice games were identified for this age.')}
           </p>
-          <button
-            type="button"
-            aria-expanded={showAllActivities}
-            onClick={() => setShowAllActivities((showAll) => !showAll)}
-            className="shrink-0 rounded-lg border border-[#EED9C7] bg-[#FFFAF5] px-3 py-2 text-xs font-bold text-[#5C6479] hover:bg-[#FFF0E2]"
-          >
-            {showAllActivities
-              ? (currentLang === 'bn' ? 'শুধু পরামর্শের খেলাগুলো দেখুন' : 'Show recommended games only')
-              : (currentLang === 'bn' ? 'বাকি সব বয়সোপযোগী খেলা দেখুন' : 'Show all age-appropriate games')}
-          </button>
         </div>
       )}
 
       {/* Activities Grid - Compact, neat rectangular boxes with opposite contrast colors */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {displayedActivities.map((activity, idx) => {
-          const isDone = Boolean(completedIds[activity.id]);
+          const isDone = Boolean(completedIds[activity.id] || assessmentCompletedActivityIds.has(activity.id));
           const theme = cardThemes[idx % cardThemes.length];
 
           return (
             <div
               key={activity.id}
-              className={`rounded-2xl border p-4 transition-all flex flex-col justify-between shadow-xs hover:shadow-sm ${theme.cardBg} ${theme.cardBorder} ${theme.borderHover} ${
-                isDone ? 'ring-2 ring-[#2F6B47]/20 opacity-90' : ''
+              className={`rounded-2xl border p-4 transition-all flex flex-col justify-between shadow-xs hover:shadow-sm ${
+                isDone
+                  ? 'border-[#1F5A3B] bg-[#1F5A3B] text-white ring-2 ring-[#1F5A3B]/15'
+                  : `${theme.cardBg} ${theme.cardBorder} ${theme.borderHover}`
               }`}
             >
               <div className="space-y-2.5">
                 {/* Top Bar: Inverted Contrast Domain Badge + Duration */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${theme.tagBg} ${theme.tagText} shadow-2xs`}>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${isDone ? 'bg-white/15 text-white' : `${theme.tagBg} ${theme.tagText}`} shadow-2xs`}>
                     {activity.domainBn}
                   </span>
                   
-                  <span className="flex items-center gap-1 text-[11px] font-semibold text-[#5C6479]">
-                    <Clock className="w-3 h-3 text-[#FF8552]" />
+                  <span className={`flex items-center gap-1 text-[11px] font-semibold ${isDone ? 'text-white/85' : 'text-[#5C6479]'}`}>
+                    <Clock className={`w-3 h-3 ${isDone ? 'text-white' : 'text-[#FF8552]'}`} />
                     {formatLocalizedNumber(activity.durationMinutes, currentLang)} {t.minutes}
                   </span>
                 </div>
 
                 {/* Clean, Simple Main Title (English brackets stripped) */}
-                <h3 className="text-sm font-bold text-[#2D3142] leading-snug line-clamp-2">
+                <h3 className={`text-sm font-bold leading-snug line-clamp-2 ${isDone ? 'text-white' : 'text-[#2D3142]'}`}>
                   {activity.titleBn}
                 </h3>
               </div>
 
               {/* Bottom Card Actions: 'বিস্তারিত গাইড' & Complete Checkbox */}
-              <div className="mt-4 pt-2.5 border-t border-[#000000]/8 flex items-center justify-between gap-2">
+              <div className={`mt-4 pt-2.5 border-t flex items-center justify-between gap-2 ${isDone ? 'border-white/20' : 'border-[#000000]/8'}`}>
                 <button
                   type="button"
                   onClick={() => openActivityModal(activity)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${theme.guideBtn}`}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${isDone ? 'bg-white/15 text-white hover:bg-white/25' : theme.guideBtn}`}
                 >
                   <BookOpen className="w-3 h-3" />
                   <span>{currentLang === 'bn' ? 'বিস্তারিত গাইড' : 'Play Guide'}</span>
@@ -373,12 +515,13 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
                   onClick={() => toggleComplete(activity.id)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                     isDone
-                      ? 'bg-[#EAF4EC] text-[#2F6B47] border border-[#CDE5D1]'
+                      ? 'h-8 w-8 justify-center rounded-full bg-white text-[#1F5A3B]'
                       : theme.doneBtnUnchecked
                   }`}
+                  aria-label={isDone ? (currentLang === 'bn' ? 'খেলা সম্পন্ন' : 'Game complete') : t.markDone}
                 >
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${isDone ? 'text-[#2F6B47]' : 'text-[#8C93A4]'}`} />
-                  <span>{isDone ? t.playDoneCheer : t.markDone}</span>
+                  {isDone ? <Check className="h-5 w-5" /> : <CheckCircle2 className="w-3.5 h-3.5 text-[#8C93A4]" />}
+                  {!isDone && <span>{t.markDone}</span>}
                 </button>
               </div>
 
@@ -386,7 +529,7 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
           );
         })}
       </div>
-      {hasPersonalizedSuggestions && !showAllActivities && displayedActivities.length === 0 && (
+      {selectedDomain && hasPersonalizedSuggestions && !showAllActivities && displayedActivities.length === 0 && (
         <p className="rounded-2xl border border-[#E8EEEB] bg-white p-5 text-sm text-[#697582]">
           {currentLang === 'bn' ? 'এই বয়সে assessment অনুযায়ী আলাদা করে চর্চার খেলা পাওয়া যায়নি। চাইলে বাকি বয়সোপযোগী খেলাগুলো দেখুন।' : 'No additional practice games were matched to this assessment at this age. You can browse all age-appropriate games.'}
         </p>

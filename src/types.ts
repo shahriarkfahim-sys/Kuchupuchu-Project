@@ -79,7 +79,9 @@ export interface ChildProfile {
 
 export interface RoutineLogEntry {
   id: string;
-  type: 'feed' | 'sleep' | 'potty';
+  type: 'feed' | 'sleep' | 'diaper' | 'potty';
+  date?: string;
+  durationMinutes?: number;
   time: string;
   titleBn: string;
   titleEn: string;

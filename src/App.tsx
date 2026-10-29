@@ -85,7 +85,14 @@ export default function App() {
   const [activities, setActivities] = useState(initialActivities);
   const milestones = initialMilestones;
   const [growthLogs, setGrowthLogs] = useState<GrowthLogEntry[]>(initialGrowthLogs);
-  const [routineLogs, setRoutineLogs] = useState<RoutineLogEntry[]>(initialRoutineLogs);
+  const [routineLogs, setRoutineLogs] = useState<RoutineLogEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('kuchupuchu_routine_logs');
+      return saved ? JSON.parse(saved) as RoutineLogEntry[] : initialRoutineLogs;
+    } catch {
+      return initialRoutineLogs;
+    }
+  });
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialCommunityPosts);
   const [wormData, setWormData] = useState<WormGraphPoint[]>(defaultWormGraphData);
   
@@ -179,7 +186,15 @@ export default function App() {
 
   // Add routine log (feed, sleep, potty)
   const handleAddRoutineLog = (entry: RoutineLogEntry) => {
-    setRoutineLogs((prev) => [entry, ...prev]);
+    setRoutineLogs((prev) => {
+      const next = [entry, ...prev];
+      try {
+        localStorage.setItem('kuchupuchu_routine_logs', JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
   };
 
   // Community post creation & upvote
@@ -480,13 +495,13 @@ export default function App() {
           )
         )}
 
-        {/* VIEW 4: DAILY ROUTINE TRACKER (Feeding, Sleep, Potty + Analysis) */}
+        {/* VIEW 4: DAILY ROUTINE TRACKER (Feeding, Sleep, Diaper, Potty) */}
         {activeTab === 'daily-routine' && (
           !isLoggedIn ? (
             <AuthGateCard
               currentLang={currentLang}
               tabTitle={currentLang === 'bn' ? 'দৈনন্দিন রুটিন ও যত্ন ট্র্যাকার' : 'Daily Routine & Care Tracker'}
-              tabDescription={currentLang === 'bn' ? 'দুধ খাওয়ানো, ঘুম ও পটি ট্র্যাকিং রেকর্ড দেখতে লগইন করুন অথবা পেরেন্ট কোড দিন।' : 'Sign in or enter parent code to track feeds, naps, and diaper routines.'}
+              tabDescription={currentLang === 'bn' ? 'খাবার, ঘুম, ডায়াপার পরিবর্তন ও পটির হিসাব রাখতে লগইন করুন অথবা পেরেন্ট কোড দিন।' : 'Sign in or enter parent code to track feeds, sleep, diaper changes, and potty.'}
               onOpenLogin={() => {
                 setAuthGateTargetTab('daily-routine');
                 setAuthGateModalOpen(true);
