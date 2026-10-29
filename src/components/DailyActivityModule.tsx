@@ -405,21 +405,22 @@ export const DailyActivityModule: React.FC<DailyActivityModuleProps> = ({
                 setSelectedDomain(domain);
                 setShowAllActivities(false);
               }}
-              className="flex min-h-40 items-center justify-between gap-5 rounded-3xl border-2 border-[#EED9C7] bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#FFB07C] hover:bg-[#FFFCF9] hover:shadow-md active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30 sm:min-h-48 sm:p-7"
+              className="group flex min-h-40 items-center justify-between gap-5 rounded-3xl border-2 border-[#EED9C7] bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#C85D26] hover:bg-[#C85D26] hover:shadow-md active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFB07C]/30 sm:min-h-48 sm:p-7"
             >
               <span className="min-w-0">
-                <span className="block text-lg font-bold leading-snug text-[#2D3142] sm:text-xl">{currentLang === 'bn' ? domainMeta[domain].labelBn : domainMeta[domain].labelEn}</span>
-                <span className="mt-2 block text-sm text-[#667085]">
+                <span className="block text-lg font-bold leading-snug text-[#2D3142] transition-colors group-hover:text-white sm:text-xl">{currentLang === 'bn' ? domainMeta[domain].labelBn : domainMeta[domain].labelEn}</span>
+                <span className="mt-2 block text-sm text-[#667085] transition-colors group-hover:text-white/90">
                   {formatLocalizedNumber(completed, currentLang)} / {formatLocalizedNumber(total, currentLang)} {currentLang === 'bn' ? 'টি খেলা সম্পন্ন' : 'activities complete'}
                 </span>
-                <span className="mt-2 block text-xs font-semibold text-[#C85D26]">{currentLang === 'bn' ? 'খেলা দেখতে চাপুন' : 'Open activities'}</span>
+                <span className="mt-2 block text-xs font-semibold text-[#C85D26] transition-colors group-hover:text-white">{currentLang === 'bn' ? 'খেলা দেখতে চাপুন' : 'Open activities'}</span>
               </span>
               <span
-                className="flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full sm:h-24 sm:w-24"
+                className="relative flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full sm:h-24 sm:w-24"
                 style={{ background: `conic-gradient(#2F6B47 ${percentage * 3.6}deg, #E8E2DA 0deg)` }}
                 aria-label={`${percentage}%`}
               >
-                <span className="flex h-[66px] w-[66px] items-center justify-center rounded-full bg-white text-base font-extrabold text-[#2F6B47] sm:h-[78px] sm:w-[78px] sm:text-lg">
+                <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity group-hover:opacity-100" />
+                <span className="relative flex h-[66px] w-[66px] items-center justify-center rounded-full bg-white text-base font-extrabold text-[#2F6B47] transition-colors group-hover:bg-[#A9471C] group-hover:text-white sm:h-[78px] sm:w-[78px] sm:text-lg">
                   {formatLocalizedNumber(percentage, currentLang)}%
                 </span>
               </span>

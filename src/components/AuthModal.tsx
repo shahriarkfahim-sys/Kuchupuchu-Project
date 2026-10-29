@@ -3,6 +3,7 @@ import { X, Baby, Heart, Sparkles, Check, Phone, User, Calendar } from 'lucide-r
 import { ChildProfile, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { calculateAgeFromBirthDate } from '../utils/ecdAssessment';
+import { LocalizedDateInput } from './LocalizedDateInput';
 
 interface AuthModalProps {
   currentLang: Language;
@@ -131,11 +132,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <label className="block font-semibold text-[#2D3142] mb-1">
                   {t.birthdateLabel}
                 </label>
-                <input
-                  type="date"
+                <LocalizedDateInput
                   required
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
+                  currentLang={currentLang}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
                 />
               </div>

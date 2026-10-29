@@ -3,6 +3,7 @@ import { X, Calendar, User, Check, Sparkles } from 'lucide-react';
 import { ChildProfile, Language } from '../types';
 import { translations, formatLocalizedNumber } from '../i18n/translations';
 import { calculateAgeFromBirthDate } from '../utils/ecdAssessment';
+import { LocalizedDateInput } from './LocalizedDateInput';
 
 interface ChildProfileModalProps {
   currentLang: Language;
@@ -124,11 +125,11 @@ export const ChildProfileModal: React.FC<ChildProfileModalProps> = ({
                 {t.editBirthdate}
               </label>
               <div className="relative">
-                <input
-                  type="date"
+                <LocalizedDateInput
                   required
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
+                  currentLang={currentLang}
                   className="w-full px-3 py-2 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
                 />
               </div>

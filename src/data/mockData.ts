@@ -88,7 +88,77 @@ export const weatherAdvisoryData: WeatherAdvisory = {
   activitySafetyTipEn: 'Keep active play indoors on a clean mat away from the peak midday sun.',
 };
 
+function createRoutineAnalysisDemoLogs(): RoutineLogEntry[] {
+  const demoLogs: RoutineLogEntry[] = [];
+  const bengaliDigits = '০১২৩৪৫৬৭৮৯';
+  const toBengaliDigits = (value: string) => value.replace(/\d/g, (digit) => bengaliDigits[Number(digit)]);
+  const entriesPerDay: Array<{
+    type: RoutineLogEntry['type'];
+    hour: number;
+    minute: number;
+    durationMinutes?: number;
+    titleBn: string;
+    titleEn: string;
+    detailsBn: string;
+    detailsEn: string;
+    iconType: string;
+  }> = [
+    { type: 'feed', hour: 7, minute: 30, titleBn: 'সকালের নাশতা', titleEn: 'Breakfast', detailsBn: 'বয়স অনুযায়ী পুষ্টিকর নাশতা খেয়েছে।', detailsEn: 'Enjoyed a nutritious age-appropriate breakfast.', iconType: 'soup' },
+    { type: 'sleep', hour: 9, minute: 30, durationMinutes: 75, titleBn: 'সকালের ঘুম (১ ঘণ্টা ১৫ মিনিট)', titleEn: 'Morning nap (1h 15m)', detailsBn: 'শান্ত পরিবেশে আরাম করে ঘুমিয়েছে।', detailsEn: 'Had a comfortable nap in a calm environment.', iconType: 'moon' },
+    { type: 'diaper', hour: 10, minute: 50, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পরিষ্কার ও শুকনো ডায়াপার পরানো হয়েছে।', detailsEn: 'Changed into a clean, dry diaper.', iconType: 'diaper' },
+    { type: 'feed', hour: 12, minute: 30, titleBn: 'দুপুরের খাবার', titleEn: 'Lunch', detailsBn: 'সবজি ও ডাল দিয়ে নরম খাবার খেয়েছে।', detailsEn: 'Had a soft meal with vegetables and lentils.', iconType: 'soup' },
+    { type: 'potty', hour: 13, minute: 10, titleBn: 'স্বাভাবিক পটি', titleEn: 'Normal potty', detailsBn: 'পটির অবস্থা স্বাভাবিক ছিল।', detailsEn: 'Potty was normal.', iconType: 'baby' },
+    { type: 'diaper', hour: 13, minute: 25, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'পটি করার পর ডায়াপার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper after potty.', iconType: 'diaper' },
+    { type: 'sleep', hour: 14, minute: 30, durationMinutes: 60, titleBn: 'বিকালের ঘুম (১ ঘণ্টা)', titleEn: 'Afternoon nap (1h)', detailsBn: 'বিকেলে এক ঘণ্টা নিশ্চিন্তে ঘুমিয়েছে।', detailsEn: 'Slept comfortably for an hour in the afternoon.', iconType: 'moon' },
+    { type: 'diaper', hour: 16, minute: 0, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'আরামের জন্য পরিষ্কার ডায়াপার পরানো হয়েছে।', detailsEn: 'Changed into a clean diaper for comfort.', iconType: 'diaper' },
+    { type: 'feed', hour: 17, minute: 30, titleBn: 'বিকেলের নাশতা', titleEn: 'Afternoon snack', detailsBn: 'হালকা নাশতা ও পানি খেয়েছে।', detailsEn: 'Had a light snack and some water.', iconType: 'soup' },
+    { type: 'diaper', hour: 19, minute: 0, titleBn: 'ডায়াপার পরিবর্তন', titleEn: 'Diaper change', detailsBn: 'রাতের আগে ডায়াপার বদলে দেওয়া হয়েছে।', detailsEn: 'Changed the diaper before bedtime.', iconType: 'diaper' },
+  ];
+
+  for (let daysAgo = 29; daysAgo >= 0; daysAgo -= 1) {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - daysAgo);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateValue = `${year}-${month}-${day}`;
+
+    entriesPerDay.forEach((entry, index) => {
+      const durationMinutes = entry.durationMinutes
+        ? entry.durationMinutes + ((daysAgo + index) % 3) * 10
+        : undefined;
+      const durationHours = durationMinutes ? Math.floor(durationMinutes / 60) : 0;
+      const remainingMinutes = durationMinutes ? durationMinutes % 60 : 0;
+      const hour = entry.hour % 12 || 12;
+      const period = entry.hour < 4 ? 'রাত' : entry.hour < 6 ? 'ভোর' : entry.hour < 11 ? 'সকাল' : entry.hour < 15 ? 'দুপুর' : entry.hour < 18 ? 'বিকাল' : entry.hour < 20 ? 'সন্ধ্যা' : 'রাত';
+      const time = `${period} ${toBengaliDigits(`${hour}:${String(entry.minute).padStart(2, '0')}`)}`;
+      const titleBn = durationMinutes
+        ? `${entry.titleBn.replace(/\s*\(.+\)$/, '')} (${toBengaliDigits(`${durationHours} ঘণ্টা ${remainingMinutes} মিনিট`)})`
+        : entry.titleBn;
+
+      demoLogs.push({
+        id: `routine_demo_${dateValue}_${index}`,
+        type: entry.type,
+        date: dateValue,
+        ...(durationMinutes ? { durationMinutes } : {}),
+        time,
+        titleBn,
+        titleEn: durationMinutes
+          ? `${entry.titleEn.replace(/\s*\(.+\)$/, '')} (${durationHours}h ${remainingMinutes}m)`
+          : entry.titleEn,
+        detailsBn: entry.detailsBn,
+        detailsEn: entry.detailsEn,
+        iconType: entry.iconType,
+      });
+    });
+  }
+
+  return demoLogs;
+}
+
 export const initialRoutineLogs: RoutineLogEntry[] = [
+  ...createRoutineAnalysisDemoLogs(),
   {
     id: 'r_1',
     type: 'feed',

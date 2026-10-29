@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ChildProfile, Language } from '../types';
 import { formatLocalizedNumber } from '../i18n/translations';
+import { LocalizedDateInput } from './LocalizedDateInput';
 import {
   calculateAgeFromBirthDate,
   calculateECDResult,
@@ -564,9 +565,9 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
                 ? currentLang === 'bn' ? 'আপনার সন্তানের জন্মতারিখ কী?' : "What is your baby's date of birth?"
                 : currentLang === 'bn' ? 'সম্ভাব্য প্রসবের তারিখ কী?' : 'What is the expected due date?'}
             </label>
-            <input
+            <LocalizedDateInput
               id="baby-birth-date"
-              type="date"
+              currentLang={currentLang}
               required
               max={babyStatus === 'here' ? todayInputValue : undefined}
               min={babyStatus === 'on_the_way' ? todayInputValue : undefined}
@@ -606,7 +607,7 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
         {step === 6 && babyStatus === 'on_the_way' && hasPregnancyName && (
           <div className="signup-profile-step space-y-4 animate-in fade-in">
             <label className="block text-sm font-semibold text-[#2D3142]" htmlFor="pregnancy-due-date">{currentLang === 'bn' ? 'সম্ভাব্য প্রসবের তারিখ কী?' : 'What is the expected due date?'}</label>
-            <input id="pregnancy-due-date" type="date" required min={todayInputValue} value={expectedDueDate} onChange={(event) => setExpectedDueDate(event.target.value)} className="w-full rounded-xl border border-[#EED9C7] bg-[#FFFAF5] px-4 py-3 text-sm focus:bg-white focus:outline-none focus:border-[#FFB07C]" />
+            <LocalizedDateInput id="pregnancy-due-date" currentLang={currentLang} required min={todayInputValue} value={expectedDueDate} onChange={(event) => setExpectedDueDate(event.target.value)} className="w-full rounded-xl border border-[#EED9C7] bg-[#FFFAF5] px-4 py-3 text-sm focus:bg-white focus:outline-none focus:border-[#FFB07C]" />
             <label className="block text-sm font-semibold text-[#2D3142]" htmlFor="gestational-month">{currentLang === 'bn' ? 'এখন গর্ভের কত মাস চলছে?' : 'Which month of pregnancy are you in?'}</label>
             <select id="gestational-month" value={gestationalMonth} onChange={(event) => setGestationalMonth(Number(event.target.value))} className="w-full rounded-xl border border-[#EED9C7] bg-[#FFFAF5] px-4 py-3 text-sm focus:outline-none focus:border-[#FFB07C]">
               <option value={0} disabled>{currentLang === 'bn' ? 'মাস নির্বাচন করুন' : 'Select month'}</option>
