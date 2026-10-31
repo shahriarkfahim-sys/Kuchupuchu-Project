@@ -31,7 +31,7 @@ interface OnboardingFlowModalProps {
   initialChildName?: string;
   onClose: () => void;
   onSwitchToLogin: () => void;
-  onComplete: (profile: ChildProfile) => void;
+  onComplete: (profile: ChildProfile, credentials?: { email: string; password: string }) => void;
 }
 
 const signupCharacters = [
@@ -243,7 +243,7 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
       }
     }
 
-    onComplete(finalChild);
+    onComplete(finalChild, email && password ? { email, password } : undefined);
   };
 
   return (

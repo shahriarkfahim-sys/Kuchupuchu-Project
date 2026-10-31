@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { 
   Baby, 
   Heart, 
@@ -21,6 +21,8 @@ import { HomePage } from './components/HomePage';
 import { AuthGateCard } from './components/AuthGateCard';
 import { ParentDashboard, ParentDashboardSidebar } from './components/ParentDashboard';
 import { calculateAgeFromBirthDate } from './utils/ecdAssessment';
+import { supabase, supabaseConfigured } from './lib/supabase';
+import { createChild, getOrCreatePartnerCode, loadChildren, redeemPartnerCode, signOut, signUpWithEmail, updateChildRow } from './lib/db';
 
 const WormGraphView = lazy(() => import('./components/WormGraphView').then((module) => ({ default: module.WormGraphView })));
 const DailyActivityModule = lazy(() => import('./components/DailyActivityModule').then((module) => ({ default: module.DailyActivityModule })));
@@ -59,23 +61,10 @@ export default function App() {
   const [currentLang, setCurrentLang] = useState<Language>('bn');
   
   // Navigation tabs: 'home' | 'ogrogoti-graph' | 'daily-play' | 'daily-routine' | 'baby-diary' | 'forum' | 'care-connect'
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    try {
-      return localStorage.getItem('kuchupuchu_is_logged_in') === 'true' ? 'daily-routine' : 'home';
-    } catch {
-      return 'home';
-    }
-  });
-  
-  // User Login State (Real toggle for login/logout, synced with localStorage; defaults to logged out guest)
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('kuchupuchu_is_logged_in');
-      return saved === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [activeTab, setActiveTab] = useState<string>('home');
+
+  // Logged-in state comes from the Supabase session (set in the effect below).
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   // Data states
   const [allChildren, setAllChildren] = useState<ChildProfile[]>(initialProfiles);
@@ -149,6 +138,46 @@ export default function App() {
       console.error(e);
     }
   };
+
+  // Keep the app in sync with the Supabase session and load the family's children.
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        const children = await loadChildren();
+        if (cancelled || children.length === 0) return;
+        let first = children[0];
+        try {
+          first = { ...first, partnerCode: await getOrCreatePartnerCode(first.id) };
+        } catch {
+          // Partners (non-owners) cannot create codes; ignore.
+        }
+        setAllChildren([first, ...children.slice(1)]);
+        setActiveChild(first);
+      } catch (e) {
+        console.error('Could not load children', e);
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled || !data.session) return;
+      setIsLoggedIn(true);
+      setActiveTab((tab) => (tab === 'home' ? 'daily-routine' : tab));
+      hydrate();
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsLoggedIn(false);
+        return;
+      }
+      setIsLoggedIn(true);
+      if (event === 'SIGNED_IN') setTimeout(hydrate, 0);
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   const t = translations[currentLang];
 
@@ -225,35 +254,51 @@ export default function App() {
     setActiveChild((prev) => {
       const merged = { ...prev, ...updated };
       setAllChildren((all) => all.map((c) => (c.id === merged.id ? merged : c)));
+      if (supabaseConfigured && isLoggedIn) updateChildRow(merged.id, updated).catch(console.error);
       return merged;
     });
   };
 
   // Link partner code
-  const handleLinkPartnerCode = (code: string): boolean => {
-    const cleanCode = code.trim().toUpperCase();
-    if (!cleanCode.startsWith('KUCHU-')) return false;
-
-    setActiveChild((prev) => {
-      const existing = prev.linkedPartners || [];
-      const newPartner = currentLang === 'bn' ? 'জীবনসঙ্গী (পার্টনার)' : 'Co-Parent (Partner)';
-      if (!existing.includes(newPartner)) {
-        return { ...prev, linkedPartners: [...existing, newPartner] };
+  const handleLinkPartnerCode = async (code: string): Promise<boolean> => {
+    try {
+      await redeemPartnerCode(code);
+      const children = await loadChildren();
+      if (children.length > 0) {
+        setAllChildren(children);
+        setActiveChild(children[children.length - 1]);
       }
-      return prev;
-    });
-    return true;
+      setIsLoggedIn(true);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   // Onboarding questionnaire completion
-  const handleOnboardingComplete = (profile: ChildProfile) => {
-    try {
-      localStorage.setItem('kuchupuchu_is_logged_in', 'true');
-    } catch (e) {
-      console.error(e);
+  const handleOnboardingComplete = async (profile: ChildProfile, credentials?: { email: string; password: string }) => {
+    let saved = profile;
+    if (supabaseConfigured && credentials) {
+      try {
+        const result = await signUpWithEmail(credentials.email.trim(), credentials.password, currentLang === 'bn' ? profile.motherNameBn : profile.motherNameEn);
+        if (!result.session) {
+          window.alert(currentLang === 'bn' ? 'আপনার ইমেইলে পাঠানো লিংকে ক্লিক করে নিশ্চিত করুন, তারপর লগইন করুন।' : 'Please confirm your email using the link we sent, then log in.');
+          setOnboardingModalOpen(false);
+          return;
+        }
+        saved = await createChild(profile);
+        try {
+          saved = { ...saved, partnerCode: await getOrCreatePartnerCode(saved.id) };
+        } catch (e) {
+          console.error(e);
+        }
+      } catch (e) {
+        window.alert(e instanceof Error ? e.message : 'Signup failed');
+        return;
+      }
     }
-    setAllChildren((prev) => [profile, ...prev]);
-    setActiveChild(profile);
+    setAllChildren((prev) => [saved, ...prev.filter((c) => c.id !== saved.id)]);
+    setActiveChild(saved);
     setIsLoggedIn(true);
     setOnboardingModalOpen(false);
     setActiveTab('dashboard');
@@ -261,11 +306,6 @@ export default function App() {
 
   // Auth Success
   const handleAuthSuccess = (newChild?: Partial<ChildProfile>) => {
-    try {
-      localStorage.setItem('kuchupuchu_is_logged_in', 'true');
-    } catch (e) {
-      console.error(e);
-    }
     setIsLoggedIn(true);
     setAuthGateModalOpen(false);
     setAuthModalOpen(false);
@@ -294,6 +334,15 @@ export default function App() {
       };
       setAllChildren((prev) => [createdChild, ...prev]);
       setActiveChild(createdChild);
+      if (supabaseConfigured) {
+        createChild(createdChild)
+          .then(async (saved) => {
+            const withCode = { ...saved, partnerCode: await getOrCreatePartnerCode(saved.id).catch(() => '') };
+            setAllChildren((prev) => prev.map((c) => (c.id === createdChild.id ? withCode : c)));
+            setActiveChild(withCode);
+          })
+          .catch(console.error);
+      }
     }
     if (newChild && newChild.nameBn) {
       setActiveTab('dashboard');
@@ -306,11 +355,11 @@ export default function App() {
   // Completely resets user session, clears localStorage, returns cleanly to home page and scrolls to top
   const handleLogout = () => {
     try {
-      localStorage.setItem('kuchupuchu_is_logged_in', 'false');
       localStorage.removeItem('kuchupuchu_active_child');
     } catch (e) {
       console.error(e);
     }
+    if (supabaseConfigured) signOut().catch(console.error);
     setIsLoggedIn(false);
     setActiveTab('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -615,9 +664,9 @@ export default function App() {
           setAuthMode('login');
           setAuthModalOpen(true);
         }}
-        onComplete={(profile) => {
+        onComplete={(profile, credentials) => {
           setOnboardingChildName('');
-          handleOnboardingComplete(profile);
+          handleOnboardingComplete(profile, credentials);
         }}
       />}
 

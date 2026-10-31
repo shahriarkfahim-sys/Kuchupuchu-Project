@@ -1,6 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+const url = import.meta.env.VITE_SUPABASE_URL;
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseConfigured = Boolean(url && key);
+
+// The publishable key is safe in the browser: Row Level Security protects all data.
+export const supabase = createClient(url ?? 'http://localhost:54321', key ?? 'missing-key', {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+});

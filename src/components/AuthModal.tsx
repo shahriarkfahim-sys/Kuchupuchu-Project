@@ -4,6 +4,8 @@ import { ChildProfile, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { calculateAgeFromBirthDate } from '../utils/ecdAssessment';
 import { LocalizedDateInput } from './LocalizedDateInput';
+import { signInWithEmail, signUpWithEmail } from '../lib/db';
+import { supabaseConfigured } from '../lib/supabase';
 
 interface AuthModalProps {
   currentLang: Language;
@@ -24,31 +26,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [activeMode, setActiveMode] = useState<'login' | 'register'>(mode);
   
   // Form fields
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [parentName, setParentName] = useState('');
   const [childName, setChildName] = useState('');
   const [birthDate, setBirthDate] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeMode === 'register' && childName && birthDate) {
-      const { ageMonths, ageDays } = calculateAgeFromBirthDate(birthDate);
-
-      onSuccess({
-        nameBn: childName,
-        nameEn: childName,
-        birthDate: birthDate,
-        motherNameBn: parentName || 'আম্মু',
-        motherNameEn: parentName || 'Mother',
-        ageMonths,
-        ageDays,
-      });
-    } else {
-      onSuccess();
+    setError(null);
+    if (!supabaseConfigured) {
+      setError(currentLang === 'bn' ? 'সার্ভার সংযোগ সেট করা হয়নি।' : 'Server connection is not configured.');
+      return;
     }
-    onClose();
+    setBusy(true);
+    try {
+      if (activeMode === 'register') {
+        const result = await signUpWithEmail(email.trim(), password, parentName.trim() || undefined);
+        if (!result.session) {
+          setError(currentLang === 'bn' ? 'ইমেইল নিশ্চিত করে তারপর লগইন করুন।' : 'Please confirm your email, then log in.');
+          return;
+        }
+        const { ageMonths, ageDays } = calculateAgeFromBirthDate(birthDate);
+        onSuccess({
+          nameBn: childName,
+          nameEn: childName,
+          birthDate,
+          motherNameBn: parentName || 'আম্মু',
+          motherNameEn: parentName || 'Mother',
+          ageMonths,
+          ageDays,
+        });
+      } else {
+        await signInWithEmail(email.trim(), password);
+        onSuccess();
+      }
+      onClose();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(
+        /invalid login/i.test(msg)
+          ? currentLang === 'bn' ? 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।' : 'Incorrect email or password.'
+          : msg || (currentLang === 'bn' ? 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।' : 'Something went wrong. Please try again.')
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleDemoLogin = () => {
@@ -157,29 +184,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           <div>
-            <label className="block font-semibold text-[#2D3142] mb-1">
-              {t.phoneLabel}
+            <label htmlFor="auth-email" className="block font-semibold text-[#2D3142] mb-1">
+              {currentLang === 'bn' ? 'ইমেইল' : 'Email'}
             </label>
             <input
-              type="tel"
+              id="auth-email"
+              type="email"
               required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder={currentLang === 'bn' ? '০১৭১২-XXXXXX' : '01712-XXXXXX'}
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
             />
           </div>
 
+          <div>
+            <label htmlFor="auth-password" className="block font-semibold text-[#2D3142] mb-1">
+              {currentLang === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
+            </label>
+            <input
+              id="auth-password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete={activeMode === 'login' ? 'current-password' : 'new-password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#EED9C7] bg-[#FFFAF5] focus:bg-white focus:outline-none focus:border-[#FFB07C]"
+            />
+          </div>
+
+          {error && <p role="alert" className="text-[#B42318] font-semibold">{error}</p>}
+
           <button
             type="submit"
-            className="w-full py-2.5 bg-[#FF8552] hover:bg-[#E67332] text-white font-semibold rounded-xl shadow-xs transition-colors"
+            disabled={busy}
+            className="w-full py-2.5 disabled:opacity-60 bg-[#FF8552] hover:bg-[#E67332] text-white font-semibold rounded-xl shadow-xs transition-colors"
           >
             {activeMode === 'login' ? t.submitLogin : t.submitRegister}
           </button>
         </form>
 
-        {/* Demo Fast Login */}
-        <div className="pt-2 border-t border-[#F3E7DC] space-y-2">
+        {/* Demo Fast Login (only when Supabase is not configured) */}
+        {!supabaseConfigured && <div className="pt-2 border-t border-[#F3E7DC] space-y-2">
           <button
             type="button"
             onClick={handleDemoLogin}
@@ -188,7 +235,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <Sparkles className="w-4 h-4" />
             <span>{t.demoLoginBtn}</span>
           </button>
-        </div>
+        </div>}
 
       </div>
     </div>

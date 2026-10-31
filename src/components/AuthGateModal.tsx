@@ -19,7 +19,7 @@ interface AuthGateModalProps {
   onClose: () => void;
   targetTab?: string;
   onSuccessLogin: (profile?: Partial<ChildProfile>) => void;
-  onLinkPartnerCode: (code: string) => boolean;
+  onLinkPartnerCode: (code: string) => boolean | Promise<boolean>;
   onOpenOnboarding: () => void;
 }
 
@@ -56,13 +56,13 @@ export const AuthGateModal: React.FC<AuthGateModalProps> = ({
     }
   };
 
-  const handlePartnerCodeSubmit = (e: React.FormEvent) => {
+  const handlePartnerCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPartnerCodeError(null);
     const clean = partnerCodeInput.trim().toUpperCase();
     if (!clean) return;
 
-    const success = onLinkPartnerCode(clean);
+    const success = await onLinkPartnerCode(clean);
     if (success) {
       onSuccessLogin();
       onClose();

@@ -7,7 +7,7 @@ interface PartnerCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   activeChild: ChildProfile;
-  onLinkPartnerCode: (code: string) => boolean;
+  onLinkPartnerCode: (code: string) => boolean | Promise<boolean>;
 }
 
 export const PartnerCodeModal: React.FC<PartnerCodeModalProps> = ({
@@ -32,11 +32,11 @@ export const PartnerCodeModal: React.FC<PartnerCodeModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLinkSubmit = (e: React.FormEvent) => {
+  const handleLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCode.trim()) return;
 
-    const success = onLinkPartnerCode(inputCode.trim().toUpperCase());
+    const success = await onLinkPartnerCode(inputCode.trim().toUpperCase());
     if (success) {
       setFeedbackMsg({
         type: 'success',
