@@ -178,11 +178,17 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
 
   const handleEmailSignup = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setPassword('');
+    // Keep the password in memory until the final step; it is sent to Supabase Auth once and then cleared.
     setStep(1);
   };
 
-  const handleProviderSignup = () => setStep(1);
+  const handleProviderSignup = () => {
+    window.alert(
+      currentLang === 'bn'
+        ? 'এই সাইন-ইন পদ্ধতি শীঘ্রই আসছে। অনুগ্রহ করে ইমেইল দিয়ে এগিয়ে যান।'
+        : 'This sign-in method is coming soon. Please continue with email.'
+    );
+  };
 
   const handleFinishOnboarding = () => {
     const isPregnant = babyStatus === 'on_the_way';
@@ -244,6 +250,7 @@ export const OnboardingFlowModal: React.FC<OnboardingFlowModalProps> = ({
     }
 
     onComplete(finalChild, email && password ? { email, password } : undefined);
+    setPassword('');
   };
 
   return (

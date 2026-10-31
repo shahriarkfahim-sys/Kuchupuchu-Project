@@ -278,6 +278,10 @@ export default function App() {
   // Onboarding questionnaire completion
   const handleOnboardingComplete = async (profile: ChildProfile, credentials?: { email: string; password: string }) => {
     let saved = profile;
+    if (supabaseConfigured && !credentials) {
+      window.alert(currentLang === 'bn' ? 'অ্যাকাউন্ট তৈরি করতে ইমেইল ও পাসওয়ার্ড দিন।' : 'Please sign up with an email and password.');
+      return;
+    }
     if (supabaseConfigured && credentials) {
       try {
         const result = await signUpWithEmail(credentials.email.trim(), credentials.password, currentLang === 'bn' ? profile.motherNameBn : profile.motherNameEn);
