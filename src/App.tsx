@@ -22,7 +22,6 @@ import { AuthGateCard } from './components/AuthGateCard';
 import { ParentDashboard, ParentDashboardSidebar } from './components/ParentDashboard';
 import { calculateAgeFromBirthDate } from './utils/ecdAssessment';
 
-const HeaderBanner = lazy(() => import('./components/HeaderBanner').then((module) => ({ default: module.HeaderBanner })));
 const WormGraphView = lazy(() => import('./components/WormGraphView').then((module) => ({ default: module.WormGraphView })));
 const DailyActivityModule = lazy(() => import('./components/DailyActivityModule').then((module) => ({ default: module.DailyActivityModule })));
 const BabyRoutineTracker = lazy(() => import('./components/BabyRoutineTracker').then((module) => ({ default: module.BabyRoutineTracker })));
@@ -401,29 +400,20 @@ export default function App() {
           <ParentDashboard
             currentLang={currentLang}
             activeChild={activeChild}
+            activities={activities}
             activitiesCount={activities.length}
             completedActivitiesCount={completedActivitiesCount}
             milestonesCount={milestones.length}
             achievedMilestonesCount={achievedMilestonesCount}
+            routineLogs={routineLogs}
+            growthLogs={growthLogs}
             onNavigate={handleSelectTab}
-          >
-            <HeaderBanner
-              currentLang={currentLang}
-              activeChild={activeChild}
-              completedActivitiesCount={completedActivitiesCount}
-              totalActivitiesCount={activities.length}
-              achievedMilestonesCount={achievedMilestonesCount}
-              totalMilestonesCount={milestones.length}
-              onNavigateToTracker={() => handleSelectTab('ogrogoti-graph')}
-              onNavigateToPlay={() => handleSelectTab('daily-play')}
-              onNavigateToDiary={() => handleSelectTab('baby-diary')}
-              onSelectMood={handleSelectMood}
-              onOpenWeatherModal={() => setWeatherModalOpen(true)}
-              onOpenPartnerModal={() => setPartnerModalOpen(true)}
-              onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
-              subscription={subscription}
-            />
-          </ParentDashboard>
+            onSelectMood={handleSelectMood}
+            onOpenWeatherModal={() => setWeatherModalOpen(true)}
+            onOpenPartnerModal={() => setPartnerModalOpen(true)}
+            onOpenSubscriptionModal={() => setSubscriptionModalOpen(true)}
+            subscription={subscription}
+          />
         )}
 
         {activeTab === 'ponno' && <PonnoPage currentLang={currentLang} />}
